@@ -8,17 +8,21 @@ Quickstart (zero infra, zero API):
 """
 from .backends.fuseki import FusekiGraph
 from .backends.memory import InMemoryGraph, InMemoryVector
-from .facade import build_inmemory
+from .facade import build_inmemory, from_csv, from_fuseki, from_jsonl, from_triples
 from .llm import CallableLLM, EchoLLM
 from .models import Chunk, Node, SearchResult, Triple
 from .oneshot import OmniFuse
 from .protocols import LLM, GraphStore, VectorStore
 from .text import BM25, tokenize
 
-__version__ = "0.1.0"
+__version__ = "0.2.0"
 __all__ = [
     "OmniFuse",
     "build_inmemory",
+    "from_triples",
+    "from_jsonl",
+    "from_csv",
+    "from_fuseki",
     "Node",
     "Triple",
     "Chunk",

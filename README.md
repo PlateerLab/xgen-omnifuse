@@ -8,10 +8,23 @@ pure-Python in-memory backend (dict + BM25), and swaps to Fuseki / Qdrant / any 
 passing objects that match three small protocols.
 
 ```python
-from omnifuse import build_inmemory, Node, Triple, Chunk
+from omnifuse import from_triples
 
-of = build_inmemory(nodes, triples, chunks)        # in-memory, no DB, no API key
-print(of.search("불법도박 관련 규정").answer)
+of = from_triples(                                  # nodes are inferred; no DB, no API key
+    [("담보", "instanceOf", "규정"), ("담보", "한도", "5억")],
+    chunks=[("c1", "담보 한도는 5억원이다", ["담보"])],
+)
+print(of.search("담보 한도").answer)
+```
+
+Load however you have the data — all zero-dep, same `search()`:
+
+```python
+from omnifuse import from_jsonl, from_csv, from_fuseki, build_inmemory
+of = from_jsonl(triples="t.jsonl", chunks="c.jsonl")
+of = from_csv(triples="triples.csv", chunks="chunks.csv")
+of = from_fuseki("http://localhost:3030/ds/query", graph_uri="urn:g", user="admin", password="…")
+of = build_inmemory(nodes, triples, chunks)         # explicit Node/Triple/Chunk
 ```
 
 ## Why graph fusion (not just vectors)

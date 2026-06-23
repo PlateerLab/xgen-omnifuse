@@ -1,6 +1,15 @@
 # Changelog
 
-## 0.1.0 (unreleased)
+## 0.2.0
+
+- Convenience loaders so you can give loose data and search immediately (synaptic `from_data` style):
+  - `from_triples(triples, chunks=...)` — accepts `(s, p, o)` tuples / dicts / `Triple`; **infers nodes**
+    (object of an is-a edge → class) when none are given.
+  - `from_jsonl(triples=, nodes=, chunks=)` and `from_csv(triples=, chunks=)` — stdlib json/csv, zero deps.
+  - `from_fuseki(query_url, graph_uri, user=, password=)` — one call over any SPARQL endpoint.
+- `build_inmemory` now coerces loose tuples/dicts too.
+
+## 0.1.0
 
 Initial extraction of the one-shot GraphRAG fusion algorithm as a backend-agnostic library.
 
