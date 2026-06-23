@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.3.0
+
+- `Memory` — a growing store built on OmniFuse search. `remember()` facts/notes over time,
+  `recall()` via the same one-shot graph+vector fusion. Notes auto-link to known entities by
+  label; `save()/load()` JSONL persistence. (synaptic-memory–style memory on omnifuse's engine.)
+
 ## 0.2.0
 
 - Convenience loaders so you can give loose data and search immediately (synaptic `from_data` style):

@@ -129,6 +129,21 @@ works on **any** SPARQL 1.1 store — not just jena-text.
 - reranker / cross-encoder hook, query expansion
 - configurable ISA predicates and prompt templates (per domain/language)
 
+## Memory (remember / recall)
+
+A growing store built on the same fusion search — `remember()` facts & notes over time,
+`recall()` pulls them back. Zero infra; notes auto-link to known entities; persists to JSONL.
+
+```python
+from omnifuse import Memory
+
+m = Memory()
+m.add_fact("담보", "instanceOf", "규정")
+m.remember("담보 한도는 5억원이다", triples=[("담보", "한도", "5억")])
+print(m.recall("담보 한도").answer)     # fusion search over everything remembered
+m.save("mem.jsonl"); m2 = Memory.load("mem.jsonl")
+```
+
 ## CI / Releasing
 
 - `ci.yml` — runs pytest (3.10–3.12) + `python -m build` + `twine check` on every push/PR.
