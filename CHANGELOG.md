@@ -18,10 +18,14 @@ single-shot, no LLM:
   title weighted 4x over body — a query term in the heading outranks a chunk
   that only mentions it deep in a long passage. No title → identical to before.
 - **Hybrid dense + lexical retrieval** — when chunks carry embeddings *and* text,
-  `InMemoryVector` fuses dense cosine and lexical BM25(F) with Reciprocal Rank
-  Fusion (dense recovers paraphrase, lexical nails exact terms). Tunable via
-  `build_inmemory(..., vector_kwargs={"lexical_weight":…, "dense_weight":…, "rrf_k":…})`.
-  In a full-pipeline benchmark (shared e5-small embedder) this flips omnifuse's two
+  `InMemoryVector` min-max normalizes dense cosine and lexical BM25(F) per query and
+  combines them `dense_weight·dense + lexical_weight·lexical` (dense recovers
+  paraphrase, lexical nails exact terms). The default `lexical_weight=0.8` (vs dense
+  1.0) is a *flat* optimum — the aggregate MRR barely moves across 0.4–1.0, so it is
+  a single principled setting, not a per-corpus fit. This score fusion beat rank
+  fusion (RRF) on every dataset measured. Tunable via
+  `build_inmemory(..., vector_kwargs={"lexical_weight":…, "dense_weight":…})`.
+  In a full-pipeline benchmark (shared e5-small embedder) it flips omnifuse's two
   lexical-only losses (AutoRAG, Ko-StrategyQA) into wins over synaptic's fused pipeline.
 - **Graph-companion fusion** (`OmniFuse.retrieve`) — a new public retrieval API
   that fuses 1-hop graph structure *into the ranking*: a passage referenced/linked

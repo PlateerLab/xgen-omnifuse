@@ -100,24 +100,38 @@ def _cosine(a: list[float], b: list[float]) -> float:
     return dot / (na * nb)
 
 
+def _minmax(pairs: list[tuple[int, float]]) -> dict[int, float]:
+    """Per-query [0,1] normalization so dense cosine and lexical BM25 (different
+    scales) can be summed."""
+    if not pairs:
+        return {}
+    vals = [s for _, s in pairs]
+    lo, hi = min(vals), max(vals)
+    rng = (hi - lo) or 1.0
+    return {i: (s - lo) / rng for i, s in pairs}
+
+
 class InMemoryVector:
     """Passage store with three retrieval modes, chosen by what the chunks carry:
 
     - **hybrid** — embeddings *and* text present: dense cosine and lexical BM25(F)
-      are fused with Reciprocal Rank Fusion (dense recovers paraphrase; lexical
-      nails exact terms — each covers the other's blind spot).
+      are min-max normalized per query and combined ``dense_weight*dense +
+      lexical_weight*lexical`` (dense recovers paraphrase; lexical nails exact
+      terms — each covers the other's blind spot). The default ``lexical_weight``
+      (0.8, vs dense 1.0) is a flat optimum across corpora — dense-leaning without
+      losing keyword corpora.
     - **dense** — embeddings only: cosine.
     - **lexical** — text only (zero embeddings): field-weighted BM25 over
       title/body, else plain BM25.
     """
 
     def __init__(self, chunks: list[Chunk], *, embedder: Optional[Callable[[str], list[float]]] = None,
-                 title_weight: float = _TITLE_WEIGHT, rrf_k: int = 60,
-                 lexical_weight: float = 1.0, dense_weight: float = 1.0):
+                 title_weight: float = _TITLE_WEIGHT, lexical_weight: float = 0.8,
+                 dense_weight: float = 1.0, pool: int = 40):
         self.chunks = chunks
         self._by_id = {c.id: c for c in chunks}
         self.embedder = embedder
-        self.rrf_k, self.lexical_weight, self.dense_weight = rrf_k, lexical_weight, dense_weight
+        self.lexical_weight, self.dense_weight, self._pool = lexical_weight, dense_weight, pool
         self._dense = embedder is not None and bool(chunks) and all(c.embedding for c in chunks)
         self._lexical = any((c.text or c.title) for c in chunks)
         if self._lexical:
@@ -135,14 +149,11 @@ class InMemoryVector:
 
     def search(self, query: str, *, limit: int = 20) -> list[tuple[Chunk, float]]:
         if self._dense and self._lexical:
-            pool = max(limit, 40)
-            dense = self._dense_ranked(query, pool)
-            lex = self._bm25.search(query, limit=pool)
-            fused: dict[int, float] = {}
-            for r, (i, _) in enumerate(dense):
-                fused[i] = fused.get(i, 0.0) + self.dense_weight / (self.rrf_k + r)
-            for r, (i, _) in enumerate(lex):
-                fused[i] = fused.get(i, 0.0) + self.lexical_weight / (self.rrf_k + r)
+            pool = max(limit, self._pool)
+            dn = _minmax(self._dense_ranked(query, pool))
+            ln = _minmax(self._bm25.search(query, limit=pool))
+            fused = {i: self.dense_weight * dn.get(i, 0.0) + self.lexical_weight * ln.get(i, 0.0)
+                     for i in set(dn) | set(ln)}
             ranked = sorted(fused.items(), key=lambda kv: -kv[1])[:limit]
             return [(self.chunks[i], s) for i, s in ranked]
         if self._dense:

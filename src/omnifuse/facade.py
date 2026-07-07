@@ -23,8 +23,8 @@ def build_inmemory(nodes, triples, chunks, *, llm=None,
                    vector_kwargs: Optional[dict] = None, **kwargs) -> OmniFuse:
     """Build an OmniFuse over zero-infra in-memory backends from Node/Triple/Chunk lists.
 
-    ``vector_kwargs`` tunes the passage store (``title_weight``, ``rrf_k``,
-    ``lexical_weight``, ``dense_weight`` for the hybrid dense+lexical fusion).
+    ``vector_kwargs`` tunes the passage store (``title_weight`` for field-weighted
+    BM25; ``lexical_weight``/``dense_weight`` for the hybrid dense+lexical fusion).
     """
     graph = InMemoryGraph([to_node(n) for n in nodes], [to_triple(t) for t in triples])
     vector = InMemoryVector([to_chunk(c) for c in chunks], embedder=embedder, **(vector_kwargs or {}))

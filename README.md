@@ -134,20 +134,38 @@ of = OmniFuse(graph, InMemoryVector([]))   # search() unchanged
 `FusekiGraph` is stdlib-only (urllib) and uses portable `FILTER(CONTAINS(...))`, so it
 works on **any** SPARQL 1.1 store — not just jena-text.
 
-## Benchmarks — vs synaptic-memory
+## Benchmarks — vs synaptic-memory (OmniFuse v0.5.0)
 
 Head-to-head on synaptic-memory's own eval data, its own metric (`eval/metrics.py`,
-MRR@10), single-shot. Full harness + numbers in [`eval/`](eval/) and
+MRR@10), single-shot, k=10. synaptic's column is its *own* `run_all` FTS-only path.
+Full harness + numbers in [`eval/`](eval/) and
 [`docs/comparison/omnifuse_vs_synaptic.md`](docs/comparison/omnifuse_vs_synaptic.md).
 
-- **finreg** (4,417 Korean statutes) — single-hop MRR **0.840 vs 0.704**; multi-hop
-  strict-solved **103/120 vs 56/120**, one-shot with **no LLM** — beating synaptic's
-  own 5-turn LLM agent (88/120). This is graph-companion fusion following `제N조`
-  citations.
-- **10-dataset sweep** (finreg + 8 public IR sets: HotPotQA, Allganize, KLUE,
-  PublicHealthQA, AutoRAG, Ko-StrategyQA). Lexical/zero-dep: OmniFuse **7 wins, 1 tie,
-  2 losses** (avg MRR 0.829 vs 0.809). With a shared dense embedder (full-pipeline),
-  the two lexical losses **flip to wins** and OmniFuse leads **9/10** best-mode.
+**Zero-dependency / lexical track** — every synaptic-shipped dataset:
+
+| dataset | synaptic (FTS) | **OmniFuse** | winner |
+|---|---:|---:|---|
+| **finreg** single-hop | 0.7039 | **0.8401** | OmniFuse |
+| **finreg** multi-hop (strict/120) | 56 | **103** | OmniFuse |
+| HotPotQA-24 | 0.8879 | **0.9077** | OmniFuse |
+| HotPotQA-200 | 0.8775 | **0.8908** | OmniFuse |
+| Allganize RAG-ko | 0.9562 | **0.9679** | OmniFuse |
+| Allganize RAG-Eval | 0.9303 | **0.9319** | OmniFuse |
+| KLUE-MRC | 0.7718 | **0.8192** | OmniFuse |
+| PublicHealthQA | 0.6065 | 0.6065 | tie |
+| AutoRAG | **0.9053** | 0.8924 | synaptic |
+| Ko-StrategyQA | **0.6440** | 0.6242 | synaptic |
+| **average MRR** | 0.809 | **0.829** | **OmniFuse** |
+
+**7 wins, 1 tie, 2 losses** — zero deps (no morphological analyzer) vs synaptic's Kiwi.
+The finreg multi-hop **103/120 is one-shot, no LLM** — beating synaptic's own 5-turn
+LLM agent (88/120) via graph-companion fusion following `제N조` citations.
+
+**Full-pipeline track** (shared `multilingual-e5-small` embedder, both sides): OmniFuse's
+dense+lexical hybrid **flips its two lexical losses (AutoRAG, Ko-StrategyQA) to wins**
+and leads the fused-vs-fused comparison **6/7** (only PublicHealthQA to synaptic, and
+that is embedder-dependent — OmniFuse wins it with bge-m3). See
+[`eval/results/full_pipeline_e5.json`](eval/results/full_pipeline_e5.json).
 
 ```bash
 python eval/finreg_bench.py                        # finreg, self-contained
