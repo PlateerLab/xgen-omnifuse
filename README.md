@@ -60,8 +60,11 @@ class LLM(Protocol):
 ```
 
 - **Zero-infra default** — `InMemoryGraph` indexes node labels with **BM25** (CJK
-  character n-grams, so Korean/CJK search works with no morphological analyzer), and
-  `InMemoryVector` uses cosine when embeddings are present, else BM25 lexical.
+  character n-grams, so Korean/CJK search works with no morphological analyzer).
+  `InMemoryVector` picks its mode from what the chunks carry: **hybrid** (dense
+  cosine ⊕ lexical BM25 fused by Reciprocal Rank Fusion) when embeddings *and*
+  text are present, **dense** cosine with embeddings only, else **field-weighted
+  BM25** (`BM25F`) that scores a chunk's short `title` above its body.
 - **`dependencies = []`** — the core needs nothing but the standard library. Real backends
   are optional extras (`pip install "xgen-omnifuse[fuseki,qdrant]"`).
 - **Bring your own LLM** — pass anything with `generate(...)`; the bundled `EchoLLM`
@@ -69,13 +72,22 @@ class LLM(Protocol):
 
 ## The pipeline (`OmniFuse.search`)
 
-1. vector/lexical seed → adaptive top-k (score-distribution cut, not fixed k)
+1. vector/lexical seed + **1-hop graph fusion** → adaptive top-k (score-distribution cut, not fixed k)
 2. graph label-linking → 1-hop relations
 3. class enumeration (complete list/count)
 4. HippoRAG — entities of the retrieved chunks → 1-hop expansion
 5. evidence assembled with **MMR** diversity (Jaccard, no embeddings needed)
 6. one LLM synthesis over the fused evidence
 7. honest `evidence_nodes` — only the nodes the answer actually cites
+
+### `OmniFuse.retrieve` — ranking, not just synthesis
+
+`retrieve(question)` returns the ranked `(chunk, score)` list with no LLM call —
+use it directly for search/eval. On top of the vector seed it does **graph-companion
+fusion**: a passage that a strong seed *references/links to* is surfaced beside it
+(companion score = `fusion_alpha` × seed), so multi-hop evidence that shares no query
+vocabulary lands in one shot — no agent, no LLM. `search()` builds its chunks and
+evidence on `retrieve()`. Opt out with `graph_fusion=False`.
 
 ## Install
 
@@ -95,14 +107,14 @@ python examples/quickstart.py
 ```
 src/omnifuse/
   protocols.py     # GraphStore / VectorStore / LLM  (the swap points)
-  models.py        # Node, Triple, Chunk, SearchResult
-  text.py          # tokenizer + BM25 (CJK n-grams)
+  models.py        # Node, Triple, Chunk (+ optional title), SearchResult
+  text.py          # tokenizer + BM25 + BM25F (field-weighted, CJK n-grams)
   fusion.py        # MMR, adaptive top-k, relation ranking
-  oneshot.py       # OmniFuse.search — the fusion algorithm
-  backends/memory.py  # InMemoryGraph + InMemoryVector (zero infra)
+  oneshot.py       # OmniFuse.search / retrieve — the fusion algorithm
+  backends/memory.py  # InMemoryGraph + InMemoryVector (hybrid/dense/lexical, zero infra)
   llm.py           # EchoLLM, CallableLLM
   facade.py        # build_inmemory(...)
-examples/  tests/
+examples/  tests/  eval/   # eval/ = head-to-head benchmark vs synaptic-memory
 ```
 
 ## Two interchangeable modes (same algorithm)
@@ -122,11 +134,31 @@ of = OmniFuse(graph, InMemoryVector([]))   # search() unchanged
 `FusekiGraph` is stdlib-only (urllib) and uses portable `FILTER(CONTAINS(...))`, so it
 works on **any** SPARQL 1.1 store — not just jena-text.
 
+## Benchmarks — vs synaptic-memory
+
+Head-to-head on synaptic-memory's own eval data, its own metric (`eval/metrics.py`,
+MRR@10), single-shot. Full harness + numbers in [`eval/`](eval/) and
+[`docs/comparison/omnifuse_vs_synaptic.md`](docs/comparison/omnifuse_vs_synaptic.md).
+
+- **finreg** (4,417 Korean statutes) — single-hop MRR **0.840 vs 0.704**; multi-hop
+  strict-solved **103/120 vs 56/120**, one-shot with **no LLM** — beating synaptic's
+  own 5-turn LLM agent (88/120). This is graph-companion fusion following `제N조`
+  citations.
+- **10-dataset sweep** (finreg + 8 public IR sets: HotPotQA, Allganize, KLUE,
+  PublicHealthQA, AutoRAG, Ko-StrategyQA). Lexical/zero-dep: OmniFuse **7 wins, 1 tie,
+  2 losses** (avg MRR 0.829 vs 0.809). With a shared dense embedder (full-pipeline),
+  the two lexical losses **flip to wins** and OmniFuse leads **9/10** best-mode.
+
+```bash
+python eval/finreg_bench.py                        # finreg, self-contained
+python eval/public_bench.py --synaptic-repo PATH   # the 8 public datasets
+```
+
 ## Roadmap
 
 - `backends/qdrant.py` vector adapter; jena-text fast path for `FusekiGraph`
 - async pipeline (parallel seeds via `asyncio.gather`)
-- reranker / cross-encoder hook, query expansion
+- cross-encoder reranker hook, query expansion
 - configurable ISA predicates and prompt templates (per domain/language)
 
 ## Vault — fuse / surface (omnifuse-native memory)

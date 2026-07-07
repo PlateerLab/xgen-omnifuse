@@ -1,0 +1,41 @@
+{
+  "benchmark": "OmniFuse vs synaptic-memory",
+  "date": "2026-07-07",
+  "omnifuse_version": "0.5.0",
+  "protocol": {
+    "mode": "single-shot retrieval, no LLM, no embedder",
+    "metric_module": "eval/metrics.py (identical to synaptic tests/benchmark/metrics.py)",
+    "k": 10,
+    "synaptic_runner": "synaptic eval.run_all.run_public_dataset / run_gt_corpus, embedder=None, reranker=None (FTS-only)",
+    "omnifuse_runner": "build_inmemory(...).retrieve(), field-weighted BM25F + graph-companion fusion"
+  },
+  "finreg": {
+    "corpus_articles": 4417,
+    "single_hop": {
+      "queries": 120,
+      "synaptic": {"mrr": 0.7039, "ndcg@10": 0.7410, "hit@10": "103/120"},
+      "omnifuse": {"mrr": 0.8401, "ndcg@10": 0.8686, "hit@10": "115/120"},
+      "winner": "omnifuse"
+    },
+    "multi_hop": {
+      "queries": 120,
+      "relevant_per_query": 2,
+      "synaptic": {"strict_solved": 56, "recall@10": 0.6667},
+      "omnifuse": {"strict_solved": 103, "recall@10": 0.9042},
+      "synaptic_llm_agent_reference": {"strict_solved": 88, "note": "5-turn LLM agent, docs/REPORT-rag-vs-synaptic.md"},
+      "winner": "omnifuse"
+    }
+  },
+  "public_datasets": [
+    {"name": "HotPotQA-24",        "lang": "en", "corpus": 226,  "synaptic_mrr": 0.8879, "omnifuse_mrr": 0.9077, "winner": "omnifuse"},
+    {"name": "HotPotQA-200",       "lang": "en", "corpus": 1990, "synaptic_mrr": 0.8775, "omnifuse_mrr": 0.8908, "winner": "omnifuse"},
+    {"name": "Allganize RAG-ko",   "lang": "ko", "corpus": 200,  "synaptic_mrr": 0.9562, "omnifuse_mrr": 0.9679, "winner": "omnifuse"},
+    {"name": "Allganize RAG-Eval", "lang": "ko", "corpus": 300,  "synaptic_mrr": 0.9303, "omnifuse_mrr": 0.9319, "winner": "omnifuse"},
+    {"name": "KLUE-MRC",           "lang": "ko", "corpus": 5841, "synaptic_mrr": 0.7718, "omnifuse_mrr": 0.8192, "winner": "omnifuse"},
+    {"name": "PublicHealthQA",     "lang": "ko", "corpus": 77,   "synaptic_mrr": 0.6065, "omnifuse_mrr": 0.6065, "winner": "tie"},
+    {"name": "AutoRAG",            "lang": "ko", "corpus": 720,  "synaptic_mrr": 0.9053, "omnifuse_mrr": 0.8924, "winner": "synaptic"},
+    {"name": "Ko-StrategyQA",      "lang": "ko", "corpus": 9251, "synaptic_mrr": 0.6440, "omnifuse_mrr": 0.6242, "winner": "synaptic"}
+  ],
+  "tally": {"omnifuse_wins": 7, "ties": 1, "synaptic_wins": 2, "total": 10,
+            "note": "7 wins incl. both finreg; 2 losses (AutoRAG, Ko-StrategyQA) are Korean morphology-sensitive sets"}
+}

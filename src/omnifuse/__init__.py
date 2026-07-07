@@ -16,7 +16,7 @@ from .oneshot import OmniFuse
 from .protocols import LLM, GraphStore, VectorStore
 from .text import BM25, tokenize
 
-__version__ = "0.4.0"
+__version__ = "0.5.0"
 __all__ = [
     "OmniFuse",
     "Vault",

@@ -24,6 +24,10 @@ class GraphStore(Protocol):
     def neighbors(self, node_id: str, *, hops: int = 1, limit: int = 100) -> list[tuple[str, str, str]]:
         """1-hop (or N-hop) relations around a node as (subj_label, predicate, obj_label)."""
 
+    def neighbor_ids(self, node_id: str, *, limit: int = 100) -> list[str]:
+        """Neighbor node ids of ``node_id`` — used to fuse graph structure into
+        the retrieval ranking (surface a cited/linked passage alongside its seed)."""
+
     def count_class(self, class_id: str) -> int:
         """Number of instances of a class."""
 

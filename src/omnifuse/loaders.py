@@ -26,7 +26,7 @@ def to_chunk(c) -> Chunk:
         return c
     if isinstance(c, dict):
         return Chunk(c["id"], c.get("text", ""), list(c.get("entities") or []),
-                     c.get("embedding"), dict(c.get("meta") or {}))
+                     c.get("embedding"), dict(c.get("meta") or {}), c.get("title", ""))
     # (id, text) or (id, text, entities)
     ents = list(c[2]) if len(c) > 2 and c[2] else []
     return Chunk(c[0], c[1] if len(c) > 1 else "", ents)

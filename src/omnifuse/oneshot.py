@@ -51,6 +51,10 @@ class OmniFuse:
         rel_limit: int = 40,
         seed_label_limit: int = 30,
         class_list_cap: int = 150,
+        graph_fusion: bool = True,
+        fusion_alpha: float = 0.9,
+        fusion_expand_top: int = 5,
+        fusion_neighbor_limit: int = 20,
         system_prompt: str = SYSTEM,
     ):
         self.graph = graph
@@ -66,10 +70,43 @@ class OmniFuse:
         self.rel_limit = rel_limit
         self.seed_label_limit = seed_label_limit
         self.class_list_cap = class_list_cap
+        self.graph_fusion = graph_fusion
+        self.fusion_alpha = fusion_alpha
+        self.fusion_expand_top = fusion_expand_top
+        self.fusion_neighbor_limit = fusion_neighbor_limit
+
+    def retrieve(self, question: str, *, limit: Optional[int] = None) -> list[tuple]:
+        """Ranked (chunk, score) fusing lexical/vector seeds with 1-hop graph
+        structure — a passage cited/linked by a strong seed is surfaced beside it
+        (companion score = ``fusion_alpha`` x seed), so multi-hop evidence that
+        shares no query vocabulary still lands in the ranking. Pure retrieval,
+        no LLM. ``search()`` builds on this; call it directly for ranking/eval.
+        """
+        limit = limit or self.vector_k
+        vhits = self.vector.search(question, limit=self.vector_k)
+        scores: dict[str, float] = {}
+        cmap: dict = {}
+        for c, sc in vhits:
+            scores[c.id] = sc
+            cmap[c.id] = c
+        if self.graph_fusion and vhits:
+            for c, sc in vhits[: self.fusion_expand_top]:
+                for tgt in self.graph.neighbor_ids(c.id, limit=self.fusion_neighbor_limit):
+                    cand = self.fusion_alpha * sc
+                    if cand <= scores.get(tgt, 0.0):
+                        continue
+                    if tgt not in cmap:
+                        got = self.vector.fetch([tgt])
+                        if not got:
+                            continue
+                        cmap[tgt] = got[0]
+                    scores[tgt] = cand
+        ranked = sorted(scores.items(), key=lambda kv: -kv[1])
+        return [(cmap[i], s) for i, s in ranked[:limit]]
 
     def search(self, question: str) -> SearchResult:
-        # 1) vector / lexical seed (adaptive top-k by score distribution)
-        vhits = self.vector.search(question, limit=self.vector_k)
+        # 1) vector / lexical seed + 1-hop graph fusion (adaptive top-k by score)
+        vhits = self.retrieve(question, limit=self.vector_k)
         chunks = dynamic_cut(vhits, ratio=self.sem_ratio, min_k=self.sem_min, max_k=self.sem_max)
 
         triples: list[tuple[str, str, str]] = []

@@ -97,6 +97,13 @@ class FusekiGraph:
             out.append((sl, self._local(self._val(b, "p")), ol))
         return out
 
+    def neighbor_ids(self, node_id: str, *, limit: int = 100) -> list[str]:
+        body = (f'{{ BIND(<{node_id}> AS ?s) ?s ?p ?o }} UNION {{ BIND(<{node_id}> AS ?o) ?s ?p ?o }} '
+                f'FILTER(?p != <{_RDF_TYPE}> && ?p != <{_RDFS_LABEL}>) '
+                f'BIND(IF(?s = <{node_id}>, ?o, ?s) AS ?n) FILTER(isIRI(?n))')
+        q = f"SELECT DISTINCT ?n WHERE {{ {self._g(body)} }} LIMIT {limit}"
+        return [self._val(b, "n") for b in self._query(q).get("results", {}).get("bindings", []) if self._val(b, "n")]
+
     def count_class(self, class_id: str) -> int:
         body = f'?i (<{_RDF_TYPE}>|<{_RDFS_SUBCLASS}>) <{class_id}>'
         q = f"SELECT (COUNT(DISTINCT ?i) AS ?c) WHERE {{ {self._g(body)} }}"

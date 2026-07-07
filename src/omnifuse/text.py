@@ -63,3 +63,70 @@ class BM25:
         scored = [(i, s) for i, s in scored if s > 0]
         scored.sort(key=lambda x: -x[1])
         return scored[:limit]
+
+
+class BM25F:
+    """Field-weighted BM25 — a short high-signal field (title/heading) counts for
+    more than the body, with per-field length normalization (Robertson's BM25F).
+
+    ``docs`` is a list of ``{field: tokens}`` dicts; ``weights`` maps field ->
+    boost. IDF is document-level (a term counts once across fields), so a query
+    term appearing in the title lifts the doc without double-charging IDF.
+    """
+
+    def __init__(self, docs: list[dict[str, list[str]]], weights: dict[str, float],
+                 *, k1: float = 1.5, b: float = 0.75):
+        self.k1, self.b = k1, b
+        self.fields = list(weights.keys())
+        self.w = weights
+        self.N = len(docs)
+        self.avglen = {}
+        for f in self.fields:
+            tot = sum(len(d.get(f, ())) for d in docs)
+            self.avglen[f] = (tot / self.N) if self.N else 0.0
+        self.doc_tf: list[dict[str, dict[str, int]]] = []
+        df: dict[str, int] = {}
+        self.postings: dict[str, set[int]] = {}
+        for i, d in enumerate(docs):
+            per_field: dict[str, dict[str, int]] = {}
+            present: set[str] = set()
+            for f in self.fields:
+                c: dict[str, int] = {}
+                for t in d.get(f, ()):
+                    c[t] = c.get(t, 0) + 1
+                per_field[f] = c
+                present.update(c)
+            self.doc_tf.append(per_field)
+            for t in present:
+                df[t] = df.get(t, 0) + 1
+                self.postings.setdefault(t, set()).add(i)
+        self.idf = {t: math.log(1 + (self.N - n + 0.5) / (n + 0.5)) for t, n in df.items()}
+
+    def score(self, q_tokens: list[str], i: int) -> float:
+        per_field = self.doc_tf[i]
+        s = 0.0
+        for t in set(q_tokens):
+            idf = self.idf.get(t)
+            if not idf:
+                continue
+            tfw = 0.0
+            for f in self.fields:
+                tf = per_field[f].get(t, 0)
+                if not tf:
+                    continue
+                dl = sum(per_field[f].values()) or 1
+                norm = 1 - self.b + self.b * dl / (self.avglen[f] or 1)
+                tfw += self.w[f] * tf / norm
+            if tfw:
+                s += idf * tfw * (self.k1 + 1) / (self.k1 + tfw)
+        return s
+
+    def search(self, query: str, *, limit: int = 20) -> list[tuple[int, float]]:
+        q = tokenize(query)
+        cand: set[int] = set()
+        for t in set(q):
+            cand |= self.postings.get(t, set())
+        scored = [(i, self.score(q, i)) for i in cand]
+        scored = [(i, s) for i, s in scored if s > 0]
+        scored.sort(key=lambda x: -x[1])
+        return scored[:limit]

@@ -27,7 +27,9 @@ class Triple:
 class Chunk:
     """A text passage. ``entities`` are node ids this chunk mentions.
 
-    ``embedding`` is optional — when absent, vector stores fall back to BM25.
+    ``title`` is an optional short high-signal field (heading, doc title, article
+    number) weighted above the body in lexical retrieval. ``embedding`` is
+    optional — when absent, vector stores fall back to BM25.
     """
 
     id: str
@@ -35,6 +37,7 @@ class Chunk:
     entities: list[str] = field(default_factory=list)
     embedding: Optional[list[float]] = None
     meta: dict[str, Any] = field(default_factory=dict)
+    title: str = ""
 
 
 @dataclass

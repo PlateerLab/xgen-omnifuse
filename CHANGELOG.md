@@ -1,5 +1,35 @@
 # Changelog
 
+## 0.5.0
+
+Retrieval quality — the ranking now uses field structure and graph structure,
+not just flat body BM25. Measured on the finreg corpus (4,417 Korean statute
+articles) against synaptic-memory's own eval metric (`metrics.py`, k=10),
+single-shot, no LLM:
+
+| | synaptic FTS-only | OmniFuse 0.5 |
+|---|---:|---:|
+| single-hop MRR@10 | 0.704 | **0.840** |
+| single-hop hit@10 | 103/120 | **115/120** |
+| multi-hop strict-solved | 56/120 | **103/120** |
+
+- **`Chunk.title`** — an optional short high-signal field. When any chunk carries
+  a title, `InMemoryVector` indexes it with **field-weighted BM25** (`text.BM25F`),
+  title weighted 4x over body — a query term in the heading outranks a chunk
+  that only mentions it deep in a long passage. No title → identical to before.
+- **Hybrid dense + lexical retrieval** — when chunks carry embeddings *and* text,
+  `InMemoryVector` fuses dense cosine and lexical BM25(F) with Reciprocal Rank
+  Fusion (dense recovers paraphrase, lexical nails exact terms). Tunable via
+  `build_inmemory(..., vector_kwargs={"lexical_weight":…, "dense_weight":…, "rrf_k":…})`.
+  In a full-pipeline benchmark (shared e5-small embedder) this flips omnifuse's two
+  lexical-only losses (AutoRAG, Ko-StrategyQA) into wins over synaptic's fused pipeline.
+- **Graph-companion fusion** (`OmniFuse.retrieve`) — a new public retrieval API
+  that fuses 1-hop graph structure *into the ranking*: a passage referenced/linked
+  by a strong lexical seed is surfaced beside it (score `fusion_alpha`×seed), so
+  multi-hop evidence sharing no query vocabulary lands in one shot — no agent, no
+  LLM. `search()` now builds its chunks/evidence on `retrieve()`. Opt out with
+  `graph_fusion=False`. Added `GraphStore.neighbor_ids` (InMemory + Fuseki).
+
 ## 0.4.0
 
 - Replaced `Memory` (remember/recall) with **`Vault`** — an omnifuse-native memory:

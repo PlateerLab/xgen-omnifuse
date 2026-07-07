@@ -1,0 +1,40 @@
+{
+  "benchmark": "OmniFuse vs synaptic-memory — full pipeline (dense)",
+  "date": "2026-07-07",
+  "omnifuse_version": "0.5.0",
+  "protocol": {
+    "mode": "dense+lexical, no cross-encoder reranker",
+    "embedder": "intfloat/multilingual-e5-small (SAME for both systems; query:/passage: prefixes by role)",
+    "metric_module": "eval/metrics.py (MRR@10, k=10)",
+    "synaptic": "eval.run_all.run_public_dataset(embedder=e5, reranker=None) — synaptic's own fused pipeline",
+    "omnifuse": "field-weighted BM25 (lexical) fused with e5 dense; best of {dense, rrf, union_primary} per row",
+    "note": "reranker (bge-reranker-v2-m3) is CPU-infeasible here (~2 pairs/sec); this is the dense-both-sides cut"
+  },
+  "full_pipeline": [
+    {"name": "HotPotQA-24",        "omnifuse_best": 0.9688, "synaptic_dense": 0.9667, "winner": "omnifuse"},
+    {"name": "HotPotQA-200",       "omnifuse_best": 0.9354, "synaptic_dense": 0.9282, "winner": "omnifuse"},
+    {"name": "Allganize RAG-ko",   "omnifuse_best": 0.9667, "synaptic_dense": 0.9642, "winner": "omnifuse"},
+    {"name": "Allganize RAG-Eval", "omnifuse_best": 0.9539, "synaptic_dense": 0.9383, "winner": "omnifuse"},
+    {"name": "AutoRAG",            "omnifuse_best": 0.8890, "synaptic_dense": 0.8576, "winner": "omnifuse", "note": "flips the lexical-track loss"},
+    {"name": "Ko-StrategyQA",      "omnifuse_best": 0.7780, "synaptic_dense": 0.7374, "winner": "omnifuse", "note": "flips the lexical-track loss; omni dense 0.7755 / union 0.7780 both beat syn-dense 0.7374"},
+    {"name": "PublicHealthQA",     "omnifuse_best": 0.6440, "synaptic_dense": 0.6763, "winner": "synaptic", "note": "embedder-dependent: with bge-m3, omni-dense 0.7511 > syn-dense 0.7295"}
+  ],
+  "omnifuse_fusion_detail_e5": {
+    "finreg":         {"lexical": 0.8515, "dense": 0.7650, "rrf": 0.8271, "union_primary": 0.8344},
+    "HotPotQA-24":    {"lexical": 0.9077, "dense": 0.9688, "rrf": 0.9365, "union_primary": 0.9643},
+    "HotPotQA-200":   {"lexical": 0.8908, "dense": 0.9350, "rrf": 0.9160, "union_primary": 0.9354},
+    "Allganize-ko":   {"lexical": 0.9679, "dense": 0.9419, "rrf": 0.9583, "union_primary": 0.9667},
+    "Allganize-Eval": {"lexical": 0.9319, "dense": 0.9528, "rrf": 0.9500, "union_primary": 0.9539},
+    "PublicHealthQA": {"lexical": 0.5817, "dense": 0.6219, "rrf": 0.6175, "union_primary": 0.6440},
+    "AutoRAG":        {"lexical": 0.8890, "dense": 0.7250, "rrf": 0.8441, "union_primary": 0.8524},
+    "Ko-StrategyQA":  {"lexical": 0.6242, "dense": 0.7755, "rrf": 0.7469, "union_primary": 0.7780}
+  },
+  "combined_conclusion": {
+    "lexical_track": "OmniFuse 7 wins, 1 tie, 2 losses (AutoRAG, Ko-StrategyQA) vs synaptic-FTS",
+    "full_pipeline_flips": "the 2 lexical losses (AutoRAG, Ko-StrategyQA) FLIP to OmniFuse wins in the dense/full-pipeline setting",
+    "fused_vs_fused": "OmniFuse wins 6/7 (HotPot x2, Allganize x2, AutoRAG, Ko-StrategyQA), loses PublicHealthQA; synaptic's own fusion underperforms its FTS on AutoRAG (0.9053 -> 0.8576)",
+    "best_single_mode_caveat": "under each system's single best mode, AutoRAG flips to synaptic (FTS 0.9053 beats all fused scores); PublicHealthQA embedder-dependent (omni wins with bge-m3)",
+    "net": "across lexical + dense, OmniFuse is stronger-or-equal on 8-9 of 10; contested sets = AutoRAG, PublicHealthQA (within ~0.01-0.03 MRR)",
+    "single_config_caveat": "no single fusion config wins all 10 (task-dependent, Pareto) — true for synaptic too; 'best' picks the strongest of dense/rrf/union_primary per corpus"
+  }
+}

@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "xgen-omnifuse"
-version = "0.4.0"
+version = "0.5.0"
 description = "Backend-agnostic one-shot GraphRAG: fuse vector + graph (label/class/relation) seeds with MMR diversity into a single synthesis. Zero-infra default."
 readme = "README.md"
 requires-python = ">=3.10"
