@@ -141,75 +141,58 @@ MRR@10), single-shot, k=10. synaptic's column is its *own* `run_all` FTS-only pa
 Full harness + numbers in [`eval/`](eval/) and
 [`docs/comparison/omnifuse_vs_synaptic.md`](docs/comparison/omnifuse_vs_synaptic.md).
 
-**Zero-dependency / lexical track** — every synaptic-shipped dataset:
+Everything in **one table** — MRR@10 unless noted, single-shot, no LLM, no embedder
+(zero-infra lexical track). "winner" = higher score; **OmniFuse leads 13 of 15 datasets**
+(Core 10/10, Extended 2/4, Real-world 1/1).
 
-| dataset | synaptic (FTS) | **OmniFuse** | winner |
-|---|---:|---:|---|
-| **finreg** single-hop | 0.7039 | **0.8404** | OmniFuse |
-| **finreg** multi-hop (strict/120) | 56 | **101** | OmniFuse |
-| HotPotQA-24 | 0.8879 | **0.9286** | OmniFuse |
-| HotPotQA-200 | 0.8775 | **0.9028** | OmniFuse |
-| Allganize RAG-ko | 0.9562 | **0.9683** | OmniFuse |
-| Allganize RAG-Eval | 0.9303 | **0.9370** | OmniFuse |
-| KLUE-MRC | 0.7718 | **0.8280** | OmniFuse |
-| PublicHealthQA | 0.6065 | **0.6284** | OmniFuse |
-| AutoRAG | 0.9053 | **0.9309** | OmniFuse |
-| Ko-StrategyQA | 0.6440 | **0.6509** | OmniFuse |
-| **average MRR** | 0.809 | **0.846** | **OmniFuse** |
+| track | dataset | synaptic (FTS) | **OmniFuse** | winner |
+|---|---|---:|---:|:--|
+| **Core** (synaptic-shipped, 10/10) | finreg single-hop | 0.7039 | **0.8404** | 🟢 OmniFuse |
+| | finreg multi-hop `strict/120` | 56 | **101** | 🟢 OmniFuse |
+| | HotPotQA-24 | 0.8879 | **0.9286** | 🟢 OmniFuse |
+| | HotPotQA-200 | 0.8775 | **0.9028** | 🟢 OmniFuse |
+| | Allganize RAG-ko | 0.9562 | **0.9683** | 🟢 OmniFuse |
+| | Allganize RAG-Eval | 0.9303 | **0.9370** | 🟢 OmniFuse |
+| | KLUE-MRC | 0.7718 | **0.8280** | 🟢 OmniFuse |
+| | PublicHealthQA | 0.6065 | **0.6284** | 🟢 OmniFuse |
+| | AutoRAG | 0.9053 | **0.9309** | 🟢 OmniFuse |
+| | Ko-StrategyQA | 0.6440 | **0.6509** | 🟢 OmniFuse |
+| | **Core average** | 0.809 | **0.846** | 🟢 **10 / 10** |
+| **Extended** (BEIR/MTEB, HF) | SciFact (EN) | 0.6317 | **0.6368** | 🟢 OmniFuse |
+| | XPQA-ko | 0.3115 | **0.3278** | 🟢 OmniFuse |
+| | NFCorpus (EN) | **0.5124** | 0.5075 | ⚪ synaptic |
+| | MIRACL-retrieval-ko | **0.9495** | 0.9293 | ⚪ synaptic |
+| **Real-world** (live xgen corpus) | KRA/마사회 golden¹ | 0.2547 | **0.4775** | 🟢 **OmniFuse (~1.9×)** |
+| | ↳ nDCG@10 / R@10 | 0.30 / 0.43 | **0.54 / 0.75** | 🟢 OmniFuse |
 
-**10 wins, 0 losses** — every synaptic-shipped dataset — and with **zero dependencies**
-(no morphological analyzer) vs synaptic's *mandatory* Kiwi. Two honest, general,
-zero-hardcode logic improvements get here (no strong embedder, no per-dataset tuning,
-no fitting to test labels):
+**Core: 10 wins / 0 losses** (avg MRR 0.809 → **0.846**) — every synaptic-shipped dataset,
+**zero dependencies** (no morphological analyzer) vs synaptic's *mandatory* Kiwi.
+**Extended: 2–2** — a BM25-family parity on unstructured passage IR (no titles/graph to
+exploit; NFCorpus/MIRACL within ±0.02). **Real-world: +0.2228 MRR (~1.9×) at ~7.5× lower
+wall time** on a live production corpus (¹한국마사회 docs on xgen dev-xgen — 5,234 chunks,
+215 LLM-generated natural questions; raw corpus private/not committed —
+[reproducer](eval/golden_devxgen_bench.py) · [numbers](eval/results/golden_devxgen.json)).
+(FiQA 57k-doc and MultiLongDoc-ko 193 MB omitted: synaptic ingest/RAM-bound on a 16 GB box.)
 
-1. **Dependency-free Korean stemmer** — strips 조사/어미 + trailing derivational
-   suffixes so a query and a doc align on the stem the way Kiwi would, but pure Python
-   and emitting *fewer* tokens (more accurate *and* more efficient). Flips AutoRAG and
-   PublicHealthQA.
-2. **IDF term-specificity emphasis** (`idf_pow=1.5`) — a natural-language question
-   ("장 발장은 어떤 범죄로 유죄 판결을 받았나요?") buries its one rare discriminative
-   entity (발장) under several common words (범죄/유죄/판결); plain BM25 sums term
-   scores, so docs matching many common words outrank the doc matching the rare entity.
-   Raising IDF to a power makes the rare term dominate. This "entity-burial" fix — found
-   by *inspecting the failing queries*, not fishing — flips the last holdout Ko-StrategyQA
-   and lifts every other set (HotPotQA-24 0.908→0.929, AutoRAG 0.917→0.931). Zero runtime
-   cost (folded into the precomputed IDF); the win is robust across the whole flat band
-   `p ∈ [1.3, 2.0]`.
+### How OmniFuse wins — two honest, zero-hardcode logic improvements
 
-The finreg multi-hop **101/120 is one-shot, no LLM** — beating synaptic's own 5-turn LLM
-agent (88/120) via graph-companion fusion following `제N조` citations.
+No strong embedder, no per-dataset tuning, no fitting to test labels:
 
-**Extended coverage** — synaptic's download-only BEIR/MTEB sets (fetched from HF), lexical:
+1. **Dependency-free Korean stemmer** — strips 조사/어미 + trailing derivational suffixes
+   so a query and a doc align on the stem the way Kiwi would, but pure Python and emitting
+   *fewer* tokens (more accurate *and* more efficient). Flips AutoRAG + PublicHealthQA.
+2. **IDF term-specificity emphasis** (`idf_pow=1.5`) — a question ("장 발장은 어떤 범죄로
+   유죄 판결을 받았나요?") buries its one rare entity (발장) under common words
+   (범죄/유죄/판결); plain BM25 *sums* term scores, so many common matches outrank the one
+   rare-entity match. Raising IDF to a power lets the rare term dominate. This
+   "entity-burial" fix — found by *inspecting the failing queries*, not fishing — flips
+   the last holdout Ko-StrategyQA and lifts every other set. Zero runtime cost (folded into
+   the precomputed IDF); the win holds across the whole flat band `p ∈ [1.3, 2.0]`, so it
+   is a robust default, not a fit.
 
-| dataset | synaptic (FTS) | **OmniFuse** | winner |
-|---|---:|---:|---|
-| SciFact (EN) | 0.6317 | **0.6368** | OmniFuse |
-| XPQA-ko | 0.3115 | **0.3278** | OmniFuse |
-| NFCorpus (EN) | **0.5124** | 0.5075 | synaptic |
-| MIRACL-retrieval-ko | **0.9495** | 0.9293 | synaptic |
-| FiQA (EN, 57k docs) | n/a¹ | 0.2871 | — |
-| MultiLongDoc-ko (193 MB) | n/a¹ | 0.3286² | — |
-
-BM25-family **parity** (2–2) on unstructured passage IR — no titles/citation graph for
-field weighting or graph fusion to exploit. OmniFuse's decisive wins are on *structured*
-corpora. ¹synaptic ingest time/RAM-bound on a 16 GB box; ²omni in-memory index capped
-long-doc text (zero-infra RAM bound). Numbers:
-[`eval/results/beir_mteb_extra.json`](eval/results/beir_mteb_extra.json).
-
-**Real-world golden set** — a *live production corpus* (한국마사회 institutional docs on
-xgen dev-xgen; 5,234 chunks, 215 LLM-generated natural questions). Not academic data —
-long, boilerplate-heavy documents:
-
-| system | MRR@10 | nDCG@10 | R@10 | wall |
-|---|---:|---:|---:|---:|
-| synaptic (FTS) | 0.2547 | 0.2956 | 0.4279 | 98 s |
-| **OmniFuse** | **0.4775** | **0.5446** | **0.7535** | **13 s** |
-
-**+0.2228 MRR (~1.9×) at 7.5× lower wall time** — the retrieval logic generalizes past
-the academic sets to real domain documents (raw corpus is private and not committed;
-credential-free reproducer + numbers:
-[`eval/golden_devxgen_bench.py`](eval/golden_devxgen_bench.py) ·
-[`eval/results/golden_devxgen.json`](eval/results/golden_devxgen.json)).
+On top of these, **field-weighted BM25F** (title 4× body) and **graph-companion fusion**
+carry the structured corpora — the finreg multi-hop **101/120 is one-shot, no LLM**,
+beating synaptic's own 5-turn LLM agent (88/120) by following `제N조` citations.
 
 **Full-pipeline track** (shared `multilingual-e5-small` embedder, both sides): OmniFuse's
 dense+lexical hybrid leads the fused-vs-fused comparison **6/7** (only PublicHealthQA to
