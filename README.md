@@ -196,6 +196,21 @@ corpora. ¹synaptic ingest time/RAM-bound on a 16 GB box; ²omni in-memory index
 long-doc text (zero-infra RAM bound). Numbers:
 [`eval/results/beir_mteb_extra.json`](eval/results/beir_mteb_extra.json).
 
+**Real-world golden set** — a *live production corpus* (한국마사회 institutional docs on
+xgen dev-xgen; 5,234 chunks, 215 LLM-generated natural questions). Not academic data —
+long, boilerplate-heavy documents:
+
+| system | MRR@10 | nDCG@10 | R@10 | wall |
+|---|---:|---:|---:|---:|
+| synaptic (FTS) | 0.2547 | 0.2956 | 0.4279 | 98 s |
+| **OmniFuse** | **0.4775** | **0.5446** | **0.7535** | **13 s** |
+
+**+0.2228 MRR (~1.9×) at 7.5× lower wall time** — the retrieval logic generalizes past
+the academic sets to real domain documents (raw corpus is private and not committed;
+credential-free reproducer + numbers:
+[`eval/golden_devxgen_bench.py`](eval/golden_devxgen_bench.py) ·
+[`eval/results/golden_devxgen.json`](eval/results/golden_devxgen.json)).
+
 **Full-pipeline track** (shared `multilingual-e5-small` embedder, both sides): OmniFuse's
 dense+lexical hybrid leads the fused-vs-fused comparison **6/7** (only PublicHealthQA to
 synaptic under e5, and that is embedder-dependent — OmniFuse wins it with bge-m3). The

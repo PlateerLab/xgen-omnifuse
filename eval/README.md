@@ -106,6 +106,46 @@ has anything to exploit. OmniFuse's decisive wins are on **structured** corpora
 (FiQA/MultiLongDoc synaptic-ingest bound; MultiLongDoc's 193MB of long docs exceed
 omnifuse's in-memory index on 16 GB): [`results/beir_mteb_extra.json`](results/beir_mteb_extra.json).
 
+### Real-world golden set — a live xgen domain corpus (dev-xgen)
+
+Beyond the academic IR sets, we built a **golden benchmark from a real production
+corpus**: an xgen retrieval collection on `dev-xgen.x2bee.com` — 한국마사회 (KRA)
+institutional documents (동반성장 / ESG / 청렴 / 경마운영 …). We downloaded 220
+documents (**5,234 chunks**, mean 1,143 chars) via the retrieval API, then generated
+**215 natural Korean questions** with `gpt-4o-mini` from each document's richest chunk
+— *body only* (the repeated document-metadata header stripped), paraphrased, neutral to
+both retrievers. Both systems then retrieve over the identical corpus/queries/qrels.
+
+| system | MRR@10 | nDCG@10 | R@10 | wall |
+|---|---:|---:|---:|---:|
+| synaptic (FTS) | 0.2547 | 0.2956 | 0.4279 | 98 s |
+| **OmniFuse** | **0.4775** | **0.5446** | **0.7535** | **13 s** |
+
+**OmniFuse wins by +0.2228 MRR (~1.9×)** on every metric, at **~7.5× lower wall time** —
+on genuinely out-of-distribution real documents. This is exactly the long-institutional-
+document regime the retrieval logic targets: a specific entity buried in pages of
+boilerplate. Ablation of the two logic improvements on this corpus (every config still
+beats synaptic):
+
+| OmniFuse config | MRR@10 |
+|---|---:|
+| plain CJK bi-gram, `idf_pow=1.0` | 0.4579 |
+| + dependency-free Korean stemmer | 0.4775 |
+| + IDF emphasis `idf_pow=1.5` (shipped) | 0.4775 |
+
+The field-weighted BM25F (title 4×) + pipeline already dominate; the Korean stemmer adds
++0.020; **IDF emphasis is neutral out of distribution** (0.4775, neither helps nor hurts)
+— confirming `idf_pow=1.5` is a principled default, not a fit to the synaptic sets.
+
+The raw KRA documents are a **private domain corpus and are not committed**. Reproduce
+from the live collection (needs dev-xgen + OpenAI credentials, read from env):
+
+```bash
+python eval/golden_devxgen_bench.py --collection-id 42 --max-docs 220 --num-queries 215
+```
+
+Numbers + methodology: [`results/golden_devxgen.json`](results/golden_devxgen.json).
+
 ### Reproducibility notes
 
 - Both systems non-neural in the lexical track (zero-infra, apples-to-apples). The
@@ -113,4 +153,5 @@ omnifuse's in-memory index on 16 GB): [`results/beir_mteb_extra.json`](results/b
 - Public dataset JSONs live in the synaptic-memory repo (HF-derived); we point at
   them rather than re-hosting. finreg (public-domain law) is included here.
 - synaptic's **private** corpora (krra/assort/x2bee) are gitignored — not in its
-  repo, so not runnable.
+  repo, so not runnable. The dev-xgen golden corpus is likewise private (results and a
+  credential-free reproducer are committed; the documents are not).

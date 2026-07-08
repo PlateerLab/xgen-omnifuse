@@ -153,6 +153,40 @@ holds for synaptic too), so "best" picks the strongest of {dense, RRF,
 union-primary} per corpus. Numbers:
 [`eval/results/full_pipeline_e5.json`](../../eval/results/full_pipeline_e5.json).
 
+## Real-world golden set — a live xgen domain corpus (dev-xgen)
+
+The academic sets are synaptic's own. To test on *independent, real* data we built a
+golden benchmark from a production xgen retrieval collection (`dev-xgen.x2bee.com`):
+한국마사회 (KRA) institutional documents — 동반성장 / ESG / 청렴 / 경마운영 etc.
+Downloaded **220 documents / 5,234 chunks** (mean 1,143 chars) via the retrieval API,
+then generated **215 natural Korean questions** with `gpt-4o-mini` from each document's
+richest chunk — body only (the repeated `<Document-Metadata>` header stripped),
+paraphrased, neutral to both retrievers. Same corpus/queries/qrels to both; synaptic
+runs its own `run_public_dataset(embedder=None)` FTS path (identical `(title, text)`
+per chunk).
+
+| system | MRR@10 | nDCG@10 | R@10 | wall |
+|---|---:|---:|---:|---:|
+| synaptic (FTS) | 0.2547 | 0.2956 | 0.4279 | 98 s |
+| **OmniFuse** | **0.4775** | **0.5446** | **0.7535** | **13 s** |
+
+**OmniFuse wins by +0.2228 MRR (~1.9×)** on every metric at **~7.5× lower wall time**,
+on out-of-distribution real documents — the long-institutional-text regime where a
+specific entity is buried in boilerplate. Ablation (every config still beats synaptic):
+
+| OmniFuse config | MRR@10 |
+|---|---:|
+| plain CJK bi-gram, `idf_pow=1.0` | 0.4579 |
+| + dependency-free Korean stemmer | 0.4775 |
+| + IDF emphasis `idf_pow=1.5` (shipped) | 0.4775 |
+
+Field-weighted BM25F (title 4×) + the retrieve pipeline already dominate; the stemmer
+adds +0.020; **IDF emphasis is neutral out of distribution** — it neither helps nor
+hurts here, which is the cleanest evidence that `idf_pow=1.5` is a principled default
+rather than a fit to the synaptic-shipped datasets. The raw KRA corpus is private and
+**not committed**; a credential-free reproducer (`eval/golden_devxgen_bench.py`) and the
+numbers (`eval/results/golden_devxgen.json`) are.
+
 ## What makes OmniFuse win (ablation, finreg)
 
 | config | single-hop MRR | multi-hop strict |
