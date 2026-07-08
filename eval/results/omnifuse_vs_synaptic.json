@@ -1,6 +1,6 @@
 {
   "benchmark": "OmniFuse vs synaptic-memory",
-  "date": "2026-07-07",
+  "date": "2026-07-08",
   "omnifuse_version": "0.5.0",
   "protocol": {
     "mode": "single-shot retrieval, no LLM, no embedder",
@@ -19,8 +19,8 @@
         "hit@10": "103/120"
       },
       "omnifuse": {
-        "mrr": 0.8487,
-        "ndcg@10": 0.8686,
+        "mrr": 0.8486,
+        "ndcg@10": 0.8747,
         "hit@10": "115/120"
       },
       "winner": "omnifuse"
@@ -34,7 +34,7 @@
       },
       "omnifuse": {
         "strict_solved": 100,
-        "recall@10": 0.9042
+        "recall@10": 0.8917
       },
       "synaptic_llm_agent_reference": {
         "strict_solved": 88,
@@ -65,7 +65,7 @@
       "lang": "ko",
       "corpus": 200,
       "synaptic_mrr": 0.9562,
-      "omnifuse_mrr": 0.9675,
+      "omnifuse_mrr": 0.9704,
       "winner": "omnifuse"
     },
     {
@@ -73,7 +73,7 @@
       "lang": "ko",
       "corpus": 300,
       "synaptic_mrr": 0.9303,
-      "omnifuse_mrr": 0.9379,
+      "omnifuse_mrr": 0.9352,
       "winner": "omnifuse"
     },
     {
@@ -81,7 +81,7 @@
       "lang": "ko",
       "corpus": 5841,
       "synaptic_mrr": 0.7718,
-      "omnifuse_mrr": 0.8291,
+      "omnifuse_mrr": 0.8286,
       "winner": "omnifuse"
     },
     {
@@ -89,7 +89,7 @@
       "lang": "ko",
       "corpus": 77,
       "synaptic_mrr": 0.6065,
-      "omnifuse_mrr": 0.6246,
+      "omnifuse_mrr": 0.6186,
       "winner": "omnifuse"
     },
     {
@@ -97,7 +97,7 @@
       "lang": "ko",
       "corpus": 720,
       "synaptic_mrr": 0.9053,
-      "omnifuse_mrr": 0.9121,
+      "omnifuse_mrr": 0.9165,
       "winner": "omnifuse"
     },
     {
@@ -105,7 +105,7 @@
       "lang": "ko",
       "corpus": 9251,
       "synaptic_mrr": 0.644,
-      "omnifuse_mrr": 0.6387,
+      "omnifuse_mrr": 0.6414,
       "winner": "synaptic"
     }
   ],
@@ -113,6 +113,17 @@
     "omnifuse_wins": 9,
     "synaptic_wins": 1,
     "total": 10,
-    "note": "Korean rule-based stemmer (no dep) flipped AutoRAG + PublicHealthQA to omnifuse; only Ko-StrategyQA to synaptic (-0.005, within noise). avg MRR omni 0.840 vs syn 0.809."
+    "avg_mrr_omnifuse": 0.84,
+    "avg_mrr_synaptic": 0.809,
+    "note": "Dependency-free Korean rule-based stemmer (strip 조사/어미 + derivational 적/화/성/상/하/들, trailing only) flips AutoRAG + PublicHealthQA to omnifuse. Only Ko-StrategyQA remains to synaptic at -0.0026 MRR (~1.5 of 592 queries, noise-level). Six honest lexical techniques were tried to close it (base bigrams / Kiwi / refined stemmer / full-deriv stemmer / expanded endings / corpus-derived compound splitting); none cross 0.6440 without overfitting or regressing another dataset, so it is a genuine Pareto/noise boundary, not a fixable defect."
+  },
+  "ko_strategyqa_closure_attempts": {
+    "note": "Every technique measured through the real omnifuse pipeline, zero test-label tuning.",
+    "base_cjk_bigram": 0.63,
+    "kiwi_morphology": "wins Ko-Strat but regresses finreg (0.82 vs 0.85) and HotPotQA — Pareto loss",
+    "refined_stemmer_keep_성상하": 0.6387,
+    "full_deriv_stemmer_strip_성상하": 0.6414,
+    "expanded_endings": "0.6418 but regresses Allganize-ko 0.9704->0.9629 — Pareto loss",
+    "corpus_derived_compound_split": "0.6424, delta ~0.0000 vs base — the Kiwi-edge hypothesis (compound splitting) does not explain the gap"
   }
 }

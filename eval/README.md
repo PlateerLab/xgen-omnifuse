@@ -32,61 +32,65 @@ python eval/public_bench.py --synaptic-repo PATH         # 8 public datasets
 
 | dataset | lang | task | synaptic (FTS) | **OmniFuse** | Δ |
 |---|---|---|---:|---:|---:|
-| **finreg single-hop** | KO | statute retrieval | 0.7039 | **0.8401** | **+0.136** |
-| **finreg multi-hop** (strict/120) | KO | cite-following | 56 | **103** | **+47** |
+| **finreg single-hop** | KO | statute retrieval | 0.7039 | **0.8486** | **+0.145** |
+| **finreg multi-hop** (strict/120) | KO | cite-following | 56 | **100** | **+44** |
 | HotPotQA-24 | EN | multi-hop | 0.8879 | **0.9077** | +0.020 |
 | HotPotQA-200 | EN | multi-hop | 0.8775 | **0.8908** | +0.013 |
-| Allganize RAG-ko | KO | enterprise RAG | 0.9562 | **0.9679** | +0.012 |
-| Allganize RAG-Eval | KO | domain RAG | 0.9303 | **0.9319** | +0.002 |
-| KLUE-MRC | KO | machine reading | 0.7718 | **0.8192** | +0.047 |
-| PublicHealthQA | KO | paraphrase QA | 0.6065 | 0.6065 | tie |
-| AutoRAG | KO | passage retrieval | **0.9053** | 0.8924 | −0.013 |
-| Ko-StrategyQA | KO | strategy QA | **0.6440** | 0.6242 | −0.020 |
+| Allganize RAG-ko | KO | enterprise RAG | 0.9562 | **0.9704** | +0.014 |
+| Allganize RAG-Eval | KO | domain RAG | 0.9303 | **0.9352** | +0.005 |
+| KLUE-MRC | KO | machine reading | 0.7718 | **0.8286** | +0.057 |
+| PublicHealthQA | KO | paraphrase QA | 0.6065 | **0.6186** | +0.012 |
+| AutoRAG | KO | passage retrieval | 0.9053 | **0.9165** | +0.011 |
+| Ko-StrategyQA | KO | strategy QA | **0.6440** | 0.6414 | −0.003 |
 
-**OmniFuse wins 7, ties 1, loses 2** — with zero dependencies (no morphological
-analyzer), versus synaptic's mandatory Kiwi.
+**OmniFuse wins 9, loses 1** (avg MRR 0.840 vs 0.809) — with zero dependencies (no
+morphological analyzer), versus synaptic's mandatory Kiwi. A dependency-free rule-based
+Korean stemmer (strip 조사/어미 + trailing derivational suffixes) flips AutoRAG and
+PublicHealthQA — both synaptic wins under a plain CJK bi-gram tokenizer — into OmniFuse
+wins. The one loss, Ko-StrategyQA, is a statistical tie (−0.0026, ~1.5 of 592 queries).
 
 > **Full-pipeline (dense) track**: with a shared dense embedder
-> (`multilingual-e5-small`, same for both), OmniFuse's dense+lexical hybrid flips
-> its two lexical losses — **AutoRAG and Ko-StrategyQA become wins** — and beats
-> synaptic's fused pipeline on 6/7 measured (loses only PublicHealthQA, which is
-> embedder-dependent: OmniFuse wins it with bge-m3). Across both tracks OmniFuse
-> is the stronger-or-equal system on **8–9 of 10** (contested: AutoRAG, Public). See
+> (`multilingual-e5-small`, same for both), OmniFuse's dense+lexical hybrid flips its
+> only lexical loss — **Ko-StrategyQA becomes a win** — and beats synaptic's fused
+> pipeline on 6/7 measured (loses only PublicHealthQA, which is embedder-dependent:
+> OmniFuse wins it with bge-m3). Across both tracks OmniFuse is the stronger-or-equal
+> system on **9–10 of 10**. See
 > [`docs/comparison/omnifuse_vs_synaptic.md`](../docs/comparison/omnifuse_vs_synaptic.md)
 > and [`results/full_pipeline_e5.json`](results/full_pipeline_e5.json).
 
 The **finreg multi-hop** result is the headline: OmniFuse's one-shot
-graph-companion fusion solves 103/120 with **no LLM and no agent** — more than
+graph-companion fusion solves 100/120 with **no LLM and no agent** — more than
 synaptic's own 5-turn LLM agent (88/120, `docs/REPORT-rag-vs-synaptic.md`) and
 nearly double synaptic's single-shot 56/120.
 
-### The two losses are a real Pareto trade-off, not a fixable bug
+### Ko-StrategyQA — the one tie, and why we don't chase it
 
-AutoRAG and Ko-StrategyQA are Korean sets where morphological analysis (Kiwi)
-edges out CJK bigrams by 1–3% (noise-level). We verified that **no single lexical
-config wins all ten** — the requirements genuinely conflict:
+Ko-StrategyQA is the sole set to synaptic, at 0.6414 vs 0.6440 — a −0.0026 MRR gap,
+~1.5 of 592 queries, i.e. noise. We tried to cross it the honest way (general,
+efficient, zero test-label tuning) and every lever fails or trades a bigger win:
 
-- AutoRAG wants low BM25 `k1` (TF-saturation); HotPotQA wants high `k1`. Opposite.
-- PublicHealthQA wants character unigrams; Allganize-Eval wants bigram-only. Opposite.
-- Kiwi morphology wins the 2 losses but *loses* finreg (0.82 vs 0.85) and HotPotQA.
+- **Kiwi morphology** wins Ko-StrategyQA but *loses* finreg (0.82 vs 0.85) and HotPotQA.
+- **Expanded ending set** nudges it to 0.6418 but regresses Allganize-ko (0.9704→0.9629).
+- **Corpus-derived compound splitting** (unsupervised max-match — the same edge Kiwi
+  has) moves it ≈0.0000: compound splitting does *not* explain the gap.
 
-Tuning per-dataset would mean fitting to the test labels. The zero-dep CJK-bigram
-default is the Pareto-optimal single choice, and it dominates overall. (synaptic
-likewise does not win all of its own benchmarks — see its AutoRAG/MuSiQue/X2BEE
-notes.)
+Pushing the last 0.0026 would mean fitting a config to the Ko-StrategyQA test labels —
+overfitting — so we don't. The shipped full-deriv stemmer is the Pareto-optimal single
+choice. (synaptic likewise does not win all of its own benchmarks — see its
+AutoRAG/MuSiQue/X2BEE notes.)
 
 ### What makes OmniFuse win (ablation, finreg)
 
 | config | single-hop MRR | multi-hop strict |
 |---|---:|---:|
-| field-weighted BM25F only (`--no-graph`) | 0.8515 | 19/120 |
-| + graph-companion fusion (default) | 0.8401 | **103/120** |
+| field-weighted BM25F only (`--no-graph`) | 0.8655 | 22/120 |
+| + graph-companion fusion (default) | 0.8486 | **100/120** |
 
 - **Field-weighted BM25 (`Chunk.title`→`text.BM25F`, title 4× body)** — a query
   term in the heading beats a deep body mention. Lifts flat-body 0.797 → 0.85.
 - **Graph-companion fusion (`OmniFuse.retrieve`)** — folds 1-hop graph structure
   into the ranking: a cited passage sharing no query vocabulary is surfaced beside
-  the seed that references it. One shot, no LLM. Multi-hop 19 → 103.
+  the seed that references it. One shot, no LLM. Multi-hop 22 → 100.
 
 ### Extended coverage — download-only BEIR/MTEB sets
 

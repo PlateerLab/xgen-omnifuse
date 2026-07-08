@@ -145,25 +145,28 @@ Full harness + numbers in [`eval/`](eval/) and
 
 | dataset | synaptic (FTS) | **OmniFuse** | winner |
 |---|---:|---:|---|
-| **finreg** single-hop | 0.7039 | **0.8487** | OmniFuse |
+| **finreg** single-hop | 0.7039 | **0.8486** | OmniFuse |
 | **finreg** multi-hop (strict/120) | 56 | **100** | OmniFuse |
 | HotPotQA-24 | 0.8879 | **0.9077** | OmniFuse |
 | HotPotQA-200 | 0.8775 | **0.8908** | OmniFuse |
-| Allganize RAG-ko | 0.9562 | **0.9675** | OmniFuse |
-| Allganize RAG-Eval | 0.9303 | **0.9379** | OmniFuse |
-| KLUE-MRC | 0.7718 | **0.8291** | OmniFuse |
-| PublicHealthQA | 0.6065 | **0.6246** | OmniFuse |
-| AutoRAG | 0.9053 | **0.9121** | OmniFuse |
-| Ko-StrategyQA | **0.6440** | 0.6387 | synaptic |
+| Allganize RAG-ko | 0.9562 | **0.9704** | OmniFuse |
+| Allganize RAG-Eval | 0.9303 | **0.9352** | OmniFuse |
+| KLUE-MRC | 0.7718 | **0.8286** | OmniFuse |
+| PublicHealthQA | 0.6065 | **0.6186** | OmniFuse |
+| AutoRAG | 0.9053 | **0.9165** | OmniFuse |
+| Ko-StrategyQA | **0.6440** | 0.6414 | synaptic |
 | **average MRR** | 0.809 | **0.840** | **OmniFuse** |
 
 **9 wins, 1 loss** — and **zero dependencies** (no morphological analyzer) vs synaptic's
 *mandatory* Kiwi. AutoRAG and PublicHealthQA — both synaptic wins under a plain CJK
 bi-gram tokenizer — flip to OmniFuse wins with a **dependency-free rule-based Korean
-stemmer** (strips 조사/어미, emits fewer tokens ⇒ more accurate *and* more efficient).
-The lone loss, Ko-StrategyQA, is within noise (−0.005, ~3 of 592 queries). The finreg
-multi-hop **100/120 is one-shot, no LLM** — beating synaptic's own 5-turn LLM agent
-(88/120) via graph-companion fusion following `제N조` citations.
+stemmer** (strips 조사/어미 + derivational suffixes when trailing, emits fewer tokens ⇒
+more accurate *and* more efficient). The lone loss, Ko-StrategyQA, is a statistical tie
+(−0.0026, ~1.5 of 592 queries); six honest lexical techniques were tried to close it and
+none cross without overfitting or regressing another set (see
+[the comparison doc](docs/comparison/omnifuse_vs_synaptic.md#ko-strategyqa--the-one-tie-and-why-chasing-it-would-be-overfitting)).
+The finreg multi-hop **100/120 is one-shot, no LLM** — beating synaptic's own 5-turn LLM
+agent (88/120) via graph-companion fusion following `제N조` citations.
 
 **Extended coverage** — synaptic's download-only BEIR/MTEB sets (fetched from HF), lexical:
 
@@ -183,7 +186,7 @@ long-doc text (zero-infra RAM bound). Numbers:
 [`eval/results/beir_mteb_extra.json`](eval/results/beir_mteb_extra.json).
 
 **Full-pipeline track** (shared `multilingual-e5-small` embedder, both sides): OmniFuse's
-dense+lexical hybrid **flips its two lexical losses (AutoRAG, Ko-StrategyQA) to wins**
+dense+lexical hybrid **flips its one remaining lexical loss (Ko-StrategyQA) to a win**
 and leads the fused-vs-fused comparison **6/7** (only PublicHealthQA to synaptic, and
 that is embedder-dependent — OmniFuse wins it with bge-m3). See
 [`eval/results/full_pipeline_e5.json`](eval/results/full_pipeline_e5.json).

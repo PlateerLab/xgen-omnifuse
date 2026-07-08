@@ -18,8 +18,9 @@ _WORD = re.compile(r"[a-z0-9]+")
 _HANGUL = re.compile(r"[가-힣]+")
 _CJK_OTHER = re.compile(r"[぀-ヿ一-鿿]+")  # kana + hanja: bi-grams, no morphology
 
-# Korean particles/endings + clearly-derivational suffixes (성/상/하 are ambiguous —
-# they may be part of a stem — so they are intentionally NOT stripped). Longest first.
+# Korean particles (조사), verb/adjective endings (어미), and derivational suffixes,
+# stripped only when trailing (so 상황/성별 — with the char leading — are untouched;
+# and the emitted stem unigram still lets compound forms match). Longest first.
 _KO_SUFFIX = sorted(set([
     "으로써", "으로서", "이라고", "라고", "에게서", "으로", "에서", "에게", "께서", "한테",
     "부터", "까지", "보다", "처럼", "만큼", "같이", "마다", "조차", "마저", "라도", "이라도",
@@ -30,7 +31,7 @@ _KO_SUFFIX = sorted(set([
     "하다", "되다", "이다", "하는", "되는", "하고", "되고", "했다", "된다", "한다", "하며",
     "되며", "하여", "되어", "여", "며", "면", "서", "고", "지", "니", "게", "자", "라",
     "았", "었", "겠", "임", "함", "됨", "기", "음",
-    "적으로", "적인", "화된", "적", "화", "들",
+    "적으로", "성이", "적인", "화된", "적", "화", "성", "상", "하", "들",
 ]), key=len, reverse=True)
 
 

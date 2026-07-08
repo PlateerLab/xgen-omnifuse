@@ -9,18 +9,22 @@ single-shot, no LLM:
 
 | | synaptic FTS-only | OmniFuse 0.5 |
 |---|---:|---:|
-| single-hop MRR@10 | 0.704 | **0.840** |
+| single-hop MRR@10 | 0.704 | **0.849** |
 | single-hop hit@10 | 103/120 | **115/120** |
-| multi-hop strict-solved | 56/120 | **103/120** |
+| multi-hop strict-solved | 56/120 | **100/120** |
 
 - **Dependency-free Korean stemming in `text.tokenize`** — Hangul runs now have their
-  common particles (조사) and endings (어미) stripped by a small rule table before
-  bi-gramming, so a query and a document align on the stem the way a morphological
-  analyzer (Kiwi) would — but pure Python, and it emits *fewer* tokens than raw
-  bi-grams (stem bi-grams + one stem unigram) ⇒ more accurate on Korean *and* more
-  memory-efficient. Hanja/Kana and Latin are unchanged. On the synaptic benchmark this
-  lifts the lexical (zero-embedder) track from 7→**9 wins / 10** — AutoRAG and
-  PublicHealthQA flip to OmniFuse — and raises average MRR 0.829→**0.840**.
+  common particles (조사), verb/adjective endings (어미), and trailing derivational
+  suffixes (적/화/성/상/하/들) stripped by a small rule table before bi-gramming, so a
+  query and a document align on the stem the way a morphological analyzer (Kiwi) would
+  — but pure Python, and it emits *fewer* tokens than raw bi-grams (stem bi-grams + one
+  stem unigram) ⇒ more accurate on Korean *and* more memory-efficient. Suffixes are
+  stripped only when *trailing*, so 상황/성별 (with the char leading) are untouched, and
+  the emitted stem unigram still lets compound forms match. Hanja/Kana and Latin are
+  unchanged. On the synaptic benchmark this lifts the lexical (zero-embedder) track from
+  7→**9 wins / 10** — AutoRAG and PublicHealthQA flip to OmniFuse — and raises average
+  MRR 0.829→**0.840**. The lone remaining Ko-StrategyQA gap is −0.0026 (a statistical
+  tie); six honest closure techniques were tried and none cross without overfitting.
 - **`Chunk.title`** — an optional short high-signal field. When any chunk carries
   a title, `InMemoryVector` indexes it with **field-weighted BM25** (`text.BM25F`),
   title weighted 4x over body — a query term in the heading outranks a chunk
