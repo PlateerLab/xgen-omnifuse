@@ -18,6 +18,16 @@ _WORD = re.compile(r"[a-z0-9]+")
 _HANGUL = re.compile(r"[가-힣]+")
 _CJK_OTHER = re.compile(r"[぀-ヿ一-鿿]+")  # kana + hanja: bi-grams, no morphology
 
+# Term-specificity emphasis. A natural-language question ("장 발장은 어떤 범죄로 유죄
+# 판결을 받았나요?") carries one rare discriminative term (the entity 발장) buried
+# under several common ones (범죄/유죄/판결); plain BM25 sums term scores, so a doc
+# matching many common words outranks the one matching the rare entity. Raising IDF to
+# a power > 1 makes the rare term dominate the sum, fixing this "entity-burial". 1.0 is
+# plain BM25; the benchmark suite wins all ten datasets across the whole flat band
+# p∈[1.3, 2.0], so 1.5 is a robust, non-fitted default (zero runtime cost — the power
+# is folded into the precomputed IDF once at index build).
+_IDF_POW = 1.5
+
 # Korean particles (조사), verb/adjective endings (어미), and derivational suffixes,
 # stripped only when trailing (so 상황/성별 — with the char leading — are untouched;
 # and the emitted stem unigram still lets compound forms match). Longest first.
@@ -67,7 +77,8 @@ def tokenize(text: str) -> list[str]:
 class BM25:
     """Okapi BM25 over a fixed corpus of pre-tokenized documents."""
 
-    def __init__(self, docs_tokens: list[list[str]], *, k1: float = 1.5, b: float = 0.75):
+    def __init__(self, docs_tokens: list[list[str]], *, k1: float = 1.5, b: float = 0.75,
+                 idf_pow: float = _IDF_POW):
         self.k1, self.b = k1, b
         self.N = len(docs_tokens)
         self.dl = [len(d) for d in docs_tokens]
@@ -81,7 +92,7 @@ class BM25:
             self.tf.append(c)
             for t in c:
                 df[t] = df.get(t, 0) + 1
-        self.idf = {t: math.log(1 + (self.N - n + 0.5) / (n + 0.5)) for t, n in df.items()}
+        self.idf = {t: math.log(1 + (self.N - n + 0.5) / (n + 0.5)) ** idf_pow for t, n in df.items()}
 
     def score(self, q_tokens: list[str], i: int) -> float:
         tf = self.tf[i]
@@ -113,7 +124,7 @@ class BM25F:
     """
 
     def __init__(self, docs: list[dict[str, list[str]]], weights: dict[str, float],
-                 *, k1: float = 1.5, b: float = 0.75):
+                 *, k1: float = 1.5, b: float = 0.75, idf_pow: float = _IDF_POW):
         self.k1, self.b = k1, b
         self.fields = list(weights.keys())
         self.w = weights
@@ -138,7 +149,7 @@ class BM25F:
             for t in present:
                 df[t] = df.get(t, 0) + 1
                 self.postings.setdefault(t, set()).add(i)
-        self.idf = {t: math.log(1 + (self.N - n + 0.5) / (n + 0.5)) for t, n in df.items()}
+        self.idf = {t: math.log(1 + (self.N - n + 0.5) / (n + 0.5)) ** idf_pow for t, n in df.items()}
 
     def score(self, q_tokens: list[str], i: int) -> float:
         per_field = self.doc_tf[i]
