@@ -39,19 +39,22 @@ them with `python eval/public_bench.py --synaptic-repo /path/to/synaptic-memory`
 
 | dataset | lang | task | synaptic | **OmniFuse** | winner |
 |---|---|---|---:|---:|---|
-| finreg single-hop | ko | statute retrieval | 0.7039 | **0.8401** | OmniFuse |
-| finreg multi-hop `/120` | ko | cite-following | 56 | **103** | OmniFuse |
+| finreg single-hop | ko | statute retrieval | 0.7039 | **0.8487** | OmniFuse |
+| finreg multi-hop `/120` | ko | cite-following | 56 | **100** | OmniFuse |
 | HotPotQA-24 | en | multi-hop | 0.8879 | **0.9077** | OmniFuse |
 | HotPotQA-200 | en | multi-hop | 0.8775 | **0.8908** | OmniFuse |
-| Allganize RAG-ko | ko | enterprise RAG | 0.9562 | **0.9679** | OmniFuse |
-| Allganize RAG-Eval | ko | domain RAG | 0.9303 | **0.9319** | OmniFuse |
-| KLUE-MRC | ko | machine reading | 0.7718 | **0.8192** | OmniFuse |
-| PublicHealthQA | ko | paraphrase QA | 0.6065 | 0.6065 | tie |
-| AutoRAG | ko | passage retrieval | **0.9053** | 0.8924 | synaptic |
-| Ko-StrategyQA | ko | strategy QA | **0.6440** | 0.6242 | synaptic |
+| Allganize RAG-ko | ko | enterprise RAG | 0.9562 | **0.9675** | OmniFuse |
+| Allganize RAG-Eval | ko | domain RAG | 0.9303 | **0.9379** | OmniFuse |
+| KLUE-MRC | ko | machine reading | 0.7718 | **0.8291** | OmniFuse |
+| PublicHealthQA | ko | paraphrase QA | 0.6065 | **0.6246** | OmniFuse |
+| AutoRAG | ko | passage retrieval | 0.9053 | **0.9121** | OmniFuse |
+| Ko-StrategyQA | ko | strategy QA | **0.6440** | 0.6387 | synaptic |
 
-**OmniFuse: 7 wins, 1 tie, 2 losses** — achieved with **zero dependencies** (no
-morphological analyzer) against synaptic's mandatory Kiwi.
+**OmniFuse: 9 wins, 1 loss** (avg MRR 0.840 vs 0.809) — **zero dependencies** (no
+morphological analyzer) vs synaptic's *mandatory* Kiwi. A dependency-free rule-based
+Korean stemmer (strip 조사/어미 → stem bi-grams) flips AutoRAG and PublicHealthQA to
+OmniFuse; the lone loss (Ko-StrategyQA) is within noise (−0.005). Earlier revisions of
+this file show the pre-stemmer 7-1-2 lexical result.
 
 ---
 

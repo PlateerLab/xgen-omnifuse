@@ -13,29 +13,106 @@
     "corpus_articles": 4417,
     "single_hop": {
       "queries": 120,
-      "synaptic": {"mrr": 0.7039, "ndcg@10": 0.7410, "hit@10": "103/120"},
-      "omnifuse": {"mrr": 0.8401, "ndcg@10": 0.8686, "hit@10": "115/120"},
+      "synaptic": {
+        "mrr": 0.7039,
+        "ndcg@10": 0.741,
+        "hit@10": "103/120"
+      },
+      "omnifuse": {
+        "mrr": 0.8487,
+        "ndcg@10": 0.8686,
+        "hit@10": "115/120"
+      },
       "winner": "omnifuse"
     },
     "multi_hop": {
       "queries": 120,
       "relevant_per_query": 2,
-      "synaptic": {"strict_solved": 56, "recall@10": 0.6667},
-      "omnifuse": {"strict_solved": 103, "recall@10": 0.9042},
-      "synaptic_llm_agent_reference": {"strict_solved": 88, "note": "5-turn LLM agent, docs/REPORT-rag-vs-synaptic.md"},
+      "synaptic": {
+        "strict_solved": 56,
+        "recall@10": 0.6667
+      },
+      "omnifuse": {
+        "strict_solved": 100,
+        "recall@10": 0.9042
+      },
+      "synaptic_llm_agent_reference": {
+        "strict_solved": 88,
+        "note": "5-turn LLM agent, docs/REPORT-rag-vs-synaptic.md"
+      },
       "winner": "omnifuse"
     }
   },
   "public_datasets": [
-    {"name": "HotPotQA-24",        "lang": "en", "corpus": 226,  "synaptic_mrr": 0.8879, "omnifuse_mrr": 0.9077, "winner": "omnifuse"},
-    {"name": "HotPotQA-200",       "lang": "en", "corpus": 1990, "synaptic_mrr": 0.8775, "omnifuse_mrr": 0.8908, "winner": "omnifuse"},
-    {"name": "Allganize RAG-ko",   "lang": "ko", "corpus": 200,  "synaptic_mrr": 0.9562, "omnifuse_mrr": 0.9679, "winner": "omnifuse"},
-    {"name": "Allganize RAG-Eval", "lang": "ko", "corpus": 300,  "synaptic_mrr": 0.9303, "omnifuse_mrr": 0.9319, "winner": "omnifuse"},
-    {"name": "KLUE-MRC",           "lang": "ko", "corpus": 5841, "synaptic_mrr": 0.7718, "omnifuse_mrr": 0.8192, "winner": "omnifuse"},
-    {"name": "PublicHealthQA",     "lang": "ko", "corpus": 77,   "synaptic_mrr": 0.6065, "omnifuse_mrr": 0.6065, "winner": "tie"},
-    {"name": "AutoRAG",            "lang": "ko", "corpus": 720,  "synaptic_mrr": 0.9053, "omnifuse_mrr": 0.8924, "winner": "synaptic"},
-    {"name": "Ko-StrategyQA",      "lang": "ko", "corpus": 9251, "synaptic_mrr": 0.6440, "omnifuse_mrr": 0.6242, "winner": "synaptic"}
+    {
+      "name": "HotPotQA-24",
+      "lang": "en",
+      "corpus": 226,
+      "synaptic_mrr": 0.8879,
+      "omnifuse_mrr": 0.9077,
+      "winner": "omnifuse"
+    },
+    {
+      "name": "HotPotQA-200",
+      "lang": "en",
+      "corpus": 1990,
+      "synaptic_mrr": 0.8775,
+      "omnifuse_mrr": 0.8908,
+      "winner": "omnifuse"
+    },
+    {
+      "name": "Allganize RAG-ko",
+      "lang": "ko",
+      "corpus": 200,
+      "synaptic_mrr": 0.9562,
+      "omnifuse_mrr": 0.9675,
+      "winner": "omnifuse"
+    },
+    {
+      "name": "Allganize RAG-Eval",
+      "lang": "ko",
+      "corpus": 300,
+      "synaptic_mrr": 0.9303,
+      "omnifuse_mrr": 0.9379,
+      "winner": "omnifuse"
+    },
+    {
+      "name": "KLUE-MRC",
+      "lang": "ko",
+      "corpus": 5841,
+      "synaptic_mrr": 0.7718,
+      "omnifuse_mrr": 0.8291,
+      "winner": "omnifuse"
+    },
+    {
+      "name": "PublicHealthQA",
+      "lang": "ko",
+      "corpus": 77,
+      "synaptic_mrr": 0.6065,
+      "omnifuse_mrr": 0.6246,
+      "winner": "omnifuse"
+    },
+    {
+      "name": "AutoRAG",
+      "lang": "ko",
+      "corpus": 720,
+      "synaptic_mrr": 0.9053,
+      "omnifuse_mrr": 0.9121,
+      "winner": "omnifuse"
+    },
+    {
+      "name": "Ko-StrategyQA",
+      "lang": "ko",
+      "corpus": 9251,
+      "synaptic_mrr": 0.644,
+      "omnifuse_mrr": 0.6387,
+      "winner": "synaptic"
+    }
   ],
-  "tally": {"omnifuse_wins": 7, "ties": 1, "synaptic_wins": 2, "total": 10,
-            "note": "7 wins incl. both finreg; 2 losses (AutoRAG, Ko-StrategyQA) are Korean morphology-sensitive sets"}
+  "tally": {
+    "omnifuse_wins": 9,
+    "synaptic_wins": 1,
+    "total": 10,
+    "note": "Korean rule-based stemmer (no dep) flipped AutoRAG + PublicHealthQA to omnifuse; only Ko-StrategyQA to synaptic (-0.005, within noise). avg MRR omni 0.840 vs syn 0.809."
+  }
 }

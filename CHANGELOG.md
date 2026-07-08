@@ -13,6 +13,14 @@ single-shot, no LLM:
 | single-hop hit@10 | 103/120 | **115/120** |
 | multi-hop strict-solved | 56/120 | **103/120** |
 
+- **Dependency-free Korean stemming in `text.tokenize`** — Hangul runs now have their
+  common particles (조사) and endings (어미) stripped by a small rule table before
+  bi-gramming, so a query and a document align on the stem the way a morphological
+  analyzer (Kiwi) would — but pure Python, and it emits *fewer* tokens than raw
+  bi-grams (stem bi-grams + one stem unigram) ⇒ more accurate on Korean *and* more
+  memory-efficient. Hanja/Kana and Latin are unchanged. On the synaptic benchmark this
+  lifts the lexical (zero-embedder) track from 7→**9 wins / 10** — AutoRAG and
+  PublicHealthQA flip to OmniFuse — and raises average MRR 0.829→**0.840**.
 - **`Chunk.title`** — an optional short high-signal field. When any chunk carries
   a title, `InMemoryVector` indexes it with **field-weighted BM25** (`text.BM25F`),
   title weighted 4x over body — a query term in the heading outranks a chunk

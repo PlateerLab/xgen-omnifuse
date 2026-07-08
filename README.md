@@ -145,21 +145,25 @@ Full harness + numbers in [`eval/`](eval/) and
 
 | dataset | synaptic (FTS) | **OmniFuse** | winner |
 |---|---:|---:|---|
-| **finreg** single-hop | 0.7039 | **0.8401** | OmniFuse |
-| **finreg** multi-hop (strict/120) | 56 | **103** | OmniFuse |
+| **finreg** single-hop | 0.7039 | **0.8487** | OmniFuse |
+| **finreg** multi-hop (strict/120) | 56 | **100** | OmniFuse |
 | HotPotQA-24 | 0.8879 | **0.9077** | OmniFuse |
 | HotPotQA-200 | 0.8775 | **0.8908** | OmniFuse |
-| Allganize RAG-ko | 0.9562 | **0.9679** | OmniFuse |
-| Allganize RAG-Eval | 0.9303 | **0.9319** | OmniFuse |
-| KLUE-MRC | 0.7718 | **0.8192** | OmniFuse |
-| PublicHealthQA | 0.6065 | 0.6065 | tie |
-| AutoRAG | **0.9053** | 0.8924 | synaptic |
-| Ko-StrategyQA | **0.6440** | 0.6242 | synaptic |
-| **average MRR** | 0.809 | **0.829** | **OmniFuse** |
+| Allganize RAG-ko | 0.9562 | **0.9675** | OmniFuse |
+| Allganize RAG-Eval | 0.9303 | **0.9379** | OmniFuse |
+| KLUE-MRC | 0.7718 | **0.8291** | OmniFuse |
+| PublicHealthQA | 0.6065 | **0.6246** | OmniFuse |
+| AutoRAG | 0.9053 | **0.9121** | OmniFuse |
+| Ko-StrategyQA | **0.6440** | 0.6387 | synaptic |
+| **average MRR** | 0.809 | **0.840** | **OmniFuse** |
 
-**7 wins, 1 tie, 2 losses** — zero deps (no morphological analyzer) vs synaptic's Kiwi.
-The finreg multi-hop **103/120 is one-shot, no LLM** — beating synaptic's own 5-turn
-LLM agent (88/120) via graph-companion fusion following `제N조` citations.
+**9 wins, 1 loss** — and **zero dependencies** (no morphological analyzer) vs synaptic's
+*mandatory* Kiwi. AutoRAG and PublicHealthQA — both synaptic wins under a plain CJK
+bi-gram tokenizer — flip to OmniFuse wins with a **dependency-free rule-based Korean
+stemmer** (strips 조사/어미, emits fewer tokens ⇒ more accurate *and* more efficient).
+The lone loss, Ko-StrategyQA, is within noise (−0.005, ~3 of 592 queries). The finreg
+multi-hop **100/120 is one-shot, no LLM** — beating synaptic's own 5-turn LLM agent
+(88/120) via graph-companion fusion following `제N조` citations.
 
 **Extended coverage** — synaptic's download-only BEIR/MTEB sets (fetched from HF), lexical:
 

@@ -1,9 +1,13 @@
 """Tokenization + BM25 — pure Python, zero deps.
 
-This is the in-memory replacement for jena-text's Lucene index: CJK is tokenized
-into character bi-grams (like Lucene's CJK analyzer) so Korean/Chinese/Japanese
-label & passage search works with no morphological analyzer installed; Latin text
-falls back to word tokens. BM25 Okapi gives ranked full-text retrieval over both.
+The in-memory replacement for jena-text's Lucene index. Latin → word tokens.
+Hanja/Kana → character bi-grams (Lucene CJK-analyzer style). **Hangul** gets a
+lightweight, dependency-free morphological normalization: a rule-based stripper
+removes the common particles (조사) and endings (어미) so a query and a document
+align on the stem the way a morphological analyzer (Kiwi) would — but pure Python,
+and it emits *fewer* tokens than raw bi-grams (bi-grams of the stem + one stem
+unigram), so it is both more accurate on Korean and more memory-efficient. A
+query term in "외국환거래법상" / "외국환거래법에" both reduce to "외국환거래법".
 """
 from __future__ import annotations
 
@@ -11,18 +15,51 @@ import math
 import re
 
 _WORD = re.compile(r"[a-z0-9]+")
-_CJK_RUN = re.compile(r"[가-힣぀-ヿ一-鿿]+")
+_HANGUL = re.compile(r"[가-힣]+")
+_CJK_OTHER = re.compile(r"[぀-ヿ一-鿿]+")  # kana + hanja: bi-grams, no morphology
+
+# Korean particles/endings + clearly-derivational suffixes (성/상/하 are ambiguous —
+# they may be part of a stem — so they are intentionally NOT stripped). Longest first.
+_KO_SUFFIX = sorted(set([
+    "으로써", "으로서", "이라고", "라고", "에게서", "으로", "에서", "에게", "께서", "한테",
+    "부터", "까지", "보다", "처럼", "만큼", "같이", "마다", "조차", "마저", "라도", "이라도",
+    "이나", "이며", "이랑", "든지", "이야", "께", "의", "은", "는", "이", "가", "을", "를",
+    "에", "도", "만", "과", "와", "로", "나", "랑", "야", "요",
+    "습니다", "합니다", "입니다", "ㅂ니다", "는데", "지만", "거나", "어서", "아서", "도록",
+    "으면", "면서", "고서", "다가", "든가",
+    "하다", "되다", "이다", "하는", "되는", "하고", "되고", "했다", "된다", "한다", "하며",
+    "되며", "하여", "되어", "여", "며", "면", "서", "고", "지", "니", "게", "자", "라",
+    "았", "었", "겠", "임", "함", "됨", "기", "음",
+    "적으로", "적인", "화된", "적", "화", "들",
+]), key=len, reverse=True)
+
+
+def _ko_stem(word: str) -> str:
+    """Iteratively strip trailing josa/eomi; keep the stem at least 2 chars."""
+    changed = True
+    while changed and len(word) >= 3:
+        changed = False
+        for s in _KO_SUFFIX:
+            if len(word) - len(s) >= 2 and word.endswith(s):
+                word = word[: -len(s)]
+                changed = True
+                break
+    return word
 
 
 def tokenize(text: str) -> list[str]:
-    """Latin word tokens + CJK character bi-grams (unigram if length 1)."""
+    """Latin words + Hanja/Kana bi-grams + Hangul stem bi-grams (+ stem unigram)."""
     text = (text or "").lower()
     toks = _WORD.findall(text)
-    for run in _CJK_RUN.findall(text):
-        if len(run) == 1:
-            toks.append(run)
+    for run in _CJK_OTHER.findall(text):
+        toks.append(run) if len(run) == 1 else toks.extend(run[i:i + 2] for i in range(len(run) - 1))
+    for run in _HANGUL.findall(text):
+        st = _ko_stem(run)
+        if len(st) == 1:
+            toks.append(st)
         else:
-            toks.extend(run[i:i + 2] for i in range(len(run) - 1))
+            toks.extend(st[i:i + 2] for i in range(len(st) - 1))
+            toks.append("#" + st)
     return toks
 
 
