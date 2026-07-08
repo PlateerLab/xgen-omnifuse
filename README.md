@@ -161,6 +161,23 @@ Full harness + numbers in [`eval/`](eval/) and
 The finreg multi-hop **103/120 is one-shot, no LLM** — beating synaptic's own 5-turn
 LLM agent (88/120) via graph-companion fusion following `제N조` citations.
 
+**Extended coverage** — synaptic's download-only BEIR/MTEB sets (fetched from HF), lexical:
+
+| dataset | synaptic (FTS) | **OmniFuse** | winner |
+|---|---:|---:|---|
+| SciFact (EN) | 0.6317 | **0.6368** | OmniFuse |
+| XPQA-ko | 0.3115 | **0.3278** | OmniFuse |
+| NFCorpus (EN) | **0.5124** | 0.5075 | synaptic |
+| MIRACL-retrieval-ko | **0.9495** | 0.9293 | synaptic |
+| FiQA (EN, 57k docs) | n/a¹ | 0.2871 | — |
+| MultiLongDoc-ko (193 MB) | n/a¹ | 0.3286² | — |
+
+BM25-family **parity** (2–2) on unstructured passage IR — no titles/citation graph for
+field weighting or graph fusion to exploit. OmniFuse's decisive wins are on *structured*
+corpora. ¹synaptic ingest time/RAM-bound on a 16 GB box; ²omni in-memory index capped
+long-doc text (zero-infra RAM bound). Numbers:
+[`eval/results/beir_mteb_extra.json`](eval/results/beir_mteb_extra.json).
+
 **Full-pipeline track** (shared `multilingual-e5-small` embedder, both sides): OmniFuse's
 dense+lexical hybrid **flips its two lexical losses (AutoRAG, Ko-StrategyQA) to wins**
 and leads the fused-vs-fused comparison **6/7** (only PublicHealthQA to synaptic, and
