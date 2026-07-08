@@ -124,6 +124,8 @@
     "refined_stemmer_keep_성상하": 0.6387,
     "full_deriv_stemmer_strip_성상하": 0.6414,
     "expanded_endings": "0.6418 but regresses Allganize-ko 0.9704->0.9629 — Pareto loss",
-    "corpus_derived_compound_split": "0.6424, delta ~0.0000 vs base — the Kiwi-edge hypothesis (compound splitting) does not explain the gap"
-  }
+    "corpus_derived_compound_split": "0.6424, delta ~0.0000 vs base — the Kiwi-edge hypothesis (compound splitting) does not explain the gap",
+    "same_article_graph_fusion": "omnifuse's OWN graph-companion fusion over a corpus-derived same-Wikipedia-article graph: MRR 0.6414->0.6376 (HURTS first-hit — wrong-article siblings get promoted above the first true hit) even though nDCG 0.6159->0.6440 (+4.6%, it genuinely retrieves MORE relevant sibling chunks) and it wrecks single-relevant AutoRAG 0.9165->0.8991. Rejected for the MRR comparison."
+  },
+  "ko_strategyqa_conclusion": "Seven honest, general, embedder-free levers tried; none cross 0.6440 on MRR without overfitting or regressing another dataset. The -0.0026 gap is ~1.5 of 592 queries of first-hit-rank noise. Under a shared dense embedder (full-pipeline track) Ko-StrategyQA flips to an omnifuse win, so the lexical-track tie is a zero-embedder artifact, not a quality deficit."
 }

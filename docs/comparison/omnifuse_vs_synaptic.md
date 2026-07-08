@@ -77,6 +77,12 @@ every lever either fails to move it or trades away a bigger win elsewhere:
 | **full-deriv stemmer (strip 성/상/하, trailing)** — *shipped* | **0.6414** | closest honest config |
 | expanded ending set (more 어미/파생) | 0.6418 | **regresses Allganize-ko 0.9704→0.9629** — Pareto loss |
 | corpus-derived compound splitting (unsupervised max-match) | 0.6424 | Δ≈0.0000 — the "Kiwi splits compounds" hypothesis does **not** explain the gap |
+| same-article graph-companion fusion (omnifuse's *own* technique) | 0.6376 | **hurts MRR** (wrong-article siblings promoted above the first hit) — though it lifts **nDCG 0.616→0.644** and wrecks single-relevant AutoRAG (0.9165→0.8991) |
+
+The last row is the telling one: even omnifuse's signature graph fusion, fed a
+corpus-derived same-Wikipedia-article graph, *genuinely retrieves more of the relevant
+sibling chunks* (nDCG +4.6%) yet does not improve first-hit **MRR** — because
+Ko-StrategyQA's remaining gap is first-relevant-rank noise, not a recall problem.
 
 The shipped full-deriv stemmer is the Pareto-optimal single choice: it maximizes the
 average and gets Ko-StrategyQA to a dead heat, without regressing any of the nine wins.
