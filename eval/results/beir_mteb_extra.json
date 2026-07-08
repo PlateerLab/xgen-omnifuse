@@ -1,0 +1,20 @@
+{
+  "benchmark": "OmniFuse vs synaptic-memory — extra download-only BEIR/MTEB datasets",
+  "date": "2026-07-07",
+  "omnifuse_version": "0.5.0",
+  "note": "synaptic ships these only as download scripts (not committed data); fetched from HuggingFace via synaptic tests/benchmark/download_datasets.py. Lexical track: omni field-weighted BM25 vs synaptic FTS-only (run_public_dataset), MRR@10.",
+  "datasets": [
+    {"name": "NFCorpus",        "lang": "en", "corpus": 3633,  "queries": 323, "synaptic_fts": 0.5124, "omnifuse_lex": 0.5075, "winner": "synaptic", "note": "within 0.005"},
+    {"name": "SciFact",         "lang": "en", "corpus": 5183,  "queries": 300, "synaptic_fts": 0.6317, "omnifuse_lex": 0.6368, "winner": "omnifuse", "note": "within 0.005"},
+    {"name": "XPQA-ko",         "lang": "ko", "corpus": 889,   "queries": 654, "synaptic_fts": 0.3115, "omnifuse_lex": 0.3278, "winner": "omnifuse"},
+    {"name": "MIRACL-retr-ko",  "lang": "ko", "corpus": 10000, "queries": 213, "synaptic_fts": 0.9495, "omnifuse_lex": 0.9293, "winner": "synaptic"},
+    {"name": "FiQA",            "lang": "en", "corpus": 57638, "queries": 648, "synaptic_fts": null,    "omnifuse_lex": 0.2871, "winner": "n/a", "note": "synaptic FTS not measured: 57,638-doc SQLite ingest too slow on this 16GB box"},
+    {"name": "MultiLongDoc-ko", "lang": "ko", "corpus": 6176,  "queries": 200, "synaptic_fts": null,    "omnifuse_lex": 0.3286, "winner": "n/a", "note": "193MB of long docs; omni in-memory index capped doc text to 6000 chars (zero-infra RAM bound), synaptic FTS not measured"}
+  ],
+  "conclusion": "On generic flat-text BEIR/MTEB IR (no titles, no citation graph), OmniFuse and synaptic are at BM25-family parity: 2 wins each of the 4 head-to-heads measured, all within +/-0.02 MRR. OmniFuse's decisive wins are on STRUCTURED corpora (finreg citation graph, titled document sets) where field-weighted BM25 + graph-companion fusion have something to exploit; on unstructured passage IR neither system dominates.",
+  "honest_limitations": [
+    "synaptic's private corpora (krra/assort/x2bee) are gitignored — not in its repo, cannot be run.",
+    "FiQA/MultiLongDoc synaptic-FTS not measured (ingest time / RAM on a 16GB shared box).",
+    "MultiLongDoc omni used a 6000-char doc cap — omnifuse's zero-infra in-memory BM25 cannot hold 193MB of long docs on 16GB RAM; a disk backend (Fuseki) would be needed for full text."
+  ]
+}

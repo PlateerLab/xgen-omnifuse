@@ -88,11 +88,24 @@ notes.)
   into the ranking: a cited passage sharing no query vocabulary is surfaced beside
   the seed that references it. One shot, no LLM. Multi-hop 19 → 103.
 
+### Extended coverage — download-only BEIR/MTEB sets
+
+synaptic also references (via `download_datasets.py`, not committed data) a set of
+public BEIR/MTEB benchmarks. We fetched and ran the lexical head-to-head on them
+too — NFCorpus, SciFact, FiQA (EN) and XPQA-ko, MIRACL-retrieval-ko, MultiLongDoc-ko
+(KO). Result: **BM25-family parity** — 2 wins each of the 4 head-to-heads measured,
+all within ±0.02 MRR. These are unstructured passage-IR sets with no titles and no
+citation graph, so neither OmniFuse's field weighting nor its graph-companion fusion
+has anything to exploit. OmniFuse's decisive wins are on **structured** corpora
+(finreg's citation graph, titled document sets). Numbers + honest limitations
+(FiQA/MultiLongDoc synaptic-ingest bound; MultiLongDoc's 193MB of long docs exceed
+omnifuse's in-memory index on 16 GB): [`results/beir_mteb_extra.json`](results/beir_mteb_extra.json).
+
 ### Reproducibility notes
 
-- Both systems non-neural here (zero-infra, apples-to-apples). synaptic can also
-  run bge-m3 + reranker (GPU serving); OmniFuse accepts a BYO embedder too. A
-  full-pipeline (embedder) comparison is future work — the semantic Korean sets
-  (PublicHealthQA, Ko-StrategyQA) are where dense retrieval would matter most.
+- Both systems non-neural in the lexical track (zero-infra, apples-to-apples). The
+  full-pipeline track wires the same e5-small into both.
 - Public dataset JSONs live in the synaptic-memory repo (HF-derived); we point at
   them rather than re-hosting. finreg (public-domain law) is included here.
+- synaptic's **private** corpora (krra/assort/x2bee) are gitignored — not in its
+  repo, so not runnable.
