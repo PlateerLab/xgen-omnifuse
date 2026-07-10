@@ -2,6 +2,17 @@
 
 ## Unreleased
 
+- **Graph-companion fusion now follows edge direction — finreg multi-hop 101 → 107/120**
+  (R@10 0.8958 → 0.9250), single-hop unchanged (hit@10 113 → 114, nDCG 0.8651 → 0.8663).
+  `retrieve()` documents that it surfaces "a passage a strong seed *references*", but
+  `InMemoryGraph._adj_ids` was symmetric, so a seed also promoted every node that cited
+  *it* — a crowd, not evidence. `GraphStore.neighbor_ids` gains
+  `direction="out" | "in" | "both"` (default `"both"`, unchanged); fusion asks for `"out"`
+  via the new `OmniFuse(fusion_direction=…)`. Set `"both"` for genuinely symmetric graphs.
+  No parameter was refitted (`fusion_alpha` stays 0.9). Public datasets carry no graph, so
+  their scores are untouched. Recorded negative results: replacing this rule with damped,
+  degree-normalized PPR-style propagation is far *worse* (0.6294 / 81), and multi-hop
+  propagation never helps — finreg's evidence is exactly one out-edge away.
 - **Index persistence — `save_index` / `load_index`.** A built in-memory index (graph +
   passage store) round-trips to disk with stdlib `pickle`, so a process starts warm
   instead of re-indexing: on a 5,234-chunk corpus, **load 0.43 s vs a 5.98 s rebuild
@@ -39,8 +50,8 @@ single-shot, no LLM:
 | | synaptic FTS-only | OmniFuse 0.5 |
 |---|---:|---:|
 | single-hop MRR@10 | 0.704 | **0.840** |
-| single-hop hit@10 | 103/120 | **113/120** |
-| multi-hop strict-solved | 56/120 | **101/120** |
+| single-hop hit@10 | 103/120 | **114/120** |
+| multi-hop strict-solved | 56/120 | **107/120** |
 
 On the full synaptic benchmark suite (finreg + 8 public IR sets, zero-embedder lexical
 track), OmniFuse 0.5 wins **all ten datasets** (avg MRR 0.846 vs synaptic 0.809) via two

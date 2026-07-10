@@ -97,10 +97,17 @@ class FusekiGraph:
             out.append((sl, self._local(self._val(b, "p")), ol))
         return out
 
-    def neighbor_ids(self, node_id: str, *, limit: int = 100) -> list[str]:
-        body = (f'{{ BIND(<{node_id}> AS ?s) ?s ?p ?o }} UNION {{ BIND(<{node_id}> AS ?o) ?s ?p ?o }} '
-                f'FILTER(?p != <{_RDF_TYPE}> && ?p != <{_RDFS_LABEL}>) '
-                f'BIND(IF(?s = <{node_id}>, ?o, ?s) AS ?n) FILTER(isIRI(?n))')
+    def neighbor_ids(self, node_id: str, *, limit: int = 100, direction: str = "both") -> list[str]:
+        _skip = f'FILTER(?p != <{_RDF_TYPE}> && ?p != <{_RDFS_LABEL}>) '
+        if direction == "out":
+            body = f'BIND(<{node_id}> AS ?s) ?s ?p ?o {_skip}BIND(?o AS ?n) FILTER(isIRI(?n))'
+        elif direction == "in":
+            body = f'BIND(<{node_id}> AS ?o) ?s ?p ?o {_skip}BIND(?s AS ?n) FILTER(isIRI(?n))'
+        elif direction == "both":
+            body = (f'{{ BIND(<{node_id}> AS ?s) ?s ?p ?o }} UNION {{ BIND(<{node_id}> AS ?o) ?s ?p ?o }} '
+                    f'{_skip}BIND(IF(?s = <{node_id}>, ?o, ?s) AS ?n) FILTER(isIRI(?n))')
+        else:
+            raise ValueError(f"direction must be 'out', 'in' or 'both' (got {direction!r})")
         q = f"SELECT DISTINCT ?n WHERE {{ {self._g(body)} }} LIMIT {limit}"
         return [self._val(b, "n") for b in self._query(q).get("results", {}).get("bindings", []) if self._val(b, "n")]
 

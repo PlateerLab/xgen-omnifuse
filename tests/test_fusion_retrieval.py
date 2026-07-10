@@ -9,6 +9,8 @@ Two properties the ranking must have:
 import pathlib
 import sys
 
+import pytest
+
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1] / "src"))
 
 from omnifuse import Chunk, OmniFuse, build_inmemory  # noqa: E402
@@ -74,3 +76,37 @@ def test_fusion_is_opt_outable_and_backward_compatible():
     of = build_inmemory([], [], chunks)
     hits = of.retrieve("담보 한도")
     assert hits and hits[0][0].id == "x"
+
+
+def test_neighbor_ids_direction():
+    from omnifuse import Node, Triple
+
+    g = InMemoryGraph([Node("A", "a"), Node("B", "b"), Node("C", "c")],
+                      [Triple("A", "ref", "B"), Triple("C", "ref", "A")])
+    assert g.neighbor_ids("A", direction="out") == ["B"]   # A cites B
+    assert g.neighbor_ids("A", direction="in") == ["C"]    # C cites A
+    assert set(g.neighbor_ids("A", direction="both")) == {"B", "C"}
+    with pytest.raises(ValueError):
+        g.neighbor_ids("A", direction="sideways")
+
+
+def test_fusion_follows_out_edges_not_the_citing_crowd():
+    """A seed surfaces what it *references*; the crowd that references the seed is not
+    evidence. On finreg, expanding the in-direction drops multi-hop to 24/120."""
+    from omnifuse import Node, Triple
+
+    nodes = [Node(i, i) for i in ("SEED", "CITED", "CITER")]
+    triples = [Triple("SEED", "references", "CITED"), Triple("CITER", "references", "SEED")]
+    chunks = [
+        Chunk("SEED", text="신고 의무 위반에 관한 조항"),
+        Chunk("CITED", text="전혀 다른 어휘의 본문"),   # shares no query vocabulary
+        Chunk("CITER", text="또 다른 무관한 본문"),
+    ]
+    ids = lambda of: [c.id for c, _ in of.retrieve("신고 의무 위반")]  # noqa: E731
+
+    out = ids(build_inmemory(nodes, triples, chunks))          # default: out-edges
+    assert out[0] == "SEED"
+    assert "CITED" in out and "CITER" not in out
+
+    both = ids(build_inmemory(nodes, triples, chunks, fusion_direction="both"))
+    assert "CITED" in both and "CITER" in both                 # the crowd leaks back in

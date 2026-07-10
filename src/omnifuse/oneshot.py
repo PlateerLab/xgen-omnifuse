@@ -55,6 +55,7 @@ class OmniFuse:
         fusion_alpha: float = 0.9,
         fusion_expand_top: int = 5,
         fusion_neighbor_limit: int = 20,
+        fusion_direction: str = "out",
         system_prompt: str = SYSTEM,
     ):
         self.graph = graph
@@ -74,6 +75,7 @@ class OmniFuse:
         self.fusion_alpha = fusion_alpha
         self.fusion_expand_top = fusion_expand_top
         self.fusion_neighbor_limit = fusion_neighbor_limit
+        self.fusion_direction = fusion_direction
 
     def retrieve(self, question: str, *, limit: Optional[int] = None) -> list[tuple]:
         """Ranked (chunk, score) fusing lexical/vector seeds with 1-hop graph
@@ -81,6 +83,11 @@ class OmniFuse:
         (companion score = ``fusion_alpha`` x seed), so multi-hop evidence that
         shares no query vocabulary still lands in the ranking. Pure retrieval,
         no LLM. ``search()`` builds on this; call it directly for ranking/eval.
+
+        Expansion follows edges **out** of the seed (what it references), not into it.
+        The in-direction — every node that happens to cite the seed — is a crowd, not
+        evidence: on finreg it drops multi-hop to 24/120 while still costing single-hop.
+        Pass ``fusion_direction="both"`` when the graph's edges are symmetric.
         """
         limit = limit or self.vector_k
         vhits = self.vector.search(question, limit=self.vector_k)
@@ -91,7 +98,8 @@ class OmniFuse:
             cmap[c.id] = c
         if self.graph_fusion and vhits:
             for c, sc in vhits[: self.fusion_expand_top]:
-                for tgt in self.graph.neighbor_ids(c.id, limit=self.fusion_neighbor_limit):
+                for tgt in self.graph.neighbor_ids(c.id, limit=self.fusion_neighbor_limit,
+                                                   direction=self.fusion_direction):
                     cand = self.fusion_alpha * sc
                     if cand <= scores.get(tgt, 0.0):
                         continue

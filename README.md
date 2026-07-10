@@ -178,8 +178,8 @@ Everything in **one table** — MRR@10 unless noted, single-shot, no LLM, no emb
 
 | track | dataset | synaptic (FTS) | **OmniFuse** | winner |
 |---|---|---:|---:|:--|
-| **Core** (synaptic-shipped, 10/10) | finreg single-hop | 0.7039 | **0.8404** | 🟢 OmniFuse |
-| | finreg multi-hop `strict/120` | 56 | **101** | 🟢 OmniFuse |
+| **Core** (synaptic-shipped, 10/10) | finreg single-hop | 0.7039 | **0.8400** | 🟢 OmniFuse |
+| | finreg multi-hop `strict/120` | 56 | **107** | 🟢 OmniFuse |
 | | HotPotQA-24 | 0.8879 | **0.9286** | 🟢 OmniFuse |
 | | HotPotQA-200 | 0.8775 | **0.9028** | 🟢 OmniFuse |
 | | Allganize RAG-ko | 0.9562 | **0.9683** | 🟢 OmniFuse |
@@ -252,7 +252,7 @@ No strong embedder, no per-dataset tuning, no fitting to test labels:
    is a robust default, not a fit.
 
 On top of these, **field-weighted BM25F** (title 4× body) and **graph-companion fusion**
-carry the structured corpora — the finreg multi-hop **101/120 is one-shot, no LLM**,
+carry the structured corpora — the finreg multi-hop **107/120 is one-shot, no LLM**,
 beating synaptic's own 5-turn LLM agent (88/120) by following `제N조` citations.
 
 **Full-pipeline track** (shared `multilingual-e5-small` embedder, both sides): OmniFuse's

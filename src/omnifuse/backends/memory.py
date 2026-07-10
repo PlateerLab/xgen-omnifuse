@@ -30,6 +30,10 @@ class InMemoryGraph:
         self._members: dict[str, list[str]] = {}
         # node_id -> [neighbor node ids]   (for retrieval-time graph fusion)
         self._adj_ids: dict[str, list[str]] = {}
+        # direction matters: an edge (s -references-> o) means s *cites* o. Fusion wants
+        # what a seed points AT, not the crowd of nodes pointing at it.
+        self._out_ids: dict[str, list[str]] = {}
+        self._in_ids: dict[str, list[str]] = {}
         for t in triples:
             sl = self._label(t.s)
             ol = self._label(t.o)
@@ -37,6 +41,8 @@ class InMemoryGraph:
             self._adj.setdefault(t.o, []).append((sl, t.p, ol))
             self._adj_ids.setdefault(t.s, []).append(t.o)
             self._adj_ids.setdefault(t.o, []).append(t.s)
+            self._out_ids.setdefault(t.s, []).append(t.o)
+            self._in_ids.setdefault(t.o, []).append(t.s)
             if t.p in _ISA:
                 self._members.setdefault(t.o, []).append(t.s)
         self._ids = list(self.nodes.keys())
@@ -57,11 +63,18 @@ class InMemoryGraph:
         ids = self._members.get(class_id, [])
         return [self.nodes[i] for i in ids[:limit] if i in self.nodes]
 
-    def neighbor_ids(self, node_id: str, *, limit: int = 100) -> list[str]:
-        """Distinct neighbor node ids of ``node_id`` (for retrieval-time fusion)."""
+    def neighbor_ids(self, node_id: str, *, limit: int = 100, direction: str = "both") -> list[str]:
+        """Distinct neighbor node ids of ``node_id`` (for retrieval-time fusion).
+
+        ``direction`` selects edge orientation: ``"out"`` (nodes this one points at,
+        e.g. the articles it cites), ``"in"`` (nodes pointing at it), or ``"both"``.
+        """
+        src = {"out": self._out_ids, "in": self._in_ids, "both": self._adj_ids}.get(direction)
+        if src is None:
+            raise ValueError(f"direction must be 'out', 'in' or 'both' (got {direction!r})")
         out: list[str] = []
         seen = {node_id}
-        for other in self._adj_ids.get(node_id, ()):
+        for other in src.get(node_id, ()):
             if other not in seen:
                 seen.add(other)
                 out.append(other)

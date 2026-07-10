@@ -32,8 +32,8 @@ python eval/public_bench.py --synaptic-repo PATH         # 8 public datasets
 
 | dataset | lang | task | synaptic (FTS) | **OmniFuse** | Δ |
 |---|---|---|---:|---:|---:|
-| **finreg single-hop** | KO | statute retrieval | 0.7039 | **0.8404** | **+0.137** |
-| **finreg multi-hop** (strict/120) | KO | cite-following | 56 | **101** | **+45** |
+| **finreg single-hop** | KO | statute retrieval | 0.7039 | **0.8400** | **+0.136** |
+| **finreg multi-hop** (strict/120) | KO | cite-following | 56 | **107** | **+51** |
 | HotPotQA-24 | EN | multi-hop | 0.8879 | **0.9286** | +0.041 |
 | HotPotQA-200 | EN | multi-hop | 0.8775 | **0.9028** | +0.025 |
 | Allganize RAG-ko | KO | enterprise RAG | 0.9562 | **0.9683** | +0.012 |
@@ -58,7 +58,7 @@ term-specificity emphasis (`idf_pow=1.5`) — both no strong embedder, no per-da
 > and [`results/full_pipeline_e5.json`](results/full_pipeline_e5.json).
 
 The **finreg multi-hop** result is a headline: OmniFuse's one-shot graph-companion fusion
-solves 101/120 with **no LLM and no agent** — more than synaptic's own 5-turn LLM agent
+solves 107/120 with **no LLM and no agent** — more than synaptic's own 5-turn LLM agent
 (88/120, `docs/REPORT-rag-vs-synaptic.md`) and nearly double synaptic's single-shot 56/120.
 
 ### How the last dataset (Ko-StrategyQA) was won — case investigation, not fishing
@@ -85,13 +85,13 @@ principled default, not a fit.
 | config | single-hop MRR | multi-hop strict |
 |---|---:|---:|
 | field-weighted BM25F only (`--no-graph`) | 0.8490 | 19/120 |
-| + graph-companion fusion (default) | 0.8404 | **101/120** |
+| + graph-companion fusion (default) | 0.8400 | **107/120** |
 
 - **Field-weighted BM25 (`Chunk.title`→`text.BM25F`, title 4× body)** — a query
   term in the heading beats a deep body mention. Lifts flat-body 0.797 → 0.85.
 - **Graph-companion fusion (`OmniFuse.retrieve`)** — folds 1-hop graph structure
   into the ranking: a cited passage sharing no query vocabulary is surfaced beside
-  the seed that references it. One shot, no LLM. Multi-hop 19 → 101.
+  the seed that references it. One shot, no LLM. Multi-hop 19 → 107.
 
 ### Extended coverage — download-only BEIR/MTEB sets
 

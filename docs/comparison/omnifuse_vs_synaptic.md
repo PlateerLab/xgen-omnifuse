@@ -7,7 +7,7 @@ what synaptic reports on itself. Same corpus, same queries, same qrels, same
 metric (`eval/metrics.py`, MRR@10, k=10).
 
 Machine-readable dump: [`eval/results/omnifuse_vs_synaptic.json`](../../eval/results/omnifuse_vs_synaptic.json).
-Last updated: 2026-07-08 (OmniFuse v0.5.0).
+Last updated: 2026-07-10 (OmniFuse v0.5.0).
 
 ---
 
@@ -18,13 +18,13 @@ The fully-reproducible, structural benchmark. Corpus is public-domain law
 
 | | synaptic (FTS + graph expand) | **OmniFuse** |
 |---|---:|---:|
-| single-hop MRR@10 | 0.7039 | **0.8404** |
-| single-hop nDCG@10 | 0.7410 | **0.8651** |
-| single-hop hit@10 | 103/120 | **113/120** |
-| multi-hop strict-solved (both docs in top-10) | 56/120 | **101/120** |
-| multi-hop R@10 | 0.6667 | **0.8958** |
+| single-hop MRR@10 | 0.7039 | **0.8400** |
+| single-hop nDCG@10 | 0.7410 | **0.8663** |
+| single-hop hit@10 | 103/120 | **114/120** |
+| multi-hop strict-solved (both docs in top-10) | 56/120 | **107/120** |
+| multi-hop R@10 | 0.6667 | **0.9250** |
 
-OmniFuse's **101/120 multi-hop is one-shot, no LLM, no agent** — more than
+OmniFuse's **107/120 multi-hop is one-shot, no LLM, no agent** — more than
 synaptic's own **5-turn LLM agent** (88/120, `synaptic docs/REPORT-rag-vs-synaptic.md`)
 and nearly double synaptic's single-shot 56/120. This is OmniFuse's graph-companion
 fusion: a cited article sharing no query vocabulary is pulled in beside the seed
@@ -39,8 +39,8 @@ them with `python eval/public_bench.py --synaptic-repo /path/to/synaptic-memory`
 
 | dataset | lang | task | synaptic | **OmniFuse** | winner |
 |---|---|---|---:|---:|---|
-| finreg single-hop | ko | statute retrieval | 0.7039 | **0.8404** | OmniFuse |
-| finreg multi-hop `/120` | ko | cite-following | 56 | **101** | OmniFuse |
+| finreg single-hop | ko | statute retrieval | 0.7039 | **0.8400** | OmniFuse |
+| finreg multi-hop `/120` | ko | cite-following | 56 | **107** | OmniFuse |
 | HotPotQA-24 | en | multi-hop | 0.8879 | **0.9286** | OmniFuse |
 | HotPotQA-200 | en | multi-hop | 0.8775 | **0.9028** | OmniFuse |
 | Allganize RAG-ko | ko | enterprise RAG | 0.9562 | **0.9683** | OmniFuse |
@@ -97,8 +97,8 @@ term's IDF to a power > 1 so the rare (high-IDF) entity dominates the sum. It is
 - **efficient** — zero runtime cost; the power is folded into the IDF once at index build;
 - **strictly additive** — it flips Ko-StrategyQA (0.6414→**0.6509**) **and lifts every
   other set** (HotPotQA-24 0.9077→0.9286, AutoRAG 0.9165→0.9309, PublicHealthQA
-  0.6186→0.6284), for a small, principled finreg single-hop cost (0.8486→0.8404, still
-  crushing synaptic's 0.7039 — and finreg multi-hop actually rises, 100→101).
+  0.6186→0.6284), for a small, principled finreg single-hop cost (0.8486→0.8400, still
+  crushing synaptic's 0.7039 — and finreg multi-hop rose too).
 
 That closes all ten with **no strong embedder, no morphological analyzer, no hardcoding,
 and no fitting to test labels** — the standard set for this exercise.
@@ -188,12 +188,45 @@ rather than a fit to the synaptic-shipped datasets. The raw KRA corpus is privat
 **not committed**; a credential-free reproducer (`eval/golden_devxgen_bench.py`) and the
 numbers (`eval/results/golden_devxgen.json`) are.
 
+## Graph fusion: direction is the whole signal (and PPR-style propagation loses)
+
+synaptic propagates over its graph with **Personalized PageRank** (damped power iteration,
+per-edge-type weights) plus Hebbian edge reinforcement. OmniFuse's fusion looked crude next
+to that — one hop, no damping, no normalization: `companion = max(lexical, α·seed)`. So we
+tried to replace it with the textbook-principled thing. **It lost, badly.**
+
+| variant (finreg, same harness) | single-hop MRR | multi-hop strict |
+|---|---:|---:|
+| no graph | 0.8490 | 19/120 |
+| damped, **degree-normalized**, additive propagation (best of α × hops sweep) | 0.6294 | 81/120 |
+| additive, no degree normalization (best) | 0.8156 | 94/120 |
+| `max(lexical, α·seed)` — bidirectional (what shipped) | 0.8371 | 98/120 |
+| **`max(lexical, α·seed)` — out-edges only** | **0.8400** | **102/120** |
+
+Degree normalization is what kills it: a cited article receives `α·seed/deg`, far too small
+to reach the top-10. finreg's multi-hop needs the cited article promoted *adjacent to* its
+seed, which is exactly what the "crude" rule does. Propagating 2–3 hops never helped either
+— the evidence is one hop away.
+
+The real defect was **direction**. `build_reference_triples` emits `(article -references->
+cited)`, but `InMemoryGraph._adj_ids` was built symmetrically, so a seed also promoted every
+article that *cites* it — a crowd, not evidence. Expanding in-edges only yields **24/120**
+multi-hop while still costing single-hop; expanding out-edges only dominates the symmetric
+version at every α. `retrieve()`'s own docstring already said "a passage that a strong seed
+*references*" — the code simply disagreed with it.
+
+Fixed: `neighbor_ids(..., direction="out"|"in"|"both")`, and fusion asks for `"out"`. In the
+real pipeline this took finreg multi-hop **101 → 107/120** and R@10 0.8958 → **0.9250**,
+with single-hop effectively unchanged (MRR 0.8404 → 0.8400, but hit@10 113 → 114 and nDCG
+0.8651 → 0.8663). No parameter was refitted — `fusion_alpha` stays 0.9. Pass
+`fusion_direction="both"` when a graph's edges are genuinely symmetric.
+
 ## What makes OmniFuse win (ablation, finreg)
 
 | config | single-hop MRR | multi-hop strict |
 |---|---:|---:|
 | field-weighted BM25F only (`finreg_bench.py --no-graph`) | 0.8490 | 19/120 |
-| + graph-companion fusion (default) | 0.8404 | **101/120** |
+| + graph-companion fusion (default) | 0.8400 | **107/120** |
 
 1. **Field-weighted BM25 (`Chunk.title` → `text.BM25F`, title 4× body)** — a query
    term in the article heading outranks a chunk that only mentions it deep in the
@@ -210,8 +243,8 @@ core number reproduces **to the decimal**, on both sides:
 
 | | synaptic (re-run) | OmniFuse (re-run) |
 |---|---:|---:|
-| finreg single-hop MRR / nDCG | 0.7039 / 0.7410 | 0.8404 / 0.8651 |
-| finreg multi-hop strict | 56/120 | 101/120 |
+| finreg single-hop MRR / nDCG | 0.7039 / 0.7410 | 0.8400 / 0.8663 |
+| finreg multi-hop strict | 56/120 | 107/120 |
 | HotPotQA-24 / -200 | 0.8879 / 0.8775 | 0.9286 / 0.9028 |
 | Allganize ko / Eval | 0.9562 / 0.9303 | 0.9683 / 0.9370 |
 | KLUE-MRC | 0.7718 | 0.8280 |
