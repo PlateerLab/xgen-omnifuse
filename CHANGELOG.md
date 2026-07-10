@@ -40,6 +40,10 @@
   **+0.0001**. The fair statement is that Hebbian is *not wired into* this version's
   retrieval — not that it hurts.
 
+- **Full suite re-verified after the `BM25F` change.** finreg (0.8400 / 107 / 0.9250), all
+  8 core public sets, all 4 extended sets and the real-world golden set are **bit-identical**
+  to before. Index build costs +1.8 % time (6.03 s → 6.14 s) and +0.6 MB peak (46.6 → 47.2 MB)
+  for the extra evidence-df bookkeeping; persisted index size and `load_index` are unchanged.
 - **`BM25F(evidence_fields=…)`** — fields that describe a document rather than being its
   content: scored, but excluded from document frequency and from length normalization.
   With no evidence fields the class behaves exactly as before.

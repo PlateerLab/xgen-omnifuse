@@ -108,5 +108,37 @@
     "The re-query axis uses LLM-generated paraphrases of LLM-generated questions over a private corpus; the corpus is not committed. Absolute MRR is a lower bound, and the comparison is symmetric.",
     "Memory is batch: folding it in requires an index rebuild (save_index/load_index make that cheap). No incremental update.",
     "One corpus per axis. A broader sweep is future work."
-  ]
+  ],
+  "static_suite_reverification_after_evidence_field": {
+    "claim": "adding evidence_fields to BM25F changed no static score",
+    "bit_identical": [
+      "finreg single-hop 0.8400 / nDCG 0.8663 / hit 114 / multi-hop 107 / R@10 0.9250",
+      "HotPotQA-24 0.9077",
+      "HotPotQA-200 0.9044",
+      "Allganize-ko 0.9683",
+      "Allganize-Eval 0.9370",
+      "PublicHealthQA 0.6284",
+      "AutoRAG 0.9309",
+      "KLUE-MRC 0.8280",
+      "Ko-StrategyQA 0.6509",
+      "NFCorpus 0.5182",
+      "MIRACL-ko 0.9052",
+      "SciFact 0.6456",
+      "XPQA-ko 0.3256",
+      "golden(KRA) 0.4775"
+    ],
+    "cost": {
+      "build_s": {
+        "before": 6.03,
+        "after": 6.14
+      },
+      "build_peak_mb": {
+        "before": 46.6,
+        "after": 47.2
+      },
+      "index_mb": "unchanged (28.7)",
+      "load_s": "unchanged (0.21)"
+    },
+    "tests": "pytest 41 -> 50"
+  }
 }

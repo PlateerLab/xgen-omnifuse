@@ -26,6 +26,7 @@ pip install -e .
 python eval/finreg_bench.py                              # finreg (self-contained)
 python eval/compare_synaptic.py --synaptic-graph PATH    # finreg head-to-head
 python eval/public_bench.py --synaptic-repo PATH         # 8 public datasets
+python eval/adaptive_bench.py --data-dir PATH            # does memory improve retrieval?
 ```
 
 ## Results — single-shot, no LLM, MRR@10, identical metric
@@ -111,11 +112,13 @@ document sets).
 | NFCorpus (EN, 38.2 rel/q) | 0.5124 | **0.5182** | 0.5080 | OmniFuse |
 | MIRACL-retrieval-ko (14.4 rel/q) | **0.9495** | 0.9052 | **0.9489** | synaptic |
 
-⚠️ **Correction (2026-07-10)**: the numbers previously published here were measured
+⚠️ **Corrections (2026-07-10)**: the numbers previously published here were measured
 *before* the `idf_pow` change and were never re-run — they were stale. Re-measured above.
-The IDF emphasis that wins the core suite **regresses the two heavily multi-relevant
-sets**; at `idf_pow=1.0` MIRACL-ko is a dead heat (0.9489 vs 0.9495) but Ko-StrategyQA
-flips to a loss, so 1.5 stays the best single global default. Numbers, the corrected
+And an earlier revision blamed the IDF emphasis for **both** extended losses; that was
+wrong. With emphasis off NFCorpus still lost (0.5080 vs 0.5124) — its cause was missing
+English morphology, now fixed by the S-stemmer, and it is a win. Emphasis only widens the
+**MIRACL-ko** gap: at `idf_pow=1.0` MIRACL-ko is a dead heat (0.9489 vs 0.9495) but
+Ko-StrategyQA flips to a loss, so 1.5 stays the best single global default. Numbers, the corrected
 p-band sweep, and honest limitations (FiQA/MultiLongDoc synaptic-ingest bound; their omni
 numbers predate `idf_pow` and were not re-run):
 [`results/beir_mteb_extra.json`](results/beir_mteb_extra.json).
@@ -160,6 +163,42 @@ python eval/golden_devxgen_bench.py --collection-id 42 --max-docs 220 --num-quer
 ```
 
 Numbers + methodology: [`results/golden_devxgen.json`](results/golden_devxgen.json).
+
+### Memory — does either system's memory improve retrieval?
+
+This is the axis that names synaptic-**memory**: it is stateful and learns. Neither project
+had measured whether the learning improves retrieval quality. `adaptive_bench.py` does,
+with the controls that make the question answerable — and they are not optional: a naive
+run reported a win for us that was not there, and we shipped and retracted it.
+
+    python eval/adaptive_bench.py --data-dir <synaptic tests/benchmark/data>          # disjoint queries
+    python eval/adaptive_bench.py --corpus c.json --golden g.json --paraphrase p.json # re-queries
+
+Every run prints two placebos (**shuffled** = the (query, chunk) pairing permuted;
+**random-q** = a random other feedback query) and splits the eval set into **covered**
+(relevant chunk remembers something) and **uncovered** (it remembers nothing). Memory
+cannot move uncovered queries; if it does, the effect is a corpus-wide scoring artifact.
+
+**Re-query axis** — feedback on the original questions, evaluation on held-out paraphrases
+of them (token Jaccard 0.43). Same corpus, same queries, scored by synaptic's own
+`metrics.py`:
+
+| ΔMRR@10 | all | covered | uncovered |
+|---|---:|---:|---:|
+| synaptic (Hebbian) | +0.0000 | +0.0093 | −0.0093 |
+| **OmniFuse (`Feedback`)** | **+0.1958** | **+0.4167** | −0.0231 |
+| ↳ shuffled placebo | +0.0063 | +0.0243 | −0.0116 |
+| ↳ random-query placebo | +0.0275 | +0.0798 | −0.0243 |
+
+`real` is 5.2× the strongest placebo, so the pairing carries the signal. **Disjoint-query
+axis** — a different question, not a rephrasing: memory correctly does nothing (+0.0006),
+with Δuncovered **exactly 0.0000**, because a `Feedback` memory is indexed as an *evidence
+field* (scored, but excluded from document frequency and from length normalization) so the
+collection's IDF is provably untouched. A cold store ranks bit-identically.
+
+synaptic scores ~0 because in the benchmarked version `graph.search()` reads none of the
+fields `reinforce()` writes. Numbers, controls and the full retraction history:
+[`results/adaptive_memory.json`](results/adaptive_memory.json).
 
 ### Reproducibility notes
 

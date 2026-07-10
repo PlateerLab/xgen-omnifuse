@@ -121,7 +121,8 @@ src/omnifuse/
   oneshot.py       # OmniFuse.search / retrieve — the fusion algorithm
   backends/memory.py  # InMemoryGraph + InMemoryVector (hybrid/dense/lexical, zero infra)
   llm.py           # EchoLLM, CallableLLM
-  facade.py        # build_inmemory(...)
+  feedback.py      # Feedback — memory as a BM25F evidence field
+  facade.py        # build_inmemory(...), save_index / load_index
 examples/  tests/  eval/   # eval/ = head-to-head benchmark vs synaptic-memory
 ```
 
@@ -162,6 +163,11 @@ Full harness + numbers in [`eval/`](eval/) and
 - **OmniFuse's field-weighted BM25F (title 4× body) is a design advantage**, not scoring
   bias — both systems receive the same `(title, text)`; OmniFuse simply exploits the title
   field harder.
+- **synaptic's memory was measured fairly, and we corrected ourselves.** We first reported
+  its Hebbian reinforcement as *harmful* (−0.0174); re-running the same configuration gave
+  −0.0045 (its warm pass is not deterministic). Channel isolation shows `graph.search()`
+  reads none of the fields `reinforce()` writes, so its measured deltas are noise around
+  zero — it is **not wired in**, not harmful.
 - **The golden set's questions are LLM-generated** and each has a single relevant chunk, so
   the absolute MRR is a *lower bound* for both systems; the comparison stays symmetric.
 - **The IDF emphasis is a Pareto trade, not a free win** — it wins the core suite but
