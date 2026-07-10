@@ -165,3 +165,15 @@ class InMemoryVector:
 
     def fetch(self, ids: list[str]) -> list[Chunk]:
         return [self._by_id[i] for i in ids if i in self._by_id]
+
+    def attach_embedder(self, embedder: Optional[Callable[[str], list[float]]]) -> None:
+        """(Re)bind the query embedder — e.g. after loading a persisted index, where the
+        callable could not be serialized. Re-derives whether dense retrieval is usable."""
+        self.embedder = embedder
+        self._dense = embedder is not None and bool(self.chunks) and all(c.embedding for c in self.chunks)
+
+    def __getstate__(self) -> dict:
+        state = self.__dict__.copy()
+        state["embedder"] = None  # a model/closure is not portable; re-attach on load
+        state["_dense"] = False
+        return state

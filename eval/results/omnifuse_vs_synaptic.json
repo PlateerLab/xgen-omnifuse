@@ -13,8 +13,9 @@
     "omni_self_ab_8_public_wall_s": {"before": 249.4, "after": 38.7, "speedup": "6.4x"},
     "klue_mrc_wall_s": {"before": 230.5, "after": 28.8},
     "golden_set_end_to_end_wall_s": {"synaptic": 98.0, "omnifuse": 6.6, "omnifuse_build": 6.1, "omnifuse_query_215q": 0.5},
-    "finreg_wall_s": {"synaptic_prebuilt_sqlite_graph": 11.0, "omnifuse_rebuilds_index": 7.4},
-    "caveat": "Not a universal speed win: omnifuse has NO index persistence and rebuilds every process, while synaptic can start from a persisted index. Only the golden-set row (both from raw data) is apples-to-apples."
+    "finreg_wall_s": {"synaptic_prebuilt_sqlite_graph": 11.0, "omnifuse_rebuilds_index": 7.4, "note": "before the optimization omnifuse was SLOWER here: 26.6s"},
+    "persistence": {"corpus_chunks": 5234, "build_s": 5.98, "save_s": 0.65, "load_s": 0.43, "speedup_vs_rebuild": "14.0x", "index_mb": 41.2, "rankings_identical_after_round_trip": true},
+    "caveat": "Not a universal speed win. Only the golden-set row (both systems from raw data) is apples-to-apples. omnifuse now has save_index/load_index so it can start warm like synaptic, but the index is read back into RAM — synaptic's SQLite/PostgreSQL backends are disk-resident and queryable, omnifuse's is not."
   },
   "protocol": {
     "mode": "single-shot retrieval, no LLM, no embedder",

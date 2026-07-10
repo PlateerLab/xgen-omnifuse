@@ -8,7 +8,15 @@ Quickstart (zero infra, zero API):
 """
 from .backends.fuseki import FusekiGraph
 from .backends.memory import InMemoryGraph, InMemoryVector
-from .facade import build_inmemory, from_csv, from_fuseki, from_jsonl, from_triples
+from .facade import (
+    build_inmemory,
+    from_csv,
+    from_fuseki,
+    from_jsonl,
+    from_triples,
+    load_index,
+    save_index,
+)
 from .llm import CallableLLM, EchoLLM
 from .models import Chunk, Node, SearchResult, Triple
 from .vault import Vault
@@ -21,6 +29,8 @@ __all__ = [
     "OmniFuse",
     "Vault",
     "build_inmemory",
+    "save_index",
+    "load_index",
     "from_triples",
     "from_jsonl",
     "from_csv",

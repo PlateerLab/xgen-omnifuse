@@ -266,10 +266,12 @@ implementation (verified on finreg + all 8 public sets).
 | per-query latency, golden set | — | **2.3 ms** |
 | finreg — synaptic reuses a *prebuilt* SQLite graph, omni rebuilds | 11.0 s | **7.4 s** |
 | omni self-A/B, 8 public sets (same scores) | — | 249.4 s → **38.7 s** (6.4×) |
+| golden set, warm start (`load_index`) | — | **0.43 s** load + 0.5 s queries |
 
 Only the first row is apples-to-apples. The finreg row is *unfavourable* to OmniFuse
-(synaptic starts from a persisted index) and OmniFuse still wins it — but the underlying
-gap is real: **OmniFuse has no index persistence and rebuilds every process.**
+(synaptic starts from a persisted index) and OmniFuse still wins it — before the
+optimization it did not (26.6 s vs 11.0 s). With `save_index`/`load_index` OmniFuse can
+now start warm too, so that asymmetry is gone.
 
 ## Where OmniFuse lags synaptic (honest)
 
@@ -279,7 +281,8 @@ lexical speed. It is genuinely behind here:
 
 | capability | synaptic-memory | OmniFuse |
 |---|---|---|
-| persistent / disk backend | SQLite (FTS5), PostgreSQL | ✗ in-memory only (Fuseki for the graph) |
+| index persistence | SQLite / PostgreSQL store | ✓ `save_index` / `load_index` (stdlib pickle) |
+| persistent *queryable* backend | SQLite (FTS5), PostgreSQL | ✗ index is loaded back into RAM |
 | vector DB adapter | Qdrant, Kuzu, MinIO | ✗ roadmap |
 | reranker | cross-encoder, ColBERT, LLM | ✗ roadmap |
 | query rewriting / HyDE / decomposition | yes | ✗ |
@@ -289,8 +292,19 @@ lexical speed. It is genuinely behind here:
 | consolidation / snapshot / activity | yes | ✗ (`Vault` has simple salience) |
 | scale ceiling | disk-backed | RAM-bound (MultiLongDoc needed a text cap) |
 
-Closing the persistence gap is the highest-value next step: it is what forces OmniFuse to
-pay index-build cost on every run.
+The persistence gap — the one that forced OmniFuse to pay index-build cost on every
+process — is now closed:
+
+```python
+from omnifuse import build_inmemory, save_index, load_index
+save_index(build_inmemory(nodes, triples, chunks), "idx.pkl")
+of = load_index("idx.pkl")          # warm start; embedder/LLM re-supplied here
+```
+
+On the 5,234-chunk golden corpus: build 5.98 s → **load 0.43 s (14× faster)**, index
+41.2 MB, rankings identical after the round-trip. Note `pickle` executes arbitrary code on
+load, so only load indexes you produced; and the index is still read *into RAM*, so the
+scale ceiling is unchanged — a genuinely disk-resident backend remains future work.
 
 ## Reproduce
 

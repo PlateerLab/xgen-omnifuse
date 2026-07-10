@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+- **Index persistence — `save_index` / `load_index`.** A built in-memory index (graph +
+  passage store) round-trips to disk with stdlib `pickle`, so a process starts warm
+  instead of re-indexing: on a 5,234-chunk corpus, **load 0.43 s vs a 5.98 s rebuild
+  (14×)**, rankings identical. The LLM and the embedder callable are deliberately not
+  persisted — pass them to `load_index(..., llm=, embedder=)`. `pickle` executes arbitrary
+  code on load, so only load indexes you produced. This closes the one gap that forced
+  OmniFuse to pay build cost every run; the index is still read into RAM, so a truly
+  disk-resident backend remains future work.
 - **Lexical search is ~6.4× faster, with bit-identical rankings.** A term's contribution
   to a document (`idf * tfw(k1+1)/(k1+tfw)` for `BM25F`, `idf*(k1+1)*f/(f+norm)` for
   `BM25`) does not depend on the query, so it is now folded into the inverted index at

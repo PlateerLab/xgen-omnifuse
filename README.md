@@ -27,6 +27,14 @@ of = from_fuseki("http://localhost:3030/ds/query", graph_uri="urn:g", user="admi
 of = build_inmemory(nodes, triples, chunks)         # explicit Node/Triple/Chunk
 ```
 
+Build the index once, start warm afterwards (stdlib pickle, zero deps):
+
+```python
+from omnifuse import save_index, load_index
+save_index(of, "idx.pkl")
+of = load_index("idx.pkl")            # 14x faster than rebuilding; pass embedder=/llm= here
+```
+
 ## Why graph fusion (not just vectors)
 
 Pure vector RAG answers from the top-k passages it happens to embed near the query. A
@@ -183,8 +191,11 @@ MIRACL-ko is **0.9489 vs 0.9495** — a dead heat — but Ko-StrategyQA then fli
 **Speed** (same box, both from raw data — the only apples-to-apples condition): on the
 golden set **OmniFuse 6.6 s vs synaptic 98.0 s** (build 6.1 s + 0.5 s for 215 queries,
 2.3 ms/query). On finreg, where synaptic reuses a *prebuilt* SQLite graph and OmniFuse
-rebuilds its index every run, OmniFuse is still faster (**7.4 s vs 11.0 s**). OmniFuse has
-no index persistence — see [the honest parity table](docs/comparison/omnifuse_vs_synaptic.md#where-omnifuse-lags-synaptic-honest).
+rebuilds its index, OmniFuse is still faster (**7.4 s vs 11.0 s**) — though before the
+inverted-index optimization it was *slower* (26.6 s). OmniFuse can now start warm too
+(`load_index`, 0.43 s vs a 5.98 s rebuild). Where it still genuinely lags synaptic —
+disk-resident backends, rerankers, async, MCP — is listed honestly in
+[the parity table](docs/comparison/omnifuse_vs_synaptic.md#where-omnifuse-lags-synaptic-honest).
 
 ### How OmniFuse wins — two honest, zero-hardcode logic improvements
 

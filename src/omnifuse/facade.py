@@ -1,6 +1,7 @@
 """Convenience builders — give a file / Fuseki / loose tuples and search right away."""
 from __future__ import annotations
 
+import pickle
 from typing import Callable, Optional
 
 from .backends.memory import InMemoryGraph, InMemoryVector
@@ -29,6 +30,43 @@ def build_inmemory(nodes, triples, chunks, *, llm=None,
     graph = InMemoryGraph([to_node(n) for n in nodes], [to_triple(t) for t in triples])
     vector = InMemoryVector([to_chunk(c) for c in chunks], embedder=embedder, **(vector_kwargs or {}))
     return OmniFuse(graph, vector, llm or EchoLLM(), **kwargs)
+
+
+_INDEX_FORMAT = 1
+
+
+def save_index(of: OmniFuse, path) -> None:
+    """Persist a built in-memory index (graph + passage store) so the next process can
+    ``load_index`` it instead of paying the build cost again. Stdlib pickle, zero deps.
+
+    The LLM and the embedder callable are *not* persisted — pass them to ``load_index``.
+    Only the in-memory backends are supported (a Fuseki graph lives in its own store).
+
+    .. warning:: pickle executes arbitrary code on load. Only load indexes you produced.
+    """
+    if not isinstance(of.graph, InMemoryGraph) or not isinstance(of.vector, InMemoryVector):
+        raise TypeError("save_index supports the in-memory backends only "
+                        f"(got {type(of.graph).__name__}/{type(of.vector).__name__})")
+    with open(path, "wb") as fh:
+        pickle.dump({"format": _INDEX_FORMAT, "graph": of.graph, "vector": of.vector},
+                    fh, protocol=pickle.HIGHEST_PROTOCOL)
+
+
+def load_index(path, *, llm=None, embedder: Optional[Callable[[str], list[float]]] = None,
+               **kwargs) -> OmniFuse:
+    """Rebuild an OmniFuse from an index written by :func:`save_index`.
+
+    .. warning:: pickle executes arbitrary code on load. Only load indexes you produced.
+    """
+    with open(path, "rb") as fh:
+        blob = pickle.load(fh)
+    fmt = blob.get("format")
+    if fmt != _INDEX_FORMAT:
+        raise ValueError(f"unsupported index format {fmt!r} (expected {_INDEX_FORMAT})")
+    vector = blob["vector"]
+    if embedder is not None:
+        vector.attach_embedder(embedder)
+    return OmniFuse(blob["graph"], vector, llm or EchoLLM(), **kwargs)
 
 
 def from_triples(triples, chunks=None, *, nodes=None, labels=None, llm=None,
