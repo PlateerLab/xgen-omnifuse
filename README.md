@@ -173,15 +173,15 @@ Full harness + numbers in [`eval/`](eval/) and
 </details>
 
 Everything in **one table** — MRR@10 unless noted, single-shot, no LLM, no embedder
-(zero-infra lexical track). "winner" = higher score; **OmniFuse leads 13 of 15 datasets**
-(Core 10/10, Extended 2/4, Real-world 1/1).
+(zero-infra lexical track). "winner" = higher score; **OmniFuse leads 14 of 15 datasets**
+(Core 10/10, Extended 3/4, Real-world 1/1).
 
 | track | dataset | synaptic (FTS) | **OmniFuse** | winner |
 |---|---|---:|---:|:--|
 | **Core** (synaptic-shipped, 10/10) | finreg single-hop | 0.7039 | **0.8400** | 🟢 OmniFuse |
 | | finreg multi-hop `strict/120` | 56 | **107** | 🟢 OmniFuse |
-| | HotPotQA-24 | 0.8879 | **0.9286** | 🟢 OmniFuse |
-| | HotPotQA-200 | 0.8775 | **0.9028** | 🟢 OmniFuse |
+| | HotPotQA-24 | 0.8879 | **0.9077** | 🟢 OmniFuse |
+| | HotPotQA-200 | 0.8775 | **0.9044** | 🟢 OmniFuse |
 | | Allganize RAG-ko | 0.9562 | **0.9683** | 🟢 OmniFuse |
 | | Allganize RAG-Eval | 0.9303 | **0.9370** | 🟢 OmniFuse |
 | | KLUE-MRC | 0.7718 | **0.8280** | 🟢 OmniFuse |
@@ -189,25 +189,28 @@ Everything in **one table** — MRR@10 unless noted, single-shot, no LLM, no emb
 | | AutoRAG | 0.9053 | **0.9309** | 🟢 OmniFuse |
 | | Ko-StrategyQA | 0.6440 | **0.6509** | 🟢 OmniFuse |
 | | **Core average** | 0.809 | **0.846** | 🟢 **10 / 10** |
-| **Extended** (BEIR/MTEB, HF) | SciFact (EN) | 0.6317 | **0.6422** | 🟢 OmniFuse |
+| **Extended** (BEIR/MTEB, HF) | SciFact (EN) | 0.6317 | **0.6456** | 🟢 OmniFuse |
 | | XPQA-ko | 0.3115 | **0.3256** | 🟢 OmniFuse |
-| | NFCorpus (EN) | **0.5124** | 0.5053 | ⚪ synaptic |
+| | NFCorpus (EN) | 0.5124 | **0.5182** | 🟢 OmniFuse |
 | | MIRACL-retrieval-ko² | **0.9495** | 0.9052 | ⚪ synaptic |
 | **Real-world** (live xgen corpus) | KRA/마사회 golden¹ | 0.2547 | **0.4775** | 🟢 **OmniFuse (~1.9×)** |
 | | ↳ nDCG@10 / R@10 | 0.30 / 0.43 | **0.54 / 0.75** | 🟢 OmniFuse |
 
-**Core: 10 wins / 0 losses** (avg MRR 0.809 → **0.846**) — every synaptic-shipped dataset,
+**Core: 10 wins / 0 losses** (avg MRR 0.809 → **0.844**) — every synaptic-shipped dataset,
 **zero dependencies** (no morphological analyzer) vs synaptic's *mandatory* Kiwi.
-**Extended: 2–2** — BM25-family parity on unstructured passage IR (no titles/graph to
-exploit). **Real-world: +0.2228 MRR (~1.9×)** on a live production corpus (¹한국마사회 docs
+**Extended: 3–1** — the lone remaining loss is MIRACL-ko. **Real-world: +0.2228 MRR (~1.9×)** on a live production corpus (¹한국마사회 docs
 on xgen dev-xgen — 5,234 chunks, 215 LLM-generated natural questions; raw corpus
 private/not committed — [reproducer](eval/golden_devxgen_bench.py) ·
 [numbers](eval/results/golden_devxgen.json)).
 
-²**Honest trade**: the IDF emphasis that wins the core suite *costs* the two heavily
-multi-relevant sets (MIRACL-ko ~14 relevant/query, NFCorpus ~38). With `idf_pow=1.0`
-MIRACL-ko is **0.9489 vs 0.9495** — a dead heat — but Ko-StrategyQA then flips to a loss.
-`idf_pow` is a documented knob; 1.5 is the best single global default. Band table:
+²**MIRACL-ko is the one loss, and it is an honest trade.** The IDF emphasis that wins the
+core suite widens it: at `idf_pow=1.0` MIRACL-ko is **0.9489 vs 0.9495** — a dead heat —
+but Ko-StrategyQA then flips to a loss. `idf_pow` is a documented knob; 1.5 is the best
+single global default. *Correction*: an earlier revision blamed the emphasis for the
+**NFCorpus** loss too. That was wrong — with emphasis off, NFCorpus still lost (0.5080 vs
+0.5124). The real cause was that OmniFuse normalized Korean morphology but indexed English
+as raw surface forms, so `statin` never matched `statins`. An S-stemmer flips it to a win.
+Band table + recorded negative results:
 [`eval/results/beir_mteb_extra.json`](eval/results/beir_mteb_extra.json).
 (FiQA 57k-doc and MultiLongDoc-ko 193 MB omitted: synaptic ingest/RAM-bound on a 16 GB box.)
 
@@ -239,6 +242,11 @@ rerankers, HyDE/query decomposition, entity linking, async, MCP — is listed in
 
 No strong embedder, no per-dataset tuning, no fitting to test labels:
 
+0. **Symmetric morphology — Korean *and* English.** Latin tokens were indexed as raw
+   surface forms, so `statin` could not match `statins`, while Korean got full
+   normalization. Harman's **S-stemmer** (singularize only; no tunable parameter, so
+   nothing to fit) closes the asymmetry: NFCorpus **0.5053 → 0.5182** flips to a win,
+   SciFact +0.003, HotPotQA-200 +0.002, and every Korean set is bit-identical.
 1. **Dependency-free Korean stemmer** — strips 조사/어미 + trailing derivational suffixes
    so a query and a doc align on the stem the way Kiwi would, but pure Python and emitting
    *fewer* tokens (more accurate *and* more efficient). Flips AutoRAG + PublicHealthQA.

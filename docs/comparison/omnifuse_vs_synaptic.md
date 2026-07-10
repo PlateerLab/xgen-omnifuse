@@ -41,8 +41,8 @@ them with `python eval/public_bench.py --synaptic-repo /path/to/synaptic-memory`
 |---|---|---|---:|---:|---|
 | finreg single-hop | ko | statute retrieval | 0.7039 | **0.8400** | OmniFuse |
 | finreg multi-hop `/120` | ko | cite-following | 56 | **107** | OmniFuse |
-| HotPotQA-24 | en | multi-hop | 0.8879 | **0.9286** | OmniFuse |
-| HotPotQA-200 | en | multi-hop | 0.8775 | **0.9028** | OmniFuse |
+| HotPotQA-24 | en | multi-hop | 0.8879 | **0.9077** | OmniFuse |
+| HotPotQA-200 | en | multi-hop | 0.8775 | **0.9044** | OmniFuse |
 | Allganize RAG-ko | ko | enterprise RAG | 0.9562 | **0.9683** | OmniFuse |
 | Allganize RAG-Eval | ko | domain RAG | 0.9303 | **0.9370** | OmniFuse |
 | KLUE-MRC | ko | machine reading | 0.7718 | **0.8280** | OmniFuse |
@@ -50,7 +50,7 @@ them with `python eval/public_bench.py --synaptic-repo /path/to/synaptic-memory`
 | AutoRAG | ko | passage retrieval | 0.9053 | **0.9309** | OmniFuse |
 | Ko-StrategyQA | ko | strategy QA | 0.6440 | **0.6509** | OmniFuse |
 
-**OmniFuse: 10 wins, 0 losses** (avg MRR 0.846 vs 0.809) — **zero dependencies** (no
+**OmniFuse: 10 wins, 0 losses** (avg MRR 0.844 vs 0.809) — **zero dependencies** (no
 morphological analyzer) vs synaptic's *mandatory* Kiwi. Two honest, general, zero-hardcode
 logic improvements — no strong embedder, no per-dataset tuning — clear the whole board:
 (1) a dependency-free Korean rule-based stemmer (strip 조사/어미 + trailing derivational
@@ -187,6 +187,47 @@ hurts here, which is the cleanest evidence that `idf_pow=1.5` is a principled de
 rather than a fit to the synaptic-shipped datasets. The raw KRA corpus is private and
 **not committed**; a credential-free reproducer (`eval/golden_devxgen_bench.py`) and the
 numbers (`eval/results/golden_devxgen.json`) are.
+
+## The asymmetry we had not noticed: English had no morphology
+
+OmniFuse shipped a Korean stemmer and treated Latin as raw surface tokens, so a query for
+`statin` could never match a document saying `statins` — while synaptic's FTS5 stems
+English. That, not the IDF emphasis, was the NFCorpus loss:
+
+| | synaptic | before | **after S-stemmer** |
+|---|---:|---:|---:|
+| NFCorpus (EN) | 0.5124 | 0.5053 (loss) | **0.5182 (win)** |
+| SciFact (EN) | 0.6317 | 0.6422 | **0.6456** |
+| HotPotQA-200 (EN) | 0.8775 | 0.9028 | **0.9044** |
+| HotPotQA-24 (EN) | 0.8879 | 0.9286 | 0.9077 (still a win) |
+| every Korean set, finreg, golden | — | — | **bit-identical** |
+
+`text._en_stem` is **Harman's S-stemmer**: singularize, nothing else. No `-ing`/`-ed`, no
+Porter cascade — and crucially **no tunable parameter**, so there is nothing to fit.
+
+Two things we got wrong on the way, recorded because they are the useful part:
+
+- **We first "proved" English stemming was harmful** (NFCorpus 0.5053 → 0.4779). That run
+  was void. The harness patched `omnifuse.text.tokenize`, but `backends/memory.py` binds
+  `tokenize` at import — so *documents* were indexed with the old tokenizer while
+  *queries* used the new one. Any tokenizer experiment must patch both sides and assert
+  the document side actually changed.
+- **We predicted that augmenting (`surface` + `#stem`, mirroring the Korean design) would
+  beat replacing**, on the theory that naive plural-stripping collides distinct lemmas
+  (`news→new`, `aids→aid`) and dilutes IDF. Measured: augmenting is *worse*
+  (NFCorpus 0.5090 vs 0.5182). The collision cost is real but smaller than the recall it buys.
+
+### A principled alternative we measured and did **not** ship
+
+`idf^p` inflates a rare term even in documents that barely touch it. A better-motivated
+emphasis raises the precomputed `(term, doc)` **contribution** to a power `q` — the
+contribution carries idf *and* tf-saturation, so `sum(c^q)` (a generalized power mean over
+term evidence) rewards terms the document actually matched. Zero query-time cost. It halves
+the MIRACL-ko damage (0.9052 → **0.9321** at q=1.2, core still 8/8) — but it is worse on
+nine other datasets, and average MRR over the 12 measured sets drops 0.7628 → 0.7610.
+Trading nine datasets for two is not an improvement, and picking `q` per corpus is exactly
+the fitting we refuse to do. Not shipped; recorded in
+[`eval/results/beir_mteb_extra.json`](../../eval/results/beir_mteb_extra.json).
 
 ## Graph fusion: direction is the whole signal (and PPR-style propagation loses)
 

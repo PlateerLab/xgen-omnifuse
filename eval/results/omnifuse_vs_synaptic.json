@@ -146,7 +146,7 @@
       "lang": "en",
       "corpus": 226,
       "synaptic_mrr": 0.8879,
-      "omnifuse_mrr": 0.9286,
+      "omnifuse_mrr": 0.9077,
       "winner": "omnifuse"
     },
     {
@@ -154,7 +154,7 @@
       "lang": "en",
       "corpus": 1990,
       "synaptic_mrr": 0.8775,
-      "omnifuse_mrr": 0.9028,
+      "omnifuse_mrr": 0.9044,
       "winner": "omnifuse"
     },
     {
@@ -210,12 +210,17 @@
     "omnifuse_wins": 10,
     "synaptic_wins": 0,
     "total": 10,
-    "avg_mrr_omnifuse": 0.846,
+    "avg_mrr_omnifuse": 0.844,
     "avg_mrr_synaptic": 0.809,
     "note": "OmniFuse wins ALL TEN, zero-embedder lexical track. Two honest, general, zero-hardcode logic improvements got here: (1) a dependency-free Korean rule-based stemmer (strip 조사/어미 + trailing derivational suffixes) and (2) IDF term-specificity emphasis (idf_pow=1.5) that makes a rare entity term dominate the several common attribute words it is buried under in a long natural-language question. The last holdout, Ko-StrategyQA, flipped 0.6414->0.6509 once emphasis was added — the win is robust across the whole flat band p in [1.3, 2.0] (re-verified 2026-07-10 with a corrected sweep), so it is a principled default, not a fit.",
     "honest_caveat": "The IDF emphasis is NOT free. On heavily multi-relevant passage-IR corpora it regresses: MIRACL-ko 0.9489 (p=1.0) -> 0.9052 (p=1.5), NFCorpus 0.5080 -> 0.5053. Those are the two Extended-track losses. idf_pow is a documented knob; 1.5 is the best single global default (13/15 datasets). See eval/results/beir_mteb_extra.json."
   },
   "ko_strategyqa_win_path": {
     "note": "Won by case investigation, not parameter fishing. Diagnosing the miss@10 queries showed the failure mode: a natural-language question ('장 발장은 어떤 범죄로 유죄 판결을 받았나요?') has one rare discriminative entity (발장) buried under several common attribute words (범죄/유죄/판결); plain BM25 sums term scores so docs matching many common words outrank the doc matching the rare entity. IDF^1.5 makes the rare term dominate the sum. Earlier lexical-only levers (base bigrams / Kiwi / stemmer variants / expanded endings / corpus compound-splitting / same-article graph) each failed or traded a bigger win; IDF emphasis is the general, efficient fix that flips Ko-StrategyQA AND lifts every other set (notably HotPotQA and AutoRAG)."
+  },
+  "english_morphology_2026_07_10": {
+    "finding": "Korean morphology was normalized; English was not ('statin' never matched 'statins').",
+    "fix": "Harman S-stemmer (text._en_stem), no tunable parameter.",
+    "effect": "HotPotQA-24 0.9286->0.9077 (still win), HotPotQA-200 0.9028->0.9044; NFCorpus flips to a win in the extended track. finreg, golden set and all Korean datasets bit-identical."
   }
 }

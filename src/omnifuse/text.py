@@ -53,6 +53,24 @@ _KO_SUFFIX = sorted(set([
 ]), key=len, reverse=True)
 
 
+def _en_stem(word: str) -> str:
+    """Harman's S-stemmer — singularize a Latin word, and nothing else.
+
+    Korean already gets morphological normalization; leaving Latin as raw surface forms
+    meant "statin" never matched "statins". This is the deliberately conservative rule
+    set (no -ing/-ed, no Porter cascade): it has no tunable parameter, so there is
+    nothing to fit, and it does not maul word stems the way aggressive stemmers do.
+    """
+    if len(word) > 3:
+        if word.endswith("ies") and not word.endswith(("eies", "aies")):
+            return word[:-3] + "y"
+        if word.endswith("es") and not word.endswith(("aes", "ees", "oes")):
+            return word[:-1]
+        if word.endswith("s") and not word.endswith(("us", "ss")):
+            return word[:-1]
+    return word
+
+
 def _ko_stem(word: str) -> str:
     """Iteratively strip trailing josa/eomi; keep the stem at least 2 chars."""
     changed = True
@@ -67,9 +85,9 @@ def _ko_stem(word: str) -> str:
 
 
 def tokenize(text: str) -> list[str]:
-    """Latin words + Hanja/Kana bi-grams + Hangul stem bi-grams (+ stem unigram)."""
+    """Latin word stems + Hanja/Kana bi-grams + Hangul stem bi-grams (+ stem unigram)."""
     text = (text or "").lower()
-    toks = _WORD.findall(text)
+    toks = [_en_stem(w) for w in _WORD.findall(text)]
     for run in _CJK_OTHER.findall(text):
         toks.append(run) if len(run) == 1 else toks.extend(run[i:i + 2] for i in range(len(run) - 1))
     for run in _HANGUL.findall(text):

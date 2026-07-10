@@ -34,8 +34,8 @@ python eval/public_bench.py --synaptic-repo PATH         # 8 public datasets
 |---|---|---|---:|---:|---:|
 | **finreg single-hop** | KO | statute retrieval | 0.7039 | **0.8400** | **+0.136** |
 | **finreg multi-hop** (strict/120) | KO | cite-following | 56 | **107** | **+51** |
-| HotPotQA-24 | EN | multi-hop | 0.8879 | **0.9286** | +0.041 |
-| HotPotQA-200 | EN | multi-hop | 0.8775 | **0.9028** | +0.025 |
+| HotPotQA-24 | EN | multi-hop | 0.8879 | **0.9077** | +0.020 |
+| HotPotQA-200 | EN | multi-hop | 0.8775 | **0.9044** | +0.027 |
 | Allganize RAG-ko | KO | enterprise RAG | 0.9562 | **0.9683** | +0.012 |
 | Allganize RAG-Eval | KO | domain RAG | 0.9303 | **0.9370** | +0.007 |
 | KLUE-MRC | KO | machine reading | 0.7718 | **0.8280** | +0.056 |
@@ -43,7 +43,7 @@ python eval/public_bench.py --synaptic-repo PATH         # 8 public datasets
 | AutoRAG | KO | passage retrieval | 0.9053 | **0.9309** | +0.026 |
 | Ko-StrategyQA | KO | strategy QA | 0.6440 | **0.6509** | +0.007 |
 
-**OmniFuse wins 10, loses 0** (avg MRR 0.846 vs 0.809) — every synaptic-shipped dataset,
+**OmniFuse wins 10, loses 0** (avg MRR 0.844 vs 0.809) — every synaptic-shipped dataset,
 with zero dependencies (no morphological analyzer), versus synaptic's mandatory Kiwi.
 Two honest, general, zero-hardcode logic improvements get here: (1) a dependency-free
 Korean stemmer (strip 조사/어미 + trailing derivational suffixes) and (2) IDF
@@ -98,7 +98,7 @@ principled default, not a fit.
 synaptic also references (via `download_datasets.py`, not committed data) a set of
 public BEIR/MTEB benchmarks. We fetched and ran the lexical head-to-head on them
 too — NFCorpus, SciFact, FiQA (EN) and XPQA-ko, MIRACL-retrieval-ko, MultiLongDoc-ko
-(KO). Result: **BM25-family parity** — 2 wins each of the 4 head-to-heads measured.
+(KO). Result: **3 of the 4** head-to-heads, after English morphology was added (see below).
 These are unstructured passage-IR sets with no titles and no citation graph, so neither
 OmniFuse's field weighting nor its graph-companion fusion has anything to exploit.
 OmniFuse's decisive wins are on **structured** corpora (finreg's citation graph, titled
@@ -106,9 +106,9 @@ document sets).
 
 | dataset | synaptic (FTS) | **OmniFuse** (`idf_pow=1.5`) | at `idf_pow=1.0` | winner |
 |---|---:|---:|---:|---|
-| SciFact (EN) | 0.6317 | **0.6422** | 0.6368 | OmniFuse |
+| SciFact (EN) | 0.6317 | **0.6456** | 0.6368 | OmniFuse |
 | XPQA-ko | 0.3115 | **0.3256** | 0.3239 | OmniFuse |
-| NFCorpus (EN, 38.2 rel/q) | **0.5124** | 0.5053 | 0.5080 | synaptic |
+| NFCorpus (EN, 38.2 rel/q) | 0.5124 | **0.5182** | 0.5080 | OmniFuse |
 | MIRACL-retrieval-ko (14.4 rel/q) | **0.9495** | 0.9052 | **0.9489** | synaptic |
 
 ⚠️ **Correction (2026-07-10)**: the numbers previously published here were measured

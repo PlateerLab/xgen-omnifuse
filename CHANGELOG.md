@@ -2,6 +2,32 @@
 
 ## Unreleased
 
+- **English morphological normalization — NFCorpus flips to a win (0.5053 → 0.5182 vs
+  synaptic's 0.5124).** OmniFuse normalized Korean morphology but indexed Latin tokens as
+  raw surface forms, so `statin` could never match `statins`. `text._en_stem` adds
+  **Harman's S-stemmer** (singularize; no `-ing`/`-ed`, no Porter cascade). It has *no
+  tunable parameter*, so there is nothing to fit. SciFact 0.6422 → 0.6456,
+  HotPotQA-200 0.9028 → 0.9044, HotPotQA-24 0.9286 → 0.9077 (still a win); every Korean
+  dataset, finreg, and the golden set are **bit-identical**. Suite: **14 of 15** datasets
+  (Core 10/10, Extended 3/4, Real-world 1/1).
+- **Correction.** An earlier revision claimed the IDF emphasis *caused* both the NFCorpus
+  and MIRACL-ko losses. That was wrong: with emphasis off, NFCorpus still lost (0.5080 vs
+  0.5124). Emphasis widens the MIRACL-ko gap; the NFCorpus gap was missing English
+  morphology, now fixed. MIRACL-ko remains the single loss.
+- **Recorded negative results** (they are why the real fix was findable):
+  - *Replacing graph fusion with PPR-style damped, degree-normalized propagation* — much
+    worse (finreg single-hop 0.6294, multi-hop 81/120). Degree normalization starves the
+    cited article; finreg's evidence is one out-edge away.
+  - *`contribution^q` power-mean instead of `idf^p`* — better on the two Extended losses
+    (MIRACL-ko 0.9052 → 0.9321) but worse on nine other datasets; average MRR 0.7628 →
+    0.7610. Not shipped: it trades nine datasets for two.
+  - *Augmenting Latin tokens with `surface + #stem`* (mirroring the Korean design) — worse
+    than plain replacement (NFCorpus 0.5090 vs 0.5182).
+  - *An English-stemming run that "proved" stemming harmful* was **void**: the harness
+    patched `text.tokenize` but `backends/memory.py` binds `tokenize` at import, so
+    documents were indexed with the old tokenizer while queries used the new one. The
+    corrected run reverses the conclusion.
+
 - **Graph-companion fusion now follows edge direction — finreg multi-hop 101 → 107/120**
   (R@10 0.8958 → 0.9250), single-hop unchanged (hit@10 113 → 114, nDCG 0.8651 → 0.8663).
   `retrieve()` documents that it surfaces "a passage a strong seed *references*", but
