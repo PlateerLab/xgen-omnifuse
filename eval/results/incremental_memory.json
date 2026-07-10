@@ -83,7 +83,7 @@
   },
   "cost": {
     "index_state_added": "for evidence-bearing indexes only: the evidence df of evidence-only terms, their tfw, and the per-field token totals. Nothing is added to a plain BM25/BM25F index.",
-    "build_loop": "one  per (term, document) posting — short-circuits on a local bool when there are no evidence fields",
+    "build_loop": "one `has_ev and not df[tid]` per (term, document) posting — short-circuits on a local bool when there are no evidence fields",
     "static_suite": "unchanged: finreg single-hop 0.8400 / nDCG 0.8663 / hit 114 / multi-hop 107 / R@10 0.9250, and the 8 public datasets are bit-identical",
     "cold_path_opt_in_KRA_5234_chunks": {
       "no_feedback": {
