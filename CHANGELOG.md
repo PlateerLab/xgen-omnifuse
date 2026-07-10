@@ -13,14 +13,18 @@
   their scores are untouched. Recorded negative results: replacing this rule with damped,
   degree-normalized PPR-style propagation is far *worse* (0.6294 / 81), and multi-hop
   propagation never helps — finreg's evidence is exactly one out-edge away.
-- **Index is ~30 % smaller and loads 2× faster.** `BM25.tf`, `BM25F.doc_tf` and the
-  per-field length norms existed only to *derive* the postings, and afterwards were read
-  by nothing but `score()`. They are no longer retained: `score()` reads its precomputed
-  contribution straight out of the postings (each `_pd[t]` is ascending, so it is a binary
-  search). On the 5,234-chunk corpus the persisted index drops **41.2 MB → 28.7 MB** and
-  `load_index` **0.43 s → 0.21 s**; rankings unchanged (verified on finreg + all 8 public
-  sets). Build-time peak RSS is unaffected (~209 MB) — the term-frequency maps are still
-  transient during indexing.
+- **Index is ~30 % smaller, loads 2× faster, and peaks at half the memory while building.**
+  `BM25.tf`, `BM25F.doc_tf` and the per-field length norms existed only to *derive* the
+  postings, and afterwards were read by nothing but `score()`.
+  - They are no longer **retained**: `score()` reads its precomputed contribution straight
+    out of the postings (each `_pd[t]` is ascending, so it is a binary search). Persisted
+    index **41.2 MB → 28.7 MB**; `load_index` **0.43 s → 0.21 s**.
+  - They are no longer **materialized for the whole corpus** either. IDF needs only
+    document frequency, so indexing is two passes — count `df`, then rebuild each
+    document's term map one at a time to emit its postings. `BM25F` build peak
+    **68.2 MB → 36.0 MB**; full `build_inmemory` peak **209.3 MB → 177.2 MB**, for a ~1 %
+    build-time cost (6.07 s → 6.13 s on 5,234 chunks).
+  - Rankings unchanged throughout (verified on finreg + all 8 public sets).
 - **Index persistence — `save_index` / `load_index`.** A built in-memory index (graph +
   passage store) round-trips to disk with stdlib `pickle`, so a process starts warm
   instead of re-indexing: on a 5,234-chunk corpus, **load 0.43 s vs a 5.98 s rebuild

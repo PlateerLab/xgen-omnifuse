@@ -97,14 +97,11 @@ class BM25:
         self.N = len(docs_tokens)
         dls = [len(d) for d in docs_tokens]
         self.avgdl = (sum(dls) / self.N) if self.N else 0.0
-        tf: list[dict[str, int]] = []
+        # Pass 1 — document frequency only. Holding every document's term-count map just
+        # to derive IDF would double peak memory, so the maps are rebuilt in pass 2.
         df: dict[str, int] = {}
         for d in docs_tokens:
-            c: dict[str, int] = {}
-            for t in d:
-                c[t] = c.get(t, 0) + 1
-            tf.append(c)
-            for t in c:
+            for t in set(d):
                 df[t] = df.get(t, 0) + 1
         self.idf = {t: math.log(1 + (self.N - n + 0.5) / (n + 0.5)) ** idf_pow for t, n in df.items()}
         # per-doc length normalization, constant across queries
@@ -113,11 +110,16 @@ class BM25:
         # A term's contribution to a document, idf*(k1+1)*f/(f+norm), does not depend on
         # the query — only on (term, doc). Fold it into the index so a search is a plain
         # accumulation of floats: no division, no tf lookup, no length math per query.
+        # Pass 2 — emit the postings. Everything a query needs lives in _pd/_pw afterwards,
+        # so no term-frequency map is ever retained (they are the bulk of the index).
         k1p1 = self.k1 + 1
         self._pd: dict[str, array] = {}
         self._pw: dict[str, array] = {}
-        for i, c in enumerate(tf):
+        for i, d in enumerate(docs_tokens):
             norm = norms[i]
+            c: dict[str, int] = {}
+            for t in d:
+                c[t] = c.get(t, 0) + 1
             for t, f in c.items():
                 w = self.idf[t] * k1p1 * f / (f + norm)
                 if t not in self._pd:
@@ -125,9 +127,6 @@ class BM25:
                     self._pw[t] = array("d")
                 self._pd[t].append(i)
                 self._pw[t].append(w)
-        # `tf` and the per-doc norms existed only to derive the postings above. Everything
-        # a query needs now lives in _pd/_pw, so we do not retain the term-frequency maps —
-        # they are the bulk of the index.
 
     def score(self, q_tokens: list[str], i: int) -> float:
         """Score of document ``i`` — reads the precomputed contributions straight out of
@@ -184,54 +183,50 @@ class BM25F:
         for f in self.fields:
             tot = sum(len(d.get(f, ())) for d in docs)
             self.avglen[f] = (tot / self.N) if self.N else 0.0
-        doc_tf: list[dict[str, dict[str, int]]] = []
+        # Pass 1 — document frequency only. Keeping every document's per-field term-count
+        # map just to derive IDF doubles peak memory, so pass 2 rebuilds them one doc at a
+        # time. Field *lengths* are cheap (a few ints per doc) and are kept.
         df: dict[str, int] = {}
         for d in docs:
-            per_field: dict[str, dict[str, int]] = {}
             present: set[str] = set()
+            for f in self.fields:
+                present.update(d.get(f, ()))
+            for t in present:
+                df[t] = df.get(t, 0) + 1
+        self.idf = {t: math.log(1 + (self.N - n + 0.5) / (n + 0.5)) ** idf_pow for t, n in df.items()}
+        self._fw = [self.w[f] for f in self.fields]
+        # BM25F sums over the *unique* query terms, so a term's whole contribution to a
+        # document — idf * tfw(k1+1)/(k1+tfw) over the weighted fields — depends only on
+        # (term, doc). Fold it into the index: a search becomes a sum of precomputed floats.
+        k1p1 = self.k1 + 1
+        self._pd: dict[str, array] = {}
+        self._pw: dict[str, array] = {}
+        for i, d in enumerate(docs):
+            # per-doc, per-field length normalization — constant across queries
+            fnorm = [1 - self.b + self.b * (len(d.get(f, ())) or 1) / (self.avglen[f] or 1)
+                     for f in self.fields]
+            counts: list[dict[str, int]] = []
+            present = set()
             for f in self.fields:
                 c: dict[str, int] = {}
                 for t in d.get(f, ()):
                     c[t] = c.get(t, 0) + 1
-                per_field[f] = c
+                counts.append(c)
                 present.update(c)
-            doc_tf.append(per_field)
-            for t in present:
-                df[t] = df.get(t, 0) + 1
-        self.idf = {t: math.log(1 + (self.N - n + 0.5) / (n + 0.5)) ** idf_pow for t, n in df.items()}
-        # per-doc, per-field length normalization — constant across queries
-        self._fw = [self.w[f] for f in self.fields]
-        fnorms = [
-            [1 - self.b + self.b * (sum(per_field[f].values()) or 1) / (self.avglen[f] or 1)
-             for f in self.fields]
-            for per_field in doc_tf
-        ]
-        # BM25F sums over the *unique* query terms, so a term's whole contribution to a
-        # document — idf * tfw(k1+1)/(k1+tfw) over the weighted fields — depends only on
-        # (term, doc). Fold it into the index: a search becomes a sum of precomputed floats.
-        # Nothing else needs the per-field term-frequency maps, so they are not retained.
-        k1p1 = self.k1 + 1
-        self._pd: dict[str, array] = {}
-        self._pw: dict[str, array] = {}
-        for i, per_field in enumerate(doc_tf):
-            fnorm = fnorms[i]
-            present = set()
-            for f in self.fields:
-                present.update(per_field[f])
             for t in present:
                 tfw = 0.0
-                for fi, f in enumerate(self.fields):
-                    tf = per_field[f].get(t, 0)
+                for fi in range(len(self.fields)):
+                    tf = counts[fi].get(t, 0)
                     if tf:
                         tfw += self._fw[fi] * tf / fnorm[fi]
                 if not tfw:
                     continue
-                c = self.idf[t] * tfw * k1p1 / (self.k1 + tfw)
+                w = self.idf[t] * tfw * k1p1 / (self.k1 + tfw)
                 if t not in self._pd:
                     self._pd[t] = array("i")
                     self._pw[t] = array("d")
                 self._pd[t].append(i)
-                self._pw[t].append(c)
+                self._pw[t].append(w)
 
     def _score(self, q_terms, i: int) -> float:
         s = 0.0

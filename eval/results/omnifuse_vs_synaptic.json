@@ -11,24 +11,93 @@
   "graph_fusion_direction_2026_07_10": {
     "finding": "Graph-companion fusion expanded edges symmetrically, but the finreg graph is directed (article -references-> cited article). A seed therefore also promoted every article that CITES it — a crowd, not evidence — which cost single-hop accuracy and capped multi-hop. retrieve()'s own docstring already said it surfaces 'a passage a strong seed references'; the code disagreed.",
     "fix": "GraphStore.neighbor_ids gains direction='out'|'in'|'both' (default 'both'); fusion requests 'out' via OmniFuse(fusion_direction='out'). No parameter refit: fusion_alpha stays 0.9.",
-    "effect_real_pipeline": {"multi_hop_strict": "101/120 -> 107/120", "multi_hop_recall@10": "0.8958 -> 0.9250", "single_hop_mrr": "0.8404 -> 0.8400", "single_hop_hit@10": "113/120 -> 114/120", "single_hop_ndcg@10": "0.8651 -> 0.8663", "public_datasets": "unchanged (no graph edges)"},
+    "effect_real_pipeline": {
+      "multi_hop_strict": "101/120 -> 107/120",
+      "multi_hop_recall@10": "0.8958 -> 0.9250",
+      "single_hop_mrr": "0.8404 -> 0.8400",
+      "single_hop_hit@10": "113/120 -> 114/120",
+      "single_hop_ndcg@10": "0.8651 -> 0.8663",
+      "public_datasets": "unchanged (no graph edges)"
+    },
     "negative_results": {
       "note": "synaptic uses Personalized PageRank (damped power iteration, per-edge-type weights) + Hebbian reinforcement. We tried to replace omnifuse's simpler rule with that class of algorithm. It lost.",
-      "no_graph": {"single_hop_mrr": 0.8490, "multi_hop_strict": 19},
-      "damped_degree_normalized_propagation_best": {"single_hop_mrr": 0.6294, "multi_hop_strict": 81, "why": "a cited article receives alpha*seed/deg — far too small to reach top-10. finreg needs the cited article promoted ADJACENT to its seed."},
-      "additive_no_degree_norm_best": {"single_hop_mrr": 0.8156, "multi_hop_strict": 94},
+      "no_graph": {
+        "single_hop_mrr": 0.849,
+        "multi_hop_strict": 19
+      },
+      "damped_degree_normalized_propagation_best": {
+        "single_hop_mrr": 0.6294,
+        "multi_hop_strict": 81,
+        "why": "a cited article receives alpha*seed/deg — far too small to reach top-10. finreg needs the cited article promoted ADJACENT to its seed."
+      },
+      "additive_no_degree_norm_best": {
+        "single_hop_mrr": 0.8156,
+        "multi_hop_strict": 94
+      },
       "multi_hop_propagation": "2-3 hops never helped; finreg's evidence is exactly one out-edge away",
-      "in_edges_only": {"multi_hop_strict": 24, "why": "confirms the citation direction carries the entire multi-hop signal"}
+      "in_edges_only": {
+        "multi_hop_strict": 24,
+        "why": "confirms the citation direction carries the entire multi-hop signal"
+      }
     }
   },
   "performance_2026_07_10": {
     "optimization": "Each (term, doc) contribution is query-independent, so it is folded into the inverted index at build time; search is a plain accumulation of precomputed floats. Rankings bit-identical (verified on finreg + all 8 public).",
-    "omni_self_ab_8_public_wall_s": {"before": 249.4, "after": 38.7, "speedup": "6.4x"},
-    "klue_mrc_wall_s": {"before": 230.5, "after": 28.8},
-    "golden_set_end_to_end_wall_s": {"synaptic": 98.0, "omnifuse": 6.6, "omnifuse_build": 6.1, "omnifuse_query_215q": 0.5},
-    "finreg_wall_s": {"synaptic_prebuilt_sqlite_graph": 11.0, "omnifuse_rebuilds_index": 7.4, "note": "before the optimization omnifuse was SLOWER here: 26.6s"},
-    "persistence": {"corpus_chunks": 5234, "build_s": 5.98, "save_s": 0.65, "load_s": 0.21, "speedup_vs_rebuild": "29x", "index_mb": 28.7, "index_mb_before_tf_drop": 41.2, "rankings_identical_after_round_trip": true},
-    "caveat": "Not a universal speed win. Only the golden-set row (both systems from raw data) is apples-to-apples. omnifuse now has save_index/load_index so it can start warm like synaptic, but the index is read back into RAM — synaptic's SQLite/PostgreSQL backends are disk-resident and queryable, omnifuse's is not."
+    "omni_self_ab_8_public_wall_s": {
+      "before": 249.4,
+      "after": 38.7,
+      "speedup": "6.4x"
+    },
+    "klue_mrc_wall_s": {
+      "before": 230.5,
+      "after": 28.8
+    },
+    "golden_set_end_to_end_wall_s": {
+      "synaptic": 98.0,
+      "omnifuse": 6.6,
+      "omnifuse_build": 6.1,
+      "omnifuse_query_215q": 0.5
+    },
+    "finreg_wall_s": {
+      "synaptic_prebuilt_sqlite_graph": 11.0,
+      "omnifuse_rebuilds_index": 7.4,
+      "note": "before the optimization omnifuse was SLOWER here: 26.6s"
+    },
+    "persistence": {
+      "corpus_chunks": 5234,
+      "build_s": 5.98,
+      "save_s": 0.65,
+      "load_s": 0.21,
+      "speedup_vs_rebuild": "29x",
+      "index_mb": 28.7,
+      "index_mb_before_tf_drop": 41.2,
+      "rankings_identical_after_round_trip": true
+    },
+    "caveat": "Not a universal speed win. Only the golden-set row (both systems from raw data) is apples-to-apples. omnifuse now has save_index/load_index so it can start warm like synaptic, but the index is read back into RAM — synaptic's SQLite/PostgreSQL backends are disk-resident and queryable, omnifuse's is not.",
+    "memory": {
+      "note": "The postings carry precomputed contributions, so term-frequency maps are neither retained nor materialized corpus-wide (IDF needs only document frequency -> two-pass indexing).",
+      "persisted_index_mb": {
+        "before": 41.2,
+        "after": 28.7
+      },
+      "load_index_s": {
+        "before": 0.43,
+        "after": 0.21
+      },
+      "bm25f_build_peak_mb": {
+        "before": 68.2,
+        "after": 36.0
+      },
+      "build_inmemory_peak_mb": {
+        "before": 209.3,
+        "after": 177.2
+      },
+      "build_time_s": {
+        "before": 6.07,
+        "after": 6.13
+      },
+      "rankings": "unchanged (finreg + all 8 public verified)"
+    }
   },
   "protocol": {
     "mode": "single-shot retrieval, no LLM, no embedder",
@@ -47,7 +116,7 @@
         "hit@10": "103/120"
       },
       "omnifuse": {
-        "mrr": 0.8400,
+        "mrr": 0.84,
         "ndcg@10": 0.8663,
         "hit@10": "114/120"
       },
@@ -62,7 +131,7 @@
       },
       "omnifuse": {
         "strict_solved": 107,
-        "recall@10": 0.9250
+        "recall@10": 0.925
       },
       "synaptic_llm_agent_reference": {
         "strict_solved": 88,
@@ -101,7 +170,7 @@
       "lang": "ko",
       "corpus": 300,
       "synaptic_mrr": 0.9303,
-      "omnifuse_mrr": 0.9370,
+      "omnifuse_mrr": 0.937,
       "winner": "omnifuse"
     },
     {
@@ -109,7 +178,7 @@
       "lang": "ko",
       "corpus": 5841,
       "synaptic_mrr": 0.7718,
-      "omnifuse_mrr": 0.8280,
+      "omnifuse_mrr": 0.828,
       "winner": "omnifuse"
     },
     {
