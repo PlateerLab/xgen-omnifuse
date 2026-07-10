@@ -8,6 +8,7 @@ Quickstart (zero infra, zero API):
 """
 from .backends.fuseki import FusekiGraph
 from .backends.memory import InMemoryGraph, InMemoryVector
+from .feedback import Feedback
 from .facade import (
     build_inmemory,
     from_csv,
@@ -29,6 +30,7 @@ __all__ = [
     "OmniFuse",
     "Vault",
     "build_inmemory",
+    "Feedback",
     "save_index",
     "load_index",
     "from_triples",

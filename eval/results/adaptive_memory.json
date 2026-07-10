@@ -1,42 +1,112 @@
 {
   "benchmark": "Adaptive retrieval — does a system's memory improve held-out retrieval?",
   "date": "2026-07-10",
-  "status": "NEGATIVE RESULT. Neither synaptic's Hebbian reinforcement nor any memory design we tried produces a query-conditional improvement. An earlier revision of this repo claimed OmniFuse won this axis; that claim was WRONG and has been reverted.",
-  "why_this_axis": "It is the deepest difference between the projects: synaptic-*memory* is stateful and learns (Hebbian reinforcement of nodes/edges feeding resonance-ranked search); OmniFuse is a stateless one-shot retriever. Neither side had measured whether the dynamics improve retrieval QUALITY — synaptic's own memory eval (eval/scripts/memory_operating_poc.py) is a contract smoke-gate.",
-  "protocol": {
-    "split": "queries split deterministically 50/50 into FEEDBACK (F) and HELD-OUT EVAL (E); E is never searched during feedback",
-    "feedback_signal": "identical for both systems — replay F, report which of the retrieved top-10 were relevant",
-    "metric": "MRR@10 on E, before (cold) and after (warm)",
-    "leakage_check": "zero exact-duplicate and zero near-duplicate (Jaccard>=0.8) queries between F and E",
-    "mandatory_controls": "shuffled / random-q placebos (same documents, same volume of remembered text, broken pairing) and a covered/uncovered split of E. Without these the benchmark reports a win that is not there."
+  "scorer": "synaptic's own tests/benchmark/metrics.py (reciprocal_rank, k=10) — byte-identical to eval/metrics.py. Not a metric we wrote.",
+  "why_this_axis": "It is the deepest difference between the projects: synaptic-*memory* is stateful and learns (Hebbian reinforcement of nodes/edges); OmniFuse's retrieval is otherwise stateless. Neither side had measured whether the dynamics improve retrieval QUALITY — synaptic's own memory eval (eval/scripts/memory_operating_poc.py) is a contract smoke-gate.",
+  "mandatory_controls": {
+    "placebos": "shuffled (query<->chunk pairing permuted) and random-q (a random other feedback query). Query-conditional memory must die under both.",
+    "coverage_split": "covered = eval queries whose relevant chunk remembers something; uncovered = those whose relevant chunk remembers nothing. Memory cannot move uncovered queries. If it does, the effect is a corpus-wide scoring artifact.",
+    "note": "Without these controls the benchmark reports a win that is not there. It did for us — see the retraction below."
   },
-  "synaptic_hebbian": [
-    {"dataset": "NFCorpus", "split": 0, "cold": 0.5107, "warm": 0.5104, "delta": -0.0002},
-    {"dataset": "NFCorpus", "split": 1, "cold": 0.5141, "warm": 0.4967, "delta": -0.0174},
-    {"dataset": "MIRACL-ko", "split": 0, "cold": 0.9678, "warm": 0.9513, "delta": -0.0165}
-  ],
-  "synaptic_verdict": "Neutral to harmful in every measurement. Reinforcing nodes and edges learns a QUERY-INDEPENDENT prior — 'this document tends to be relevant' — but relevance is a property of a (query, document) pair.",
-  "omnifuse_designs_all_failed": {
-    "query_independent_priors": {
-      "beta_posterior_odds": {"delta": -0.0384, "detail": "score *= (hits+1)/(misses+1). Judged documents sink relative to never-shown ones: most retrieved documents are irrelevant."},
-      "positive_only": {"delta": -0.0175},
-      "empirical_bayes_lift": {"delta": -0.0489, "detail": "shrink the posterior to the corpus base rate so an average document is exactly neutral. The most 'correct' design, and the worst — calibration was never the problem."}
+  "what_synaptic_reinforcement_actually_reaches": {
+    "finding": "In the benchmarked version, SynapticGraph.search() reads NONE of the fields reinforce() writes. ResonanceScorer (the only consumer of node.success_count/access_count) is used by search.py and agent_search.py, not by graph.search; neither EvidenceSearch nor graph_expander reads edge.weight. The only channel is the new edges reinforce() creates on success.",
+    "channel_isolation_NFCorpus_split1": {
+      "no reinforcement": {
+        "delta": 0.0,
+        "note": "determinism check — passes exactly"
+      },
+      "negative only (counts + edge weakening, no edge creation)": {
+        "delta": 0.0
+      },
+      "positive only (creates edges)": {
+        "delta": 0.0001
+      },
+      "both": {
+        "delta": -0.0045
+      }
     },
-    "query_conditional_text_memory": {
-      "idea": "a confirmed query becomes part of what the document is *about*: stored as text, indexed as its own BM25F field",
-      "apparent_result": {"NFCorpus": [0.0019, 0.0076], "MIRACL-ko": [0.0618, 0.0729]},
-      "verdict": "VOID — the apparent gain survives every placebo",
-      "placebo_MIRACL_split0": {"real": 0.0618, "shuffled": 0.0555, "random_query": 0.0665, "random_doc": 0.0555},
-      "placebo_NFCorpus_split1": {"real": 0.0076, "shuffled": 0.0047, "random_query": 0.0077, "random_doc": 0.0041},
-      "decisive_evidence": "On MIRACL-ko, held-out queries whose relevant documents remembered NOTHING still gained +0.0441. A query-conditional memory cannot move those. Attaching a RANDOM feedback query to each confirmed document scored as well as attaching the real one (+0.0665 vs +0.0618).",
-      "the_actual_mechanism": "Injecting query text into documents raises the document frequency of query vocabulary, which deflates its IDF corpus-wide. MIRACL-ko is exactly the corpus that prefers weaker IDF emphasis (0.9052 at idf_pow=1.5 -> 0.9489 at 1.0), so the 'memory' was an accidental, uncontrolled `idf_pow` reduction.",
-      "control_that_isolates_it": "Memory made of tokens that can never match any query (shared or per-document unique) yields delta = +0.0000 exactly. The effect requires the memory text to match queries — i.e. it flows through term statistics, not through the (query, document) pairing."
+    "correction": "An earlier revision reported synaptic's Hebbian as HARMFUL (-0.0174). Re-running the same configuration gave -0.0045, so synaptic's warm pass is not deterministic across runs. The fair statement is that Hebbian is NOT WIRED into this version's retrieval and its measured deltas are noise around zero — not that it hurts."
+  },
+  "axis_1_disjoint_queries": {
+    "question": "does memory generalize across DIFFERENT questions?",
+    "answer": "No — for either system. And an honest mechanism must show exactly that.",
+    "synaptic_hebbian": [
+      {
+        "dataset": "NFCorpus",
+        "split": 0,
+        "delta": -0.0002
+      },
+      {
+        "dataset": "NFCorpus",
+        "split": 1,
+        "delta": -0.0045
+      },
+      {
+        "dataset": "MIRACL-ko",
+        "split": 0,
+        "delta": -0.0165
+      }
+    ],
+    "omnifuse_feedback_NFCorpus_split1": {
+      "real": 0.0006,
+      "shuffled": -0.0039,
+      "random_q": -0.0001,
+      "delta_uncovered_real": 0.0,
+      "reading": "no signal, and Δuncovered is exactly 0.0000 — the collection's IDF is provably untouched"
     }
   },
-  "conclusion": "No memory mechanism measured here — synaptic's or ours — improves held-out retrieval in a query-conditional way. The OmniFuse `Feedback` feature was reverted. The benchmark is kept, with placebo and covered/uncovered controls mandatory, because the naive version of it produces a convincing false positive.",
+  "axis_2_requery_paraphrase": {
+    "question": "does memory serve the same need asked in different words? (this is what memory is for)",
+    "setup": "5,234 KRA chunks (dev-xgen). 215 questions, each answered by one gold chunk. Feedback = the ORIGINAL question remembered on its gold chunk, for the odd-indexed half only. Eval = LLM paraphrases of all 215 questions (token Jaccard 0.43). The even-indexed half is therefore a built-in uncovered control.",
+    "cold": {
+      "all": 0.3337,
+      "covered": 0.3459,
+      "uncovered": 0.3216
+    },
+    "omnifuse_feedback": {
+      "real": {
+        "all": 0.1958,
+        "covered": 0.4167,
+        "uncovered": -0.0231
+      },
+      "shuffled_placebo": {
+        "all": 0.0063,
+        "covered": 0.0243,
+        "uncovered": -0.0116
+      },
+      "random_q_placebo": {
+        "all": 0.0275,
+        "covered": 0.0798,
+        "uncovered": -0.0243
+      }
+    },
+    "synaptic_hebbian": {
+      "all": 0.0,
+      "covered": 0.0093,
+      "uncovered": -0.0093
+    },
+    "reading": "real is 5.2x the strongest placebo on covered queries, so the (query, chunk) pairing carries the signal. synaptic moves nothing, because its reinforcement is not wired into its retrieval."
+  },
+  "the_mechanism": {
+    "idea": "A confirmed query becomes evidence about the chunk. It is indexed as a BM25F EVIDENCE field: its terms score the chunk but never enter document frequency, and it is not length-normalized.",
+    "why_df_exclusion": "Our retracted design injected the remembered query into the chunk BODY. That raised the document frequency of query vocabulary and deflated its IDF corpus-wide — an accidental, uncontrolled idf_pow reduction. Excluding evidence from df makes the cold store bit-identical and makes Δuncovered structurally zero.",
+    "why_no_length_normalization": "Remembering a second query must not dilute the first. With BM25F's collection-average normalization, a memory field held by 2% of chunks explodes fnorm and annihilates the signal (measured: covered gain collapses from +0.4167 to +0.0742).",
+    "evidence_only_terms": "A term seen only in evidence has content-df 0, so it takes its IDF from the evidence df. Otherwise the words that memory exists to contribute — the ones absent from the chunk — would be discarded.",
+    "no_tuning": "The evidence field carries the same weight as the body (1.0). An empty evidence field contributes nothing, so a cold store is bit-identical — verified on finreg and the full public suite."
+  },
+  "retraction_history": {
+    "what_we_claimed": "OmniFuse won this axis by remembering queries and indexing them in the chunk body (NFCorpus +0.0019/+0.0076, MIRACL-ko +0.0618/+0.0729).",
+    "how_it_died": "Permuting the pairing kept the gain (+0.0555 on MIRACL-ko); attaching a RANDOM feedback query scored better than the real one (+0.0665); and held-out queries whose relevant chunks remembered nothing still gained +0.0441. A control memory of tokens that can never match a query moved nothing (+0.0000 exactly), pinning the effect on term statistics rather than the pairing.",
+    "our_query_independent_designs_also_failed": {
+      "beta_posterior_odds": -0.0384,
+      "positive_only": -0.0175,
+      "empirical_bayes_lift": -0.0489
+    }
+  },
   "honest_limitations": [
-    "synaptic was driven through graph.search + graph.reinforce (FTS, no embedder). Its EvidenceSearch path, embedder, reranker and consolidation cascade were not measured; a different configuration might behave differently.",
-    "Two corpora and two splits. A larger sweep might find a regime where query-conditional memory transfers — NFCorpus (82% of relevant documents serve more than one query) was chosen precisely because transfer should be easiest there, and it did not appear.",
-    "Absolute cold MRR here is computed on half the queries and does not match the static suite's full-set numbers."
+    "synaptic was driven through graph.search + graph.reinforce (FTS, no embedder). Its consolidation cascade, embedder and reranker were not measured. Its resonance-scored paths (search.py HybridSearch, agent_search.py) are not what graph.search calls in this version.",
+    "The re-query axis uses LLM-generated paraphrases of LLM-generated questions over a private corpus; the corpus is not committed. Absolute MRR is a lower bound, and the comparison is symmetric.",
+    "Memory is batch: folding it in requires an index rebuild (save_index/load_index make that cheap). No incremental update.",
+    "One corpus per axis. A broader sweep is future work."
   ]
 }

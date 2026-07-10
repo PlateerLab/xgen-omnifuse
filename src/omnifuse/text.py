@@ -218,13 +218,23 @@ class BM25F:
     tokenized corpus. ``weights`` maps field -> boost. IDF is document-level (a term
     counts once across fields), so a query term appearing in the title lifts the doc
     without double-charging IDF.
+
+    ``evidence_fields`` names fields that are *evidence about* a document rather than its
+    content — e.g. queries it was confirmed to answer. Their terms score the document but
+    are excluded from document frequency, so they cannot deflate the IDF of the collection
+    (a term seen only in evidence takes its IDF from the evidence df instead). They are
+    also not length-normalized: remembering a second query must not dilute the first.
+    With no evidence fields the class behaves exactly as before.
     """
 
     def __init__(self, docs, weights: dict[str, float],
-                 *, k1: float = 1.5, b: float = 0.75, idf_pow: float = _IDF_POW):
+                 *, k1: float = 1.5, b: float = 0.75, idf_pow: float = _IDF_POW,
+                 evidence_fields: "frozenset[str] | set[str] | None" = None):
         self.k1, self.b = k1, b
         self.fields = list(weights.keys())
         self.w = weights
+        self.evidence_fields = frozenset(evidence_fields or ())
+        self._is_ev = [f in self.evidence_fields for f in self.fields]
         stream = _passes(docs)
         nf = len(self.fields)
         # Pass 1 — tokenize ONCE. IDF needs corpus-wide document frequency, so per-document
@@ -233,6 +243,7 @@ class BM25F:
         vocab: dict[str, int] = {}
         terms: list[str] = []
         df: list[int] = []
+        dfe: list[int] = []          # document frequency seen ONLY in evidence fields
         totals = [0] * nf
         doc_ids: list[list[array]] = []
         doc_cnt: list[list[array]] = []
@@ -243,6 +254,7 @@ class BM25F:
             f_ids, f_cnt = [], []
             flen = array("i")
             present: set[int] = set()
+            present_ev: set[int] = set()
             for fi, f in enumerate(self.fields):
                 toks = d.get(f, ())
                 flen.append(len(toks))
@@ -251,6 +263,7 @@ class BM25F:
                 for t in toks:
                     c[t] = c.get(t, 0) + 1
                 ids, cnt = array("i"), array("i")
+                ev = self._is_ev[fi]
                 for t, tf in c.items():
                     tid = vocab.get(t)
                     if tid is None:
@@ -258,18 +271,24 @@ class BM25F:
                         vocab[t] = tid
                         terms.append(t)
                         df.append(0)
+                        dfe.append(0)
                     ids.append(tid)
                     cnt.append(tf)
-                    present.add(tid)
+                    (present_ev if ev else present).add(tid)
                 f_ids.append(ids)
                 f_cnt.append(cnt)
             for tid in present:
                 df[tid] += 1
+            for tid in present_ev:
+                dfe[tid] += 1
             doc_ids.append(f_ids)
             doc_cnt.append(f_cnt)
             doc_len.append(flen)
         self.avglen = {f: (totals[fi] / self.N if self.N else 0.0) for fi, f in enumerate(self.fields)}
-        idfs = [math.log(1 + (self.N - n + 0.5) / (n + 0.5)) ** idf_pow for n in df]
+        # Evidence never deflates a content term's IDF: df counts content only. A term seen
+        # solely in evidence has content-df 0, so it takes its IDF from the evidence df.
+        idfs = [math.log(1 + (self.N - (n or ne) + 0.5) / ((n or ne) + 0.5)) ** idf_pow
+                for n, ne in zip(df, dfe)]
         self.idf = dict(zip(terms, idfs))
         self._fw = [self.w[f] for f in self.fields]
         # BM25F sums over the *unique* query terms, so a term's whole contribution to a
@@ -281,7 +300,8 @@ class BM25F:
         self._pw: dict[str, array] = {}
         for i in range(self.N):
             flen = doc_len[i]
-            fnorm = [1 - self.b + self.b * (flen[fi] or 1) / avgl[fi] for fi in range(nf)]
+            fnorm = [1.0 if self._is_ev[fi] else 1 - self.b + self.b * (flen[fi] or 1) / avgl[fi]
+                     for fi in range(nf)]
             tfws: dict[int, float] = {}
             for fi in range(nf):
                 wf = self._fw[fi]

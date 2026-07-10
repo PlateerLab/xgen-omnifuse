@@ -275,6 +275,45 @@ python eval/finreg_bench.py                        # finreg, self-contained
 python eval/public_bench.py --synaptic-repo PATH   # the 8 public datasets
 ```
 
+## Memory — `Feedback`
+
+The deepest difference between OmniFuse and synaptic-**memory** was never the ranking: it
+is that synaptic is *stateful* and learns. Neither project had measured whether that
+learning improves retrieval, so we built the benchmark — and it first told us we had won
+when we had not. (The placebos are in the harness now precisely because of that.)
+
+A confirmed query becomes **evidence about** a chunk: indexed as a BM25F evidence field
+whose terms score it but never enter document frequency, and which is not
+length-normalized.
+
+```python
+from omnifuse import Feedback, build_inmemory
+fb = Feedback()
+fb.remember("statin side effects", ["doc7"])          # a user confirmed doc7 answered it
+of = build_inmemory(nodes, triples, chunks, feedback=fb)
+```
+
+Feedback on the original questions, evaluation on held-out **paraphrases** of them — the
+case memory exists for. Same corpus, same queries, scored by *synaptic's own* `metrics.py`:
+
+| ΔMRR@10 | all | covered | uncovered |
+|---|---:|---:|---:|
+| synaptic (Hebbian) | +0.0000 | +0.0093 | −0.0093 |
+| **OmniFuse (`Feedback`)** | **+0.1958** | **+0.4167** | −0.0231 |
+| ↳ shuffled placebo | +0.0063 | +0.0243 | −0.0116 |
+| ↳ random-query placebo | +0.0275 | +0.0798 | −0.0243 |
+
+`real` is 5.2× the strongest placebo, so the `(query, chunk)` pairing is what carries the
+signal. On *unrelated* held-out questions memory correctly does nothing (+0.0006) and
+Δuncovered is exactly **0.0000** — the collection's IDF is provably untouched. A cold store
+ranks **bit-identically** to one built with no feedback, so memory can never regress a
+system that has not been used. Nothing is tuned.
+
+Why synaptic scores ~0: in the benchmarked version its `graph.search()` reads none of the
+fields `reinforce()` writes. Harness, controls and the full retraction history:
+[`eval/adaptive_bench.py`](eval/adaptive_bench.py) ·
+[`eval/results/adaptive_memory.json`](eval/results/adaptive_memory.json).
+
 ## Roadmap
 
 - `backends/qdrant.py` vector adapter; jena-text fast path for `FusekiGraph`

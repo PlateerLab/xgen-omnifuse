@@ -2,6 +2,48 @@
 
 ## Unreleased
 
+- **`Feedback` — memory that survives its own placebo, and beats synaptic on the axis that
+  names it.** A confirmed query becomes *evidence about* a chunk: it is indexed as a BM25F
+  **evidence field** whose terms score the chunk but never enter document frequency, and
+  which is not length-normalized. Measured with synaptic's own `metrics.py`, on the same
+  corpus, queries and scorer — feedback on the original questions, evaluated on **held-out
+  paraphrases** of them:
+
+  | ΔMRR@10 | all | covered | uncovered |
+  |---|---:|---:|---:|
+  | synaptic (Hebbian) | +0.0000 | +0.0093 | −0.0093 |
+  | **OmniFuse (`Feedback`)** | **+0.1958** | **+0.4167** | −0.0231 |
+  | ↳ shuffled placebo | +0.0063 | +0.0243 | −0.0116 |
+  | ↳ random-query placebo | +0.0275 | +0.0798 | −0.0243 |
+
+  `real` is 5.2× the strongest placebo, so the `(query, chunk)` pairing carries the signal.
+  On *unrelated* held-out questions memory correctly does nothing (+0.0006), and
+  Δuncovered is **exactly 0.0000** there — the collection's IDF is provably untouched. A
+  cold store ranks **bit-identically** to one built with no feedback (verified on finreg and
+  the whole public suite). Nothing is tuned.
+
+  Three design decisions, each forced by a measurement: excluding evidence from **df**
+  (our retracted version injected the query into the body, which deflated the IDF of query
+  vocabulary corpus-wide — an accidental `idf_pow` reduction); **no length normalization**
+  on the evidence field (a memory held by 2% of chunks otherwise explodes `fnorm` and the
+  covered gain collapses +0.4167 → +0.0742); and giving **evidence-only terms** an IDF from
+  the evidence df (otherwise the very words memory exists to contribute are discarded).
+
+- **Fairness correction on synaptic.** An earlier revision reported its Hebbian
+  reinforcement as *harmful* (−0.0174). Re-running the same configuration gave −0.0045:
+  synaptic's warm pass is not deterministic. Channel isolation shows why the effect is
+  noise — in this version `SynapticGraph.search()` reads **none** of the fields
+  `reinforce()` writes (`ResonanceScorer`, the only consumer of `success_count`, is used by
+  `search.py`/`agent_search.py`, not by `graph.search`; nothing reads `edge.weight`).
+  Reinforcement reaches retrieval only through the edges it creates on success: with no
+  reinforcement Δ = **0.0000** exactly, with negatives only **0.0000**, with positives only
+  **+0.0001**. The fair statement is that Hebbian is *not wired into* this version's
+  retrieval — not that it hurts.
+
+- **`BM25F(evidence_fields=…)`** — fields that describe a document rather than being its
+  content: scored, but excluded from document frequency and from length normalization.
+  With no evidence fields the class behaves exactly as before.
+
 - **Retracted: `Feedback` (query-conditional memory). The claimed win was not real.**
   A previous entry claimed OmniFuse beat synaptic on the axis that defines it — memory —
   by remembering the queries a document was confirmed to answer and indexing them as a

@@ -352,7 +352,7 @@ mentioned the finreg loss; that was an omission, and it is corrected here. The g
 closed from both ends (inverted-index scoring, and `save_index`/`load_index` warm start),
 but the result remains **workload-dependent**.
 
-## The deepest difference is statefulness — and neither side's memory works
+## The deepest difference is statefulness — and this is where it lands
 
 synaptic-**memory** learns: Hebbian reinforcement of graph nodes and edges on
 co-activation, feeding resonance-ranked search. OmniFuse is a stateless one-shot
@@ -409,8 +409,56 @@ made mandatory, because its naive form produces a convincing false positive — 
 one for us. [`eval/adaptive_bench.py`](../../eval/adaptive_bench.py) ·
 [`eval/results/adaptive_memory.json`](../../eval/results/adaptive_memory.json)
 
-**Nothing we tried, and nothing synaptic ships, improves held-out retrieval in a
-query-conditional way.** This remains open.
+### What was actually wrong — and what fixed it
+
+Two facts, found by instrumenting instead of guessing.
+
+**synaptic's reinforcement never reaches its retrieval.** `ResonanceScorer` — the only
+consumer of the `success_count`/`access_count` that `reinforce()` writes — is used by
+`search.py` and `agent_search.py`, not by `graph.search`. Nothing reads `edge.weight`.
+Isolating the channels on NFCorpus: no reinforcement Δ = **0.0000** (a determinism check
+that passes exactly), negatives only **0.0000**, positives only **+0.0001**, both −0.0045.
+Reinforcement touches retrieval only through the edges it creates. (This also corrects us:
+we previously called Hebbian *harmful* at −0.0174. Re-running gave −0.0045 — synaptic's
+warm pass is not deterministic. It does not hurt; it is simply not wired in.)
+
+**Our memory failed because it became content.** Injecting the remembered query into the
+body raised the document frequency of query vocabulary and deflated its IDF corpus-wide.
+So memory is now an **evidence field**: scored, but excluded from document frequency and
+from length normalization.
+
+```python
+fb = Feedback()
+fb.remember("statin side effects", ["doc7"])          # a user confirmed doc7 answered it
+of = build_inmemory(nodes, triples, chunks, feedback=fb)
+```
+
+Each of those three choices was forced by a measurement, not chosen:
+
+| choice | what happens without it |
+|---|---|
+| evidence excluded from **df** | the retracted false positive: Δuncovered +0.0441, placebos match `real` |
+| **no length normalization** on the evidence field | a memory held by 2% of chunks explodes `fnorm`; covered gain collapses +0.4167 → +0.0742 |
+| evidence-only terms take IDF from the **evidence df** | the very words memory exists to contribute — those absent from the chunk — are discarded |
+
+### The result, on the axis memory is actually for
+
+Memory pays when the same need returns in different words. So: feedback on the original
+questions, evaluation on held-out **paraphrases** (token Jaccard 0.43). Same corpus, same
+queries, scored by synaptic's own `metrics.py`.
+
+| ΔMRR@10 | all | covered | uncovered |
+|---|---:|---:|---:|
+| synaptic (Hebbian) | +0.0000 | +0.0093 | −0.0093 |
+| **OmniFuse (`Feedback`)** | **+0.1958** | **+0.4167** | −0.0231 |
+| ↳ shuffled placebo | +0.0063 | +0.0243 | −0.0116 |
+| ↳ random-query placebo | +0.0275 | +0.0798 | −0.0243 |
+
+`real` is 5.2× the strongest placebo: the `(query, chunk)` pairing carries the signal. And
+on the *disjoint-query* axis — a different question, not a rephrasing — memory correctly
+does **nothing** (+0.0006), with Δuncovered **exactly 0.0000**, because the collection's
+IDF is provably untouched. A cold store ranks bit-identically to one built without
+feedback. Nothing is tuned.
 
 ## Where OmniFuse lags synaptic (honest)
 

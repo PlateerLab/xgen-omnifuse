@@ -9,6 +9,7 @@ from __future__ import annotations
 import math
 from typing import Callable, Optional
 
+from ..feedback import Feedback
 from ..models import Chunk, Node, Triple
 from ..text import _IDF_POW, BM25, BM25F, tokenize
 
@@ -141,17 +142,29 @@ class InMemoryVector:
 
     def __init__(self, chunks: list[Chunk], *, embedder: Optional[Callable[[str], list[float]]] = None,
                  title_weight: float = _TITLE_WEIGHT, lexical_weight: float = 0.8,
-                 dense_weight: float = 1.0, pool: int = 40, idf_pow: float = _IDF_POW):
+                 dense_weight: float = 1.0, pool: int = 40, idf_pow: float = _IDF_POW,
+                 feedback: Optional[Feedback] = None):
         self.chunks = chunks
         self._by_id = {c.id: c for c in chunks}
         self.embedder = embedder
         self.lexical_weight, self.dense_weight, self._pool = lexical_weight, dense_weight, pool
         self._dense = embedder is not None and bool(chunks) and all(c.embedding for c in chunks)
         self._lexical = any((c.text or c.title) for c in chunks)
+        self.feedback = feedback
         if self._lexical:
             # Tokenize lazily: indexing takes two passes, and materializing every
             # tokenized document for both of them is the peak-memory cost of a build.
-            if any(c.title for c in chunks):
+            # `memory` holds the queries a chunk was confirmed to answer. It is an EVIDENCE
+            # field: it scores the chunk but never enters document frequency, so it cannot
+            # deflate the collection's IDF, and it is not length-normalized. An empty
+            # memory field contributes nothing, so a cold store scores bit-identically.
+            if feedback:
+                def docs():
+                    return ({"title": tokenize(c.title), "body": tokenize(c.text),
+                             "memory": tokenize(feedback.text(c.id))} for c in chunks)
+                self._bm25 = BM25F(docs, {"title": title_weight, "body": 1.0, "memory": 1.0},
+                                   idf_pow=idf_pow, evidence_fields={"memory"})
+            elif any(c.title for c in chunks):
                 def docs():
                     return ({"title": tokenize(c.title), "body": tokenize(c.text)} for c in chunks)
                 self._bm25 = BM25F(docs, {"title": title_weight, "body": 1.0}, idf_pow=idf_pow)
