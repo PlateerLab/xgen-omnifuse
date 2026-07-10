@@ -151,5 +151,20 @@
       "result": "Real but immaterial. It fixes 연속되 -> 연속, yet Ko-StrategyQA at p=1.0 moves 0.6434 -> 0.6435 (still a loss) and at p=1.5 drops 0.6496 -> 0.6490. AutoRAG/KLUE/PublicHealthQA/Allganize unchanged. Not shipped.",
       "why_it_failed": "The other residues are not reachable: '있나요' -> '있나' stops at the 2-char stem floor, and '사용되었다' has no listed trailing ending at all. The residue theory does not explain the 0.0006 gap."
     }
+  },
+  "per_query_diff_at_p1.0_vs_synaptic": {
+    "question": "is Ko-StrategyQA's 0.0006 loss at p=1.0 a clustered, fixable defect (like MIRACL's copula) or diffuse disagreement?",
+    "method": "per-query reciprocal_rank diff, omni@idf_pow=1.0 vs synaptic re-run through its own graph.search (FTS), 592 queries",
+    "result": {
+      "losses": 92,
+      "wins": 94,
+      "ties": 406,
+      "loss_rr_mass": 36.49,
+      "win_rr_mass": 36.14,
+      "big_losses_gap_ge_0.5": 43,
+      "big_wins_gap_ge_0.5": 48
+    },
+    "loss_shape": "the visible losses ARE entity-burial: a Korean query naming a transliterated entity (이기 팝 -> Iggy Pop, 소니 플레이스테이션 -> PlayStation, LinkedIn) whose gold doc holds the rare term, out-summed at p=1.0 by documents matching several common words. That is precisely the failure idf_pow=1.5 corrects — which is why 1.5 wins this set.",
+    "verdict": "No clustered defect. The two systems disagree on 186 of 592 queries and split them almost exactly evenly (RR mass 36.49 vs 36.14); the 0.0006 margin is the residue of a coin-flip-even disagreement, not a bug with a root cause. Unlike MIRACL (29 losses concentrated on one junk title -> fixed by the copula ending), there is nothing principled to fix here — any change targeted at flipping this margin would be fitting to test labels. The shipped disclosure (keep idf_pow=1.5, band-robust, margin stated) is the final state."
   }
 }

@@ -131,6 +131,15 @@ than the wrong top-1 — and on the queries it breaks, the reverse. Measured on 
 The sign flips. `idf_pow` bets on rarity: it wins when the gold document is the rare-term
 holder and loses when it is not. A mechanism, then — and also exactly why the net is a wash.
 
+**And the per-query diff that closes the question.** For MIRACL the diff exposed one junk
+document and a missing copula ending; here it exposes the opposite. At `p=1.0` vs synaptic,
+Ko-StrategyQA splits **92 losses / 94 wins / 406 ties**, with reciprocal-rank mass 36.49
+against 36.14 — a dead heat. The losses are textbook entity-burial (이기 팝 → *Iggy Pop*,
+소니 플레이스테이션 → *PlayStation*, LinkedIn), i.e. exactly the failure `idf_pow` exists to fix,
+which is why 1.5 wins the set. There is no clustered defect underneath; the 0.0006 is the
+residue of an even disagreement, and a change aimed at flipping it would be label-fitting.
+This is where the improve-loop honestly terminates for this dataset.
+
 **A fix that did not work** (recorded, not shipped): the rarest query terms on Ko-StrategyQA
 are stemmer residues, not entities — `있나` (idf 7.63), `#연속되` (8.73), `벌은` (7.43). And
 `_KO_SUFFIX` contains 하 but not 되, the same closed class with one half missing, so 연속되나요
