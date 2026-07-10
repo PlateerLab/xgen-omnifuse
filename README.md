@@ -302,12 +302,12 @@ of = build_inmemory(nodes, triples, chunks, feedback=fb)
 Feedback on the original questions, evaluation on held-out **paraphrases** of them — the
 case memory exists for. Same corpus, same queries, scored by *synaptic's own* `metrics.py`:
 
-| ΔMRR@10 | all | covered | uncovered |
-|---|---:|---:|---:|
-| synaptic (Hebbian) | +0.0000 | +0.0093 | −0.0093 |
-| **OmniFuse (`Feedback`)** | **+0.1958** | **+0.4167** | −0.0231 |
-| ↳ shuffled placebo | +0.0063 | +0.0243 | −0.0116 |
-| ↳ random-query placebo | +0.0275 | +0.0798 | −0.0243 |
+| ΔMRR@10, held-out re-queries | KRA (ko) all | KRA covered | NFCorpus (en) all | NFCorpus covered |
+|---|---:|---:|---:|---:|
+| synaptic (Hebbian) | +0.0000 | +0.0093 | −0.0010 | −0.0008 |
+| **OmniFuse (`Feedback`)** | **+0.1958** | **+0.4167** | **+0.0342** | **+0.0460** |
+| ↳ shuffled placebo | +0.0063 | +0.0243 | −0.0036 | −0.0049 |
+| ↳ random-query placebo | +0.0275 | +0.0798 | −0.0036 | −0.0048 |
 
 `real` is 5.2× the strongest placebo, so the `(query, chunk)` pairing is what carries the
 signal. On *unrelated* held-out questions memory correctly does nothing (+0.0006) and

@@ -85,7 +85,64 @@
       "covered": 0.0093,
       "uncovered": -0.0093
     },
-    "reading": "real is 5.2x the strongest placebo on covered queries, so the (query, chunk) pairing carries the signal. synaptic moves nothing, because its reinforcement is not wired into its retrieval."
+    "reading": "real beats the strongest placebo by 5.2x on KRA and is the only positive variant on NFCorpus, so the (query, chunk) pairing carries the signal. synaptic moves nothing on either corpus, because its reinforcement is not wired into its retrieval.",
+    "corpora": {
+      "KRA (ko, 5234 chunks, 1 relevant/query, paraphrase Jaccard 0.43)": {
+        "cold": {
+          "all": 0.3337,
+          "covered": 0.3459,
+          "uncovered": 0.3216
+        },
+        "omnifuse_real": {
+          "all": 0.1958,
+          "covered": 0.4167,
+          "uncovered": -0.0231
+        },
+        "omnifuse_shuffled": {
+          "all": 0.0063,
+          "covered": 0.0243,
+          "uncovered": -0.0116
+        },
+        "omnifuse_random_q": {
+          "all": 0.0275,
+          "covered": 0.0798,
+          "uncovered": -0.0243
+        },
+        "synaptic_hebbian": {
+          "all": 0.0,
+          "covered": 0.0093,
+          "uncovered": -0.0093
+        }
+      },
+      "NFCorpus (en, 3633 docs, 38.2 relevant/query, paraphrase Jaccard 0.32)": {
+        "cold": {
+          "all": 0.4783,
+          "covered": 0.5562,
+          "uncovered": 0.2529
+        },
+        "omnifuse_real": {
+          "all": 0.0342,
+          "covered": 0.046,
+          "uncovered": 0.0
+        },
+        "omnifuse_shuffled": {
+          "all": -0.0036,
+          "covered": -0.0049,
+          "uncovered": 0.0
+        },
+        "omnifuse_random_q": {
+          "all": -0.0036,
+          "covered": -0.0048,
+          "uncovered": -0.0002
+        },
+        "synaptic_hebbian": {
+          "all": -0.001,
+          "covered": -0.0008,
+          "uncovered": -0.0017
+        }
+      }
+    },
+    "generalization": "Replicated on a second corpus, a second language and a different relevance structure. On NFCorpus BOTH placebos go NEGATIVE while real stays positive, and Δuncovered is exactly 0.0000 — the cleanest possible signature. Effect size is much smaller there (+0.0460 vs +0.4167 covered) because the cold score is already 0.556: with 38 relevant documents per query, hitting one is easy and there is little headroom. Memory pays most where relevance is concentrated (one right chunk) and the cold ranking is weak."
   },
   "the_mechanism": {
     "idea": "A confirmed query becomes evidence about the chunk. It is indexed as a BM25F EVIDENCE field: its terms score the chunk but never enter document frequency, and it is not length-normalized.",
@@ -107,7 +164,7 @@
     "synaptic was driven through graph.search + graph.reinforce (FTS, no embedder). Its consolidation cascade, embedder and reranker were not measured. Its resonance-scored paths (search.py HybridSearch, agent_search.py) are not what graph.search calls in this version.",
     "The re-query axis uses LLM-generated paraphrases of LLM-generated questions over a private corpus; the corpus is not committed. Absolute MRR is a lower bound, and the comparison is symmetric.",
     "Memory is batch: folding it in requires an index rebuild (save_index/load_index make that cheap). No incremental update.",
-    "One corpus per axis. A broader sweep is future work."
+    "Re-query axis replicated on two corpora (ko/en). The disjoint axis was run on NFCorpus and MIRACL-ko. Broader sweeps remain future work."
   ],
   "static_suite_reverification_after_evidence_field": {
     "claim": "adding evidence_fields to BM25F changed no static score",

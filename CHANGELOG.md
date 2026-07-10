@@ -9,14 +9,20 @@
   corpus, queries and scorer — feedback on the original questions, evaluated on **held-out
   paraphrases** of them:
 
-  | ΔMRR@10 | all | covered | uncovered |
-  |---|---:|---:|---:|
-  | synaptic (Hebbian) | +0.0000 | +0.0093 | −0.0093 |
-  | **OmniFuse (`Feedback`)** | **+0.1958** | **+0.4167** | −0.0231 |
-  | ↳ shuffled placebo | +0.0063 | +0.0243 | −0.0116 |
-  | ↳ random-query placebo | +0.0275 | +0.0798 | −0.0243 |
+  | ΔMRR@10, held-out re-queries | KRA (ko) all | KRA covered | NFCorpus (en) all | NFCorpus covered |
+  |---|---:|---:|---:|---:|
+  | synaptic (Hebbian) | +0.0000 | +0.0093 | −0.0010 | −0.0008 |
+  | **OmniFuse (`Feedback`)** | **+0.1958** | **+0.4167** | **+0.0342** | **+0.0460** |
+  | ↳ shuffled placebo | +0.0063 | +0.0243 | −0.0036 | −0.0049 |
+  | ↳ random-query placebo | +0.0275 | +0.0798 | −0.0036 | −0.0048 |
 
-  `real` is 5.2× the strongest placebo, so the `(query, chunk)` pairing carries the signal.
+  Replicated on a **second corpus, second language and a different relevance structure**:
+  on NFCorpus both placebos go *negative* while `real` stays positive, and Δuncovered is
+  exactly **0.0000**. The effect is smaller there (+0.0460 vs +0.4167 covered) because its
+  cold score is already 0.556 — with 38 relevant documents per query there is little
+  headroom. Memory pays most where relevance is concentrated and the cold ranking is weak.
+  `real` is 5.2× the strongest placebo on KRA and is the only positive variant on NFCorpus,
+  so the `(query, chunk)` pairing carries the signal.
   On *unrelated* held-out questions memory correctly does nothing (+0.0006), and
   Δuncovered is **exactly 0.0000** there — the collection's IDF is provably untouched. A
   cold store ranks **bit-identically** to one built with no feedback (verified on finreg and
