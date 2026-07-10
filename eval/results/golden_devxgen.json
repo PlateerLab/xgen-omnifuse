@@ -16,11 +16,12 @@
   },
   "metric": "eval/metrics.py, MRR/nDCG/Recall@10, single-shot, no LLM at retrieval time, no embedder",
   "result": {
-    "synaptic_fts": { "mrr": 0.2547, "ndcg@10": 0.2956, "recall@10": 0.4279, "wall_s": 98 },
-    "omnifuse":     { "mrr": 0.4775, "ndcg@10": 0.5446, "recall@10": 0.7535, "wall_s": 13 },
+    "synaptic_fts": { "mrr": 0.2547, "ndcg@10": 0.2956, "recall@10": 0.4279, "wall_s": 98.0 },
+    "omnifuse":     { "mrr": 0.4775, "ndcg@10": 0.5446, "recall@10": 0.7535, "wall_s": 6.6, "build_s": 6.1, "query_s": 0.5, "ms_per_query": 2.3 },
     "winner": "omnifuse",
     "delta_mrr": 0.2228,
-    "note": "OmniFuse wins by +0.2228 MRR (~1.9x) and nDCG/Recall likewise, at ~7.5x lower wall time. This is exactly the long-institutional-document regime the retrieval-logic work targets (a specific entity buried in long boilerplate text)."
+    "note": "OmniFuse wins by +0.2228 MRR (~1.9x) and nDCG/Recall likewise. Wall time is end-to-end from raw data on both sides (the only apples-to-apples condition); omnifuse's 6.6s is 6.1s index build + 0.5s for all 215 queries. This is exactly the long-institutional-document regime the retrieval-logic work targets (a specific entity buried in long boilerplate text).",
+    "speed_caveat": "Do not read this as a universal speed win. OmniFuse has NO index persistence and rebuilds every process; synaptic can start from a persisted SQLite index. On finreg, where synaptic reuses a prebuilt graph, the comparison is unfavourable to omnifuse (it still wins, 7.4s vs 11.0s, but only after the 2026-07-10 lexical optimization; before it omnifuse was SLOWER at 26.6s)."
   },
   "ablation_omnifuse_logic": {
     "note": "Contribution of the two logic improvements on this out-of-distribution real corpus. Every config still beats synaptic's 0.2547.",

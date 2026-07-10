@@ -98,13 +98,27 @@ principled default, not a fit.
 synaptic also references (via `download_datasets.py`, not committed data) a set of
 public BEIR/MTEB benchmarks. We fetched and ran the lexical head-to-head on them
 too — NFCorpus, SciFact, FiQA (EN) and XPQA-ko, MIRACL-retrieval-ko, MultiLongDoc-ko
-(KO). Result: **BM25-family parity** — 2 wins each of the 4 head-to-heads measured,
-all within ±0.02 MRR. These are unstructured passage-IR sets with no titles and no
-citation graph, so neither OmniFuse's field weighting nor its graph-companion fusion
-has anything to exploit. OmniFuse's decisive wins are on **structured** corpora
-(finreg's citation graph, titled document sets). Numbers + honest limitations
-(FiQA/MultiLongDoc synaptic-ingest bound; MultiLongDoc's 193MB of long docs exceed
-omnifuse's in-memory index on 16 GB): [`results/beir_mteb_extra.json`](results/beir_mteb_extra.json).
+(KO). Result: **BM25-family parity** — 2 wins each of the 4 head-to-heads measured.
+These are unstructured passage-IR sets with no titles and no citation graph, so neither
+OmniFuse's field weighting nor its graph-companion fusion has anything to exploit.
+OmniFuse's decisive wins are on **structured** corpora (finreg's citation graph, titled
+document sets).
+
+| dataset | synaptic (FTS) | **OmniFuse** (`idf_pow=1.5`) | at `idf_pow=1.0` | winner |
+|---|---:|---:|---:|---|
+| SciFact (EN) | 0.6317 | **0.6422** | 0.6368 | OmniFuse |
+| XPQA-ko | 0.3115 | **0.3256** | 0.3239 | OmniFuse |
+| NFCorpus (EN, 38.2 rel/q) | **0.5124** | 0.5053 | 0.5080 | synaptic |
+| MIRACL-retrieval-ko (14.4 rel/q) | **0.9495** | 0.9052 | **0.9489** | synaptic |
+
+⚠️ **Correction (2026-07-10)**: the numbers previously published here were measured
+*before* the `idf_pow` change and were never re-run — they were stale. Re-measured above.
+The IDF emphasis that wins the core suite **regresses the two heavily multi-relevant
+sets**; at `idf_pow=1.0` MIRACL-ko is a dead heat (0.9489 vs 0.9495) but Ko-StrategyQA
+flips to a loss, so 1.5 stays the best single global default. Numbers, the corrected
+p-band sweep, and honest limitations (FiQA/MultiLongDoc synaptic-ingest bound; their omni
+numbers predate `idf_pow` and were not re-run):
+[`results/beir_mteb_extra.json`](results/beir_mteb_extra.json).
 
 ### Real-world golden set — a live xgen domain corpus (dev-xgen)
 
@@ -118,10 +132,11 @@ both retrievers. Both systems then retrieve over the identical corpus/queries/qr
 
 | system | MRR@10 | nDCG@10 | R@10 | wall |
 |---|---:|---:|---:|---:|
-| synaptic (FTS) | 0.2547 | 0.2956 | 0.4279 | 98 s |
-| **OmniFuse** | **0.4775** | **0.5446** | **0.7535** | **13 s** |
+| synaptic (FTS) | 0.2547 | 0.2956 | 0.4279 | 98.0 s |
+| **OmniFuse** | **0.4775** | **0.5446** | **0.7535** | **6.6 s** |
 
-**OmniFuse wins by +0.2228 MRR (~1.9×)** on every metric, at **~7.5× lower wall time** —
+Wall time is end-to-end from raw data on both sides (OmniFuse: 6.1 s index build + 0.5 s
+for all 215 queries = 2.3 ms/query). **OmniFuse wins by +0.2228 MRR (~1.9×)** on every metric —
 on genuinely out-of-distribution real documents. This is exactly the long-institutional-
 document regime the retrieval logic targets: a specific entity buried in pages of
 boilerplate. Ablation of the two logic improvements on this corpus (every config still

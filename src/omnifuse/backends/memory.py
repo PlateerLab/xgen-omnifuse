@@ -10,7 +10,7 @@ import math
 from typing import Callable, Optional
 
 from ..models import Chunk, Node, Triple
-from ..text import BM25, BM25F, tokenize
+from ..text import _IDF_POW, BM25, BM25F, tokenize
 
 _ISA = {"instanceOf", "type", "subClassOf", "rdf:type"}
 # Title weighted above body in fielded lexical retrieval — a short heading is
@@ -41,6 +41,10 @@ class InMemoryGraph:
                 self._members.setdefault(t.o, []).append(t.s)
         self._ids = list(self.nodes.keys())
         self._bm25 = BM25([tokenize(self.nodes[i].label) for i in self._ids])
+        # label -> first node id with that label (multi-hop traversal lookup)
+        self._label_ix: dict[str, str] = {}
+        for nid, n in self.nodes.items():
+            self._label_ix.setdefault(n.label, nid)
 
     def _label(self, nid: str) -> str:
         n = self.nodes.get(nid)
@@ -87,10 +91,7 @@ class InMemoryGraph:
         return self.nodes.get(node_id)
 
     def _by_label(self, label: str) -> Optional[str]:
-        for nid, n in self.nodes.items():
-            if n.label == label:
-                return nid
-        return None
+        return self._label_ix.get(label)
 
 
 def _cosine(a: list[float], b: list[float]) -> float:
@@ -127,7 +128,7 @@ class InMemoryVector:
 
     def __init__(self, chunks: list[Chunk], *, embedder: Optional[Callable[[str], list[float]]] = None,
                  title_weight: float = _TITLE_WEIGHT, lexical_weight: float = 0.8,
-                 dense_weight: float = 1.0, pool: int = 40):
+                 dense_weight: float = 1.0, pool: int = 40, idf_pow: float = _IDF_POW):
         self.chunks = chunks
         self._by_id = {c.id: c for c in chunks}
         self.embedder = embedder
@@ -137,9 +138,9 @@ class InMemoryVector:
         if self._lexical:
             if any(c.title for c in chunks):
                 docs = [{"title": tokenize(c.title), "body": tokenize(c.text)} for c in chunks]
-                self._bm25 = BM25F(docs, {"title": title_weight, "body": 1.0})
+                self._bm25 = BM25F(docs, {"title": title_weight, "body": 1.0}, idf_pow=idf_pow)
             else:
-                self._bm25 = BM25([tokenize(c.text) for c in chunks])
+                self._bm25 = BM25([tokenize(c.text) for c in chunks], idf_pow=idf_pow)
 
     def _dense_ranked(self, query: str, limit: int) -> list[tuple[int, float]]:
         q = self.embedder(query)  # type: ignore[misc]

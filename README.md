@@ -158,21 +158,33 @@ Everything in **one table** — MRR@10 unless noted, single-shot, no LLM, no emb
 | | AutoRAG | 0.9053 | **0.9309** | 🟢 OmniFuse |
 | | Ko-StrategyQA | 0.6440 | **0.6509** | 🟢 OmniFuse |
 | | **Core average** | 0.809 | **0.846** | 🟢 **10 / 10** |
-| **Extended** (BEIR/MTEB, HF) | SciFact (EN) | 0.6317 | **0.6368** | 🟢 OmniFuse |
-| | XPQA-ko | 0.3115 | **0.3278** | 🟢 OmniFuse |
-| | NFCorpus (EN) | **0.5124** | 0.5075 | ⚪ synaptic |
-| | MIRACL-retrieval-ko | **0.9495** | 0.9293 | ⚪ synaptic |
+| **Extended** (BEIR/MTEB, HF) | SciFact (EN) | 0.6317 | **0.6422** | 🟢 OmniFuse |
+| | XPQA-ko | 0.3115 | **0.3256** | 🟢 OmniFuse |
+| | NFCorpus (EN) | **0.5124** | 0.5053 | ⚪ synaptic |
+| | MIRACL-retrieval-ko² | **0.9495** | 0.9052 | ⚪ synaptic |
 | **Real-world** (live xgen corpus) | KRA/마사회 golden¹ | 0.2547 | **0.4775** | 🟢 **OmniFuse (~1.9×)** |
 | | ↳ nDCG@10 / R@10 | 0.30 / 0.43 | **0.54 / 0.75** | 🟢 OmniFuse |
 
 **Core: 10 wins / 0 losses** (avg MRR 0.809 → **0.846**) — every synaptic-shipped dataset,
 **zero dependencies** (no morphological analyzer) vs synaptic's *mandatory* Kiwi.
-**Extended: 2–2** — a BM25-family parity on unstructured passage IR (no titles/graph to
-exploit; NFCorpus/MIRACL within ±0.02). **Real-world: +0.2228 MRR (~1.9×) at ~7.5× lower
-wall time** on a live production corpus (¹한국마사회 docs on xgen dev-xgen — 5,234 chunks,
-215 LLM-generated natural questions; raw corpus private/not committed —
-[reproducer](eval/golden_devxgen_bench.py) · [numbers](eval/results/golden_devxgen.json)).
+**Extended: 2–2** — BM25-family parity on unstructured passage IR (no titles/graph to
+exploit). **Real-world: +0.2228 MRR (~1.9×)** on a live production corpus (¹한국마사회 docs
+on xgen dev-xgen — 5,234 chunks, 215 LLM-generated natural questions; raw corpus
+private/not committed — [reproducer](eval/golden_devxgen_bench.py) ·
+[numbers](eval/results/golden_devxgen.json)).
+
+²**Honest trade**: the IDF emphasis that wins the core suite *costs* the two heavily
+multi-relevant sets (MIRACL-ko ~14 relevant/query, NFCorpus ~38). With `idf_pow=1.0`
+MIRACL-ko is **0.9489 vs 0.9495** — a dead heat — but Ko-StrategyQA then flips to a loss.
+`idf_pow` is a documented knob; 1.5 is the best single global default. Band table:
+[`eval/results/beir_mteb_extra.json`](eval/results/beir_mteb_extra.json).
 (FiQA 57k-doc and MultiLongDoc-ko 193 MB omitted: synaptic ingest/RAM-bound on a 16 GB box.)
+
+**Speed** (same box, both from raw data — the only apples-to-apples condition): on the
+golden set **OmniFuse 6.6 s vs synaptic 98.0 s** (build 6.1 s + 0.5 s for 215 queries,
+2.3 ms/query). On finreg, where synaptic reuses a *prebuilt* SQLite graph and OmniFuse
+rebuilds its index every run, OmniFuse is still faster (**7.4 s vs 11.0 s**). OmniFuse has
+no index persistence — see [the honest parity table](docs/comparison/omnifuse_vs_synaptic.md#where-omnifuse-lags-synaptic-honest).
 
 ### How OmniFuse wins — two honest, zero-hardcode logic improvements
 

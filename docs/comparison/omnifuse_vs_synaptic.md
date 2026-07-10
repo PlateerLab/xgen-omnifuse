@@ -167,10 +167,11 @@ per chunk).
 
 | system | MRR@10 | nDCG@10 | R@10 | wall |
 |---|---:|---:|---:|---:|
-| synaptic (FTS) | 0.2547 | 0.2956 | 0.4279 | 98 s |
-| **OmniFuse** | **0.4775** | **0.5446** | **0.7535** | **13 s** |
+| synaptic (FTS) | 0.2547 | 0.2956 | 0.4279 | 98.0 s |
+| **OmniFuse** | **0.4775** | **0.5446** | **0.7535** | **6.6 s** |
 
-**OmniFuse wins by +0.2228 MRR (~1.9×)** on every metric at **~7.5× lower wall time**,
+Wall time is end-to-end from raw data on both sides (OmniFuse: 6.1 s build + 0.5 s for all
+215 queries). **OmniFuse wins by +0.2228 MRR (~1.9×)** on every metric,
 on out-of-distribution real documents — the long-institutional-text regime where a
 specific entity is buried in boilerplate. Ablation (every config still beats synaptic):
 
@@ -200,6 +201,96 @@ numbers (`eval/results/golden_devxgen.json`) are.
 2. **Graph-companion fusion (`OmniFuse.retrieve`)** — 1-hop graph structure folded
    into the ranking (previously graph relations fed only the LLM prompt). One shot,
    no agent. Multi-hop 19 → 101, for a ~0.009 single-hop cost.
+
+## Reverification (2026-07-10) — both systems re-run from scratch
+
+Earlier revisions re-measured only OmniFuse and *reused* synaptic's column from prior
+runs. That is an assumption, not evidence, so both systems were re-run end to end. Every
+core number reproduces **to the decimal**, on both sides:
+
+| | synaptic (re-run) | OmniFuse (re-run) |
+|---|---:|---:|
+| finreg single-hop MRR / nDCG | 0.7039 / 0.7410 | 0.8404 / 0.8651 |
+| finreg multi-hop strict | 56/120 | 101/120 |
+| HotPotQA-24 / -200 | 0.8879 / 0.8775 | 0.9286 / 0.9028 |
+| Allganize ko / Eval | 0.9562 / 0.9303 | 0.9683 / 0.9370 |
+| KLUE-MRC | 0.7718 | 0.8280 |
+| PublicHealthQA | 0.6065 | 0.6284 |
+| AutoRAG | 0.9053 | 0.9309 |
+| Ko-StrategyQA | 0.6440 | 0.6509 |
+
+Scoring is symmetric by construction: both systems read the same dataset file (same
+corpus, queries, qrels), each returns its own top-10, and **both are scored by synaptic's
+own `metrics.py` (`reciprocal_rank`, k=10)** — not by a metric we wrote.
+
+### A methodology bug we found and fixed
+
+An earlier sweep of `idf_pow` was **invalid**. `idf_pow: float = _IDF_POW` is a
+keyword-only default, bound at *function-definition* time, so monkeypatching the module
+constant after import silently changed nothing — every "swept" point was secretly running
+the same value. Patching `BM25/BM25F.__init__.__kwdefaults__` makes the sweep actually
+vary. The corrected sweep is below; it confirms the p-band claim on the core suite **and**
+exposes a regression the broken sweep had hidden.
+
+## The IDF-emphasis trade — it is not free
+
+`idf_pow` wins the core suite across a wide flat band, but **regresses heavily
+multi-relevant passage-IR corpora**: betting the score on one rare term is the wrong
+strategy when dozens of documents are relevant.
+
+| track | p=1.0 | p=1.3 | **p=1.5** (shipped) | p=2.0 |
+|---|---|---|---|---|
+| Core (8 public) | 7/8 | **8/8** | **8/8** | **8/8** |
+| Extended (4 BEIR/MTEB) | 2/4 | 2/4 | 2/4 | 1/4 |
+| MIRACL-ko (14.4 rel/query) | **0.9489** | 0.9144 | 0.9052 | 0.8800 |
+| NFCorpus (38.2 rel/query) | **0.5080** | 0.5063 | 0.5053 | 0.4961 |
+
+At `p=1.0`, MIRACL-ko is **0.9489 vs synaptic's 0.9495** — a dead heat — but Ko-StrategyQA
+flips to a loss. So `1.5` stays the best single global default (13/15 datasets), and
+`idf_pow` is now a documented knob:
+
+```python
+build_inmemory(nodes, triples, chunks, vector_kwargs={"idf_pow": 1.0})  # multi-relevant corpora
+```
+
+## Performance — measured, with the asymmetry stated
+
+The lexical hot path now folds each `(term, doc)` contribution — which is entirely
+query-independent — into the inverted index at build time, so a search is a plain
+accumulation of precomputed floats. Rankings are **bit-identical** to the previous
+implementation (verified on finreg + all 8 public sets).
+
+| scenario | synaptic | **OmniFuse** |
+|---|---:|---:|
+| golden set, both from raw data (5,234 chunks, 215 queries) | 98.0 s | **6.6 s** (build 6.1 + query 0.5) |
+| per-query latency, golden set | — | **2.3 ms** |
+| finreg — synaptic reuses a *prebuilt* SQLite graph, omni rebuilds | 11.0 s | **7.4 s** |
+| omni self-A/B, 8 public sets (same scores) | — | 249.4 s → **38.7 s** (6.4×) |
+
+Only the first row is apples-to-apples. The finreg row is *unfavourable* to OmniFuse
+(synaptic starts from a persisted index) and OmniFuse still wins it — but the underlying
+gap is real: **OmniFuse has no index persistence and rebuilds every process.**
+
+## Where OmniFuse lags synaptic (honest)
+
+OmniFuse is a focused retrieval library, not a memory system. It leads on retrieval
+quality (13/15 datasets), zero dependencies, one-shot fusion (no agent loop) and, now,
+lexical speed. It is genuinely behind here:
+
+| capability | synaptic-memory | OmniFuse |
+|---|---|---|
+| persistent / disk backend | SQLite (FTS5), PostgreSQL | ✗ in-memory only (Fuseki for the graph) |
+| vector DB adapter | Qdrant, Kuzu, MinIO | ✗ roadmap |
+| reranker | cross-encoder, ColBERT, LLM | ✗ roadmap |
+| query rewriting / HyDE / decomposition | yes | ✗ |
+| entity extraction / linking / resolution | yes (ko + en) | ✗ label matching only |
+| async API | yes | ✗ sync |
+| MCP server / agent loop / CLI | yes | ✗ |
+| consolidation / snapshot / activity | yes | ✗ (`Vault` has simple salience) |
+| scale ceiling | disk-backed | RAM-bound (MultiLongDoc needed a text cap) |
+
+Closing the persistence gap is the highest-value next step: it is what forces OmniFuse to
+pay index-build cost on every run.
 
 ## Reproduce
 

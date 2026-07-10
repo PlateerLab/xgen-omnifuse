@@ -13,6 +13,7 @@ from __future__ import annotations
 
 import math
 import re
+from array import array
 
 _WORD = re.compile(r"[a-z0-9]+")
 _HANGUL = re.compile(r"[가-힣]+")
@@ -23,9 +24,15 @@ _CJK_OTHER = re.compile(r"[぀-ヿ一-鿿]+")  # kana + hanja: bi-grams, no morp
 # under several common ones (범죄/유죄/판결); plain BM25 sums term scores, so a doc
 # matching many common words outranks the one matching the rare entity. Raising IDF to
 # a power > 1 makes the rare term dominate the sum, fixing this "entity-burial". 1.0 is
-# plain BM25; the benchmark suite wins all ten datasets across the whole flat band
+# plain BM25; the core benchmark suite wins all ten datasets across the whole flat band
 # p∈[1.3, 2.0], so 1.5 is a robust, non-fitted default (zero runtime cost — the power
 # is folded into the precomputed IDF once at index build).
+#
+# It is a real trade, not free: on *heavily multi-relevant* passage-IR corpora (BEIR
+# NFCorpus ~38 relevant/query, MIRACL-ko ~14) the emphasis hurts — MIRACL-ko drops
+# 0.949 (p=1.0) -> 0.905 (p=1.5) — because betting on one rare term is wrong when many
+# documents are relevant. Pass ``idf_pow=1.0`` for such corpora, via
+# ``build_inmemory(..., vector_kwargs={"idf_pow": 1.0})``. See docs/comparison.
 _IDF_POW = 1.5
 
 # Korean particles (조사), verb/adjective endings (어미), and derivational suffixes,
@@ -75,7 +82,13 @@ def tokenize(text: str) -> list[str]:
 
 
 class BM25:
-    """Okapi BM25 over a fixed corpus of pre-tokenized documents."""
+    """Okapi BM25 over a fixed corpus of pre-tokenized documents.
+
+    Queries hit an inverted index: only documents sharing at least one query term
+    can score above zero, so scoring the postings union — rather than all *N*
+    documents — is exactly score-preserving and turns a full scan into work
+    proportional to the matched postings.
+    """
 
     def __init__(self, docs_tokens: list[list[str]], *, k1: float = 1.5, b: float = 0.75,
                  idf_pow: float = _IDF_POW):
@@ -93,24 +106,56 @@ class BM25:
             for t in c:
                 df[t] = df.get(t, 0) + 1
         self.idf = {t: math.log(1 + (self.N - n + 0.5) / (n + 0.5)) ** idf_pow for t, n in df.items()}
+        # per-doc length normalization, precomputed once (constant across queries)
+        avg = self.avgdl or 1.0
+        self._norm = [self.k1 * (1 - self.b + self.b * (dl or 1) / avg) for dl in self.dl]
+        # A term's contribution to a document, idf*(k1+1)*f/(f+norm), does not depend on
+        # the query — only on (term, doc). Fold it into the index so a search is a plain
+        # accumulation of floats: no division, no tf lookup, no length math per query.
+        k1p1 = self.k1 + 1
+        self._pd: dict[str, array] = {}
+        self._pw: dict[str, array] = {}
+        for i, c in enumerate(self.tf):
+            norm = self._norm[i]
+            for t, f in c.items():
+                w = self.idf[t] * k1p1 * f / (f + norm)
+                if t not in self._pd:
+                    self._pd[t] = array("i")
+                    self._pw[t] = array("d")
+                self._pd[t].append(i)
+                self._pw[t].append(w)
 
     def score(self, q_tokens: list[str], i: int) -> float:
         tf = self.tf[i]
-        dl = self.dl[i] or 1
+        norm = self._norm[i]
         s = 0.0
         for t in q_tokens:
             f = tf.get(t)
             if not f:
                 continue
-            denom = f + self.k1 * (1 - self.b + self.b * dl / (self.avgdl or 1))
-            s += self.idf.get(t, 0.0) * (f * (self.k1 + 1)) / denom
+            s += self.idf.get(t, 0.0) * (f * (self.k1 + 1)) / (f + norm)
         return s
 
     def search(self, query: str, *, limit: int = 20) -> list[tuple[int, float]]:
-        q = tokenize(query)
-        scored = [(i, self.score(q, i)) for i in range(self.N)]
-        scored = [(i, s) for i, s in scored if s > 0]
-        scored.sort(key=lambda x: -x[1])
+        """Term-at-a-time accumulation over the inverted index — touches only the
+        documents that actually contain a query term, adding a precomputed weight."""
+        qtf: dict[str, int] = {}
+        for t in tokenize(query):
+            qtf[t] = qtf.get(t, 0) + 1
+        scores: dict[int, float] = {}
+        for t, qn in qtf.items():
+            pd = self._pd.get(t)
+            if pd is None:
+                continue
+            pw = self._pw[t]
+            if qn == 1:
+                for i, w in zip(pd, pw):
+                    scores[i] = scores.get(i, 0.0) + w
+            else:
+                for i, w in zip(pd, pw):
+                    scores[i] = scores.get(i, 0.0) + qn * w
+        scored = [(i, s) for i, s in scores.items() if s > 0]
+        scored.sort(key=lambda x: (-x[1], x[0]))  # ties -> lowest doc id (deterministic)
         return scored[:limit]
 
 
@@ -135,8 +180,7 @@ class BM25F:
             self.avglen[f] = (tot / self.N) if self.N else 0.0
         self.doc_tf: list[dict[str, dict[str, int]]] = []
         df: dict[str, int] = {}
-        self.postings: dict[str, set[int]] = {}
-        for i, d in enumerate(docs):
+        for d in docs:
             per_field: dict[str, dict[str, int]] = {}
             present: set[str] = set()
             for f in self.fields:
@@ -148,34 +192,70 @@ class BM25F:
             self.doc_tf.append(per_field)
             for t in present:
                 df[t] = df.get(t, 0) + 1
-                self.postings.setdefault(t, set()).add(i)
         self.idf = {t: math.log(1 + (self.N - n + 0.5) / (n + 0.5)) ** idf_pow for t, n in df.items()}
+        # per-doc, per-field length normalization — constant across queries, so it is
+        # precomputed once instead of re-summing the field on every term comparison.
+        self._fw = [self.w[f] for f in self.fields]
+        self._fnorm: list[list[float]] = []
+        for per_field in self.doc_tf:
+            self._fnorm.append([
+                1 - self.b + self.b * (sum(per_field[f].values()) or 1) / (self.avglen[f] or 1)
+                for f in self.fields
+            ])
+        # BM25F sums over the *unique* query terms, so a term's whole contribution to a
+        # document — idf * tfw(k1+1)/(k1+tfw) over the weighted fields — depends only on
+        # (term, doc). Fold it into the index: a search becomes a sum of precomputed floats.
+        k1p1 = self.k1 + 1
+        self._pd: dict[str, array] = {}
+        self._pw: dict[str, array] = {}
+        for i, per_field in enumerate(self.doc_tf):
+            fnorm = self._fnorm[i]
+            present: set[str] = set()
+            for f in self.fields:
+                present.update(per_field[f])
+            for t in present:
+                tfw = 0.0
+                for fi, f in enumerate(self.fields):
+                    tf = per_field[f].get(t, 0)
+                    if tf:
+                        tfw += self._fw[fi] * tf / fnorm[fi]
+                if not tfw:
+                    continue
+                c = self.idf[t] * tfw * k1p1 / (self.k1 + tfw)
+                if t not in self._pd:
+                    self._pd[t] = array("i")
+                    self._pw[t] = array("d")
+                self._pd[t].append(i)
+                self._pw[t].append(c)
 
-    def score(self, q_tokens: list[str], i: int) -> float:
+    def _score(self, q_terms, i: int) -> float:
         per_field = self.doc_tf[i]
+        fnorm = self._fnorm[i]
         s = 0.0
-        for t in set(q_tokens):
+        for t in q_terms:
             idf = self.idf.get(t)
             if not idf:
                 continue
             tfw = 0.0
-            for f in self.fields:
+            for fi, f in enumerate(self.fields):
                 tf = per_field[f].get(t, 0)
-                if not tf:
-                    continue
-                dl = sum(per_field[f].values()) or 1
-                norm = 1 - self.b + self.b * dl / (self.avglen[f] or 1)
-                tfw += self.w[f] * tf / norm
+                if tf:
+                    tfw += self._fw[fi] * tf / fnorm[fi]
             if tfw:
                 s += idf * tfw * (self.k1 + 1) / (self.k1 + tfw)
         return s
 
+    def score(self, q_tokens: list[str], i: int) -> float:
+        return self._score(set(q_tokens), i)
+
     def search(self, query: str, *, limit: int = 20) -> list[tuple[int, float]]:
-        q = tokenize(query)
-        cand: set[int] = set()
-        for t in set(q):
-            cand |= self.postings.get(t, set())
-        scored = [(i, self.score(q, i)) for i in cand]
-        scored = [(i, s) for i, s in scored if s > 0]
-        scored.sort(key=lambda x: -x[1])
+        scores: dict[int, float] = {}
+        for t in set(tokenize(query)):
+            pd = self._pd.get(t)
+            if pd is None:
+                continue
+            for i, c in zip(pd, self._pw[t]):
+                scores[i] = scores.get(i, 0.0) + c
+        scored = [(i, s) for i, s in scores.items() if s > 0]
+        scored.sort(key=lambda x: (-x[1], x[0]))  # ties -> lowest doc id (deterministic)
         return scored[:limit]

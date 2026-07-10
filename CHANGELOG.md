@@ -1,5 +1,26 @@
 # Changelog
 
+## Unreleased
+
+- **Lexical search is ~6.4× faster, with bit-identical rankings.** A term's contribution
+  to a document (`idf * tfw(k1+1)/(k1+tfw)` for `BM25F`, `idf*(k1+1)*f/(f+norm)` for
+  `BM25`) does not depend on the query, so it is now folded into the inverted index at
+  build time: a search is a plain accumulation of precomputed floats over the postings,
+  instead of a full scan that re-derived document lengths per term. Verified score-for-score
+  against the previous implementation on finreg + all 8 public datasets (8 public: 249.4 s
+  → 38.7 s; KLUE-MRC 230.5 s → 28.8 s). `InMemoryGraph._by_label` is a dict lookup, not an
+  O(N) scan.
+- **`idf_pow` is now a documented knob** (`InMemoryVector`, `build_inmemory(vector_kwargs=…)`).
+  It was effectively hardcoded before.
+- **Honest correction.** The IDF term-specificity emphasis is a Pareto trade, not a free
+  win: it takes the core suite 10/10 but *regresses* heavily multi-relevant passage-IR
+  corpora (MIRACL-ko 0.949 → 0.905, NFCorpus 0.508 → 0.505). The previously published
+  BEIR/MTEB numbers predated `idf_pow` and were never re-run — they are corrected in
+  `eval/results/beir_mteb_extra.json`. An earlier parameter sweep was also invalid
+  (keyword-only defaults bind at def time, so monkeypatching the module constant changed
+  nothing); the corrected sweep confirms the core p∈[1.3,2.0] band and exposes the
+  regression the broken sweep hid.
+
 ## 0.5.0
 
 Retrieval quality — the ranking now uses field structure and graph structure,

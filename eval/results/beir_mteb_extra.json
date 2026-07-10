@@ -1,20 +1,30 @@
 {
   "benchmark": "OmniFuse vs synaptic-memory — extra download-only BEIR/MTEB datasets",
-  "date": "2026-07-07",
+  "date": "2026-07-10",
   "omnifuse_version": "0.5.0",
   "note": "synaptic ships these only as download scripts (not committed data); fetched from HuggingFace via synaptic tests/benchmark/download_datasets.py. Lexical track: omni field-weighted BM25 vs synaptic FTS-only (run_public_dataset), MRR@10.",
+  "correction_2026_07_10": "The previously published omnifuse numbers here were measured BEFORE the idf_pow (term-specificity emphasis) change and were never re-run against it — they were stale. Re-measured below under the shipped default idf_pow=1.5, and also at idf_pow=1.0 for reference. Being explicit: the emphasis that wins the core suite REGRESSES the two heavily multi-relevant sets.",
   "datasets": [
-    {"name": "NFCorpus",        "lang": "en", "corpus": 3633,  "queries": 323, "synaptic_fts": 0.5124, "omnifuse_lex": 0.5075, "winner": "synaptic", "note": "within 0.005"},
-    {"name": "SciFact",         "lang": "en", "corpus": 5183,  "queries": 300, "synaptic_fts": 0.6317, "omnifuse_lex": 0.6368, "winner": "omnifuse", "note": "within 0.005"},
-    {"name": "XPQA-ko",         "lang": "ko", "corpus": 889,   "queries": 654, "synaptic_fts": 0.3115, "omnifuse_lex": 0.3278, "winner": "omnifuse"},
-    {"name": "MIRACL-retr-ko",  "lang": "ko", "corpus": 10000, "queries": 213, "synaptic_fts": 0.9495, "omnifuse_lex": 0.9293, "winner": "synaptic"},
-    {"name": "FiQA",            "lang": "en", "corpus": 57638, "queries": 648, "synaptic_fts": null,    "omnifuse_lex": 0.2871, "winner": "n/a", "note": "synaptic FTS not measured: 57,638-doc SQLite ingest too slow on this 16GB box"},
-    {"name": "MultiLongDoc-ko", "lang": "ko", "corpus": 6176,  "queries": 200, "synaptic_fts": null,    "omnifuse_lex": 0.3286, "winner": "n/a", "note": "193MB of long docs; omni in-memory index capped doc text to 6000 chars (zero-infra RAM bound), synaptic FTS not measured"}
+    {"name": "NFCorpus",        "lang": "en", "corpus": 3633,  "queries": 323, "rel_per_query": 38.2, "synaptic_fts": 0.5124, "omnifuse_lex": 0.5053, "omnifuse_lex_idf_pow_1.0": 0.5080, "winner": "synaptic"},
+    {"name": "SciFact",         "lang": "en", "corpus": 5183,  "queries": 300, "synaptic_fts": 0.6317, "omnifuse_lex": 0.6422, "omnifuse_lex_idf_pow_1.0": 0.6368, "winner": "omnifuse"},
+    {"name": "XPQA-ko",         "lang": "ko", "corpus": 889,   "queries": 654, "synaptic_fts": 0.3115, "omnifuse_lex": 0.3256, "omnifuse_lex_idf_pow_1.0": 0.3239, "winner": "omnifuse"},
+    {"name": "MIRACL-retr-ko",  "lang": "ko", "corpus": 10000, "queries": 213, "rel_per_query": 14.4, "synaptic_fts": 0.9495, "omnifuse_lex": 0.9052, "omnifuse_lex_idf_pow_1.0": 0.9489, "winner": "synaptic"},
+    {"name": "FiQA",            "lang": "en", "corpus": 57638, "queries": 648, "synaptic_fts": null,    "omnifuse_lex": 0.2871, "winner": "n/a", "note": "measured pre-idf_pow, NOT re-run; synaptic FTS not measured (57,638-doc SQLite ingest too slow on this 16GB box)"},
+    {"name": "MultiLongDoc-ko", "lang": "ko", "corpus": 6176,  "queries": 200, "synaptic_fts": null,    "omnifuse_lex": 0.3286, "winner": "n/a", "note": "measured pre-idf_pow, NOT re-run; 193MB of long docs, omni capped doc text at 6000 chars (zero-infra RAM bound)"}
   ],
-  "conclusion": "On generic flat-text BEIR/MTEB IR (no titles, no citation graph), OmniFuse and synaptic are at BM25-family parity: 2 wins each of the 4 head-to-heads measured, all within +/-0.02 MRR. OmniFuse's decisive wins are on STRUCTURED corpora (finreg citation graph, titled document sets) where field-weighted BM25 + graph-companion fusion have something to exploit; on unstructured passage IR neither system dominates.",
+  "idf_pow_tradeoff": {
+    "finding": "Term-specificity emphasis (idf_pow>1) is a genuine Pareto trade, not a free win. It wins the core suite 10/10 across p in [1.3, 2.0], but on heavily MULTI-RELEVANT passage-IR corpora it hurts: betting the score on one rare term is the wrong strategy when dozens of documents are relevant.",
+    "measured_core_public_8": {"p=1.0": "7/8", "p=1.3": "8/8", "p=1.5": "8/8", "p=2.0": "8/8"},
+    "measured_extended_4": {"p=1.0": "2/4", "p=1.3": "2/4", "p=1.5": "2/4", "p=2.0": "1/4"},
+    "miracl_ko_by_p": {"1.0": 0.9489, "1.3": 0.9144, "1.5": 0.9052, "1.8": 0.8845, "2.0": 0.8800},
+    "nfcorpus_by_p": {"1.0": 0.5080, "1.3": 0.5063, "1.5": 0.5053, "1.8": 0.5000, "2.0": 0.4961},
+    "guidance": "idf_pow is now a documented knob: build_inmemory(..., vector_kwargs={'idf_pow': 1.0}) for heavily multi-relevant corpora. At p=1.0 MIRACL-ko is 0.9489 vs synaptic 0.9495 — a dead heat — but Ko-StrategyQA then flips to a loss, so 1.5 remains the best single global default (13/15 datasets).",
+    "methodology_note": "An earlier sweep of this parameter was INVALID: idf_pow is a keyword-only default bound at function-definition time, so monkeypatching the module constant silently changed nothing. The numbers above patch BM25/BM25F.__init__.__kwdefaults__ and the sweep demonstrably varies."
+  },
+  "conclusion": "On generic flat-text BEIR/MTEB passage IR (no titles, no citation graph) OmniFuse and synaptic sit at BM25-family parity: 2 wins each of the 4 head-to-heads. OmniFuse's decisive wins are on STRUCTURED corpora (finreg citation graph, titled document sets) where field-weighted BM25F and graph-companion fusion have something to exploit. On unstructured, heavily multi-relevant passage IR neither system dominates, and omnifuse's IDF emphasis actively costs it MIRACL-ko.",
   "honest_limitations": [
     "synaptic's private corpora (krra/assort/x2bee) are gitignored — not in its repo, cannot be run.",
-    "FiQA/MultiLongDoc synaptic-FTS not measured (ingest time / RAM on a 16GB shared box).",
-    "MultiLongDoc omni used a 6000-char doc cap — omnifuse's zero-infra in-memory BM25 cannot hold 193MB of long docs on 16GB RAM; a disk backend (Fuseki) would be needed for full text."
+    "FiQA/MultiLongDoc synaptic-FTS not measured (ingest time / RAM on a 16GB shared box); their omnifuse numbers predate idf_pow and were not re-run.",
+    "MultiLongDoc omni used a 6000-char doc cap — omnifuse's zero-infra in-memory BM25 cannot hold 193MB of long docs on 16GB RAM; a disk backend would be needed for full text."
   ]
 }

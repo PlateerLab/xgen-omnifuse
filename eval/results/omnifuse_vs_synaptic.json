@@ -1,7 +1,21 @@
 {
   "benchmark": "OmniFuse vs synaptic-memory",
-  "date": "2026-07-08",
+  "date": "2026-07-10",
   "omnifuse_version": "0.5.0",
+  "reverification_2026_07_10": {
+    "what": "Earlier revisions re-measured only omnifuse and REUSED synaptic's column from prior runs (an assumption, not evidence). Both systems were re-run from scratch.",
+    "result": "Every core number reproduces to the decimal on BOTH sides — finreg (0.7039/0.8404, 56/101) and all 8 public datasets.",
+    "scoring_symmetry": "Both systems read the same dataset file (same corpus, queries, qrels), each returns its own top-10, and both are scored by synaptic's own tests/benchmark/metrics.py (reciprocal_rank, k=10) — not by a metric we wrote.",
+    "methodology_bug_found": "An earlier idf_pow sweep was INVALID: idf_pow is a keyword-only default bound at function-definition time, so monkeypatching the module constant silently changed nothing and every swept point ran the same value. Patching BM25/BM25F.__init__.__kwdefaults__ makes it vary. The corrected sweep confirms the core p-band claim AND exposed the Extended-track regression the broken sweep had hidden."
+  },
+  "performance_2026_07_10": {
+    "optimization": "Each (term, doc) contribution is query-independent, so it is folded into the inverted index at build time; search is a plain accumulation of precomputed floats. Rankings bit-identical (verified on finreg + all 8 public).",
+    "omni_self_ab_8_public_wall_s": {"before": 249.4, "after": 38.7, "speedup": "6.4x"},
+    "klue_mrc_wall_s": {"before": 230.5, "after": 28.8},
+    "golden_set_end_to_end_wall_s": {"synaptic": 98.0, "omnifuse": 6.6, "omnifuse_build": 6.1, "omnifuse_query_215q": 0.5},
+    "finreg_wall_s": {"synaptic_prebuilt_sqlite_graph": 11.0, "omnifuse_rebuilds_index": 7.4},
+    "caveat": "Not a universal speed win: omnifuse has NO index persistence and rebuilds every process, while synaptic can start from a persisted index. Only the golden-set row (both from raw data) is apples-to-apples."
+  },
   "protocol": {
     "mode": "single-shot retrieval, no LLM, no embedder",
     "metric_module": "eval/metrics.py (identical to synaptic tests/benchmark/metrics.py)",
@@ -115,7 +129,8 @@
     "total": 10,
     "avg_mrr_omnifuse": 0.846,
     "avg_mrr_synaptic": 0.809,
-    "note": "OmniFuse wins ALL TEN, zero-embedder lexical track. Two honest, general, zero-hardcode logic improvements got here: (1) a dependency-free Korean rule-based stemmer (strip 조사/어미 + trailing derivational suffixes) and (2) IDF term-specificity emphasis (idf_pow=1.5) that makes a rare entity term dominate the several common attribute words it is buried under in a long natural-language question. The last holdout, Ko-StrategyQA, flipped 0.6414->0.6509 once emphasis was added — the win is robust across the whole flat band p in [1.3, 2.0], so it is a principled default, not a fit."
+    "note": "OmniFuse wins ALL TEN, zero-embedder lexical track. Two honest, general, zero-hardcode logic improvements got here: (1) a dependency-free Korean rule-based stemmer (strip 조사/어미 + trailing derivational suffixes) and (2) IDF term-specificity emphasis (idf_pow=1.5) that makes a rare entity term dominate the several common attribute words it is buried under in a long natural-language question. The last holdout, Ko-StrategyQA, flipped 0.6414->0.6509 once emphasis was added — the win is robust across the whole flat band p in [1.3, 2.0] (re-verified 2026-07-10 with a corrected sweep), so it is a principled default, not a fit.",
+    "honest_caveat": "The IDF emphasis is NOT free. On heavily multi-relevant passage-IR corpora it regresses: MIRACL-ko 0.9489 (p=1.0) -> 0.9052 (p=1.5), NFCorpus 0.5080 -> 0.5053. Those are the two Extended-track losses. idf_pow is a documented knob; 1.5 is the best single global default (13/15 datasets). See eval/results/beir_mteb_extra.json."
   },
   "ko_strategyqa_win_path": {
     "note": "Won by case investigation, not parameter fishing. Diagnosing the miss@10 queries showed the failure mode: a natural-language question ('장 발장은 어떤 범죄로 유죄 판결을 받았나요?') has one rare discriminative entity (발장) buried under several common attribute words (범죄/유죄/판결); plain BM25 sums term scores so docs matching many common words outrank the doc matching the rare entity. IDF^1.5 makes the rare term dominate the sum. Earlier lexical-only levers (base bigrams / Kiwi / stemmer variants / expanded endings / corpus compound-splitting / same-article graph) each failed or traded a bigger win; IDF emphasis is the general, efficient fix that flips Ko-StrategyQA AND lifts every other set (notably HotPotQA and AutoRAG)."
