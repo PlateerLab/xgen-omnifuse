@@ -50,7 +50,7 @@ them with `python eval/public_bench.py --synaptic-repo /path/to/synaptic-memory`
 | AutoRAG | ko | passage retrieval | 0.9053 | **0.9293** | OmniFuse |
 | Ko-StrategyQA | ko | strategy QA | 0.6440 | **0.6496** | OmniFuse |
 
-**OmniFuse: 10 wins, 0 losses** (avg MRR 0.844 vs 0.809) — **zero dependencies** (no
+**OmniFuse: 10 wins, 0 losses** (avg MRR 0.843 vs 0.809) — **zero dependencies** (no
 morphological analyzer) vs synaptic's *mandatory* Kiwi. Two honest, general, zero-hardcode
 logic improvements — no strong embedder, no per-dataset tuning — clear the whole board:
 (1) a dependency-free Korean rule-based stemmer (strip 조사/어미 + trailing derivational
@@ -95,13 +95,49 @@ term's IDF to a power > 1 so the rare (high-IDF) entity dominates the sum. It is
   (every one of the ten sets wins at any p in that range), so 1.5 is a robust default,
   the opposite of a knife-edge fit to test labels;
 - **efficient** — zero runtime cost; the power is folded into the IDF once at index build;
-- **strictly additive** — it flips Ko-StrategyQA (0.6414→**0.6509**) **and lifts every
-  other set** (HotPotQA-24 0.9077→0.9286, AutoRAG 0.9165→0.9309, PublicHealthQA
-  0.6186→0.6284), for a small, principled finreg single-hop cost (0.8486→0.8400, still
-  crushing synaptic's 0.7039 — and finreg multi-hop rose too).
+- ~~**strictly additive**~~ — **retracted 2026-07-10.** That claim was measured before the
+  English S-stemmer and the Korean copula fix landed. Re-ablated with the tokenizer that
+  actually ships, `idf_pow=1.5` is **not** additive: it buys AutoRAG (+0.0143), HotPotQA-200
+  (+0.0119), Ko-StrategyQA (+0.0062), SciFact, PublicHealthQA and XPQA, and it **costs**
+  MIRACL-ko (0.9812→0.9617), finreg single-hop (0.8533→0.8400, and one multi-hop query:
+  108→107), NFCorpus (0.5236→0.5182), Allganize-ko (−0.0017), KLUE (−0.0003). Across the 13
+  MRR datasets the net is **+0.0067 — a wash.**
 
-That closes all ten with **no strong embedder, no morphological analyzer, no hardcoding,
-and no fitting to test labels** — the standard set for this exercise.
+And the part that is uncomfortable to write: **at `idf_pow=1.0` OmniFuse still beats synaptic
+on 14 of the 15 datasets.** The single loss is Ko-StrategyQA, by **0.0006 MRR** — on a set of
+592 queries, where one query moving from rank 2 to rank 1 is worth 0.0008. The margin that
+decides "15/15" is smaller than a single query, and it is bought by measurably degrading
+finreg and MIRACL.
+
+We keep 1.5 because the win holds across the entire band `p ∈ [1.3, 2.0]` (Ko-StrategyQA wins
+from p ≥ 1.1: 0.6452 / 0.6466 / 0.6500 / 0.6496 / 0.6487 / 0.6470 at 1.1 / 1.2 / 1.3 / 1.5 /
+1.7 / 2.0), so 1.5 is a mid-band choice rather than a knife-edge fit. But `idf_pow=1.0`
+remains the right call on heavily multi-relevant corpora, and a reader deserves the number
+rather than a slogan.
+
+**Is entity-burial real, or a story we tell?** It predicts something checkable: on the queries
+`idf_pow` rescues, the gold document should match a *rarer* query term, and *fewer* of them,
+than the wrong top-1 — and on the queries it breaks, the reverse. Measured on Ko-StrategyQA:
+
+| | queries | gold max-IDF | wrong top-1 max-IDF | gold overlap | wrong overlap |
+|---|---:|---:|---:|---:|---:|
+| `idf_pow` rescues | 49 | **6.220** | 6.077 | **3.4** | 5.8 |
+| `idf_pow` breaks | 33 | 5.373 | **6.156** | 4.4 | 5.8 |
+
+The sign flips. `idf_pow` bets on rarity: it wins when the gold document is the rare-term
+holder and loses when it is not. A mechanism, then — and also exactly why the net is a wash.
+
+**A fix that did not work** (recorded, not shipped): the rarest query terms on Ko-StrategyQA
+are stemmer residues, not entities — `있나` (idf 7.63), `#연속되` (8.73), `벌은` (7.43). And
+`_KO_SUFFIX` contains 하 but not 되, the same closed class with one half missing, so 연속되나요
+stops at `연속되`. Adding 되 is right, and immaterial: Ko-StrategyQA at p=1.0 moves 0.6434 →
+0.6435 (still a loss) and at p=1.5 drops to 0.6490. The other residues are out of reach — 있나요
+hits the two-character stem floor, and 사용되었다 has no listed trailing ending at all.
+
+That closes all ten with **no strong embedder, no morphological analyzer, no hardcoding, and no
+fitting to test labels** — with the caveat above stated plainly, because a suite that is 15/15
+only by 0.0006 on one set should say so. Numbers:
+[`eval/results/idf_pow_ablation.json`](../../eval/results/idf_pow_ablation.json).
 
 ---
 

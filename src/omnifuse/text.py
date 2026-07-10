@@ -24,16 +24,20 @@ _CJK_OTHER = re.compile(r"[぀-ヿ一-鿿]+")  # kana + hanja: bi-grams, no morp
 # 판결을 받았나요?") carries one rare discriminative term (the entity 발장) buried
 # under several common ones (범죄/유죄/판결); plain BM25 sums term scores, so a doc
 # matching many common words outranks the one matching the rare entity. Raising IDF to
-# a power > 1 makes the rare term dominate the sum, fixing this "entity-burial". 1.0 is
-# plain BM25; the core benchmark suite wins all ten datasets across the whole flat band
-# p∈[1.3, 2.0], so 1.5 is a robust, non-fitted default (zero runtime cost — the power
-# is folded into the precomputed IDF once at index build).
+# a power > 1 makes the rare term dominate the sum, fixing this "entity-burial". The
+# mechanism is measured, not asserted: on the queries it rescues the gold document matches
+# a rarer query term and fewer of them than the wrong top-1 (max-IDF 6.22 vs 6.08, overlap
+# 3.4 vs 5.8); on the queries it breaks that sign flips (5.37 vs 6.16). 1.0 is plain BM25;
+# the suite wins across the whole flat band p∈[1.3, 2.0], so 1.5 is a mid-band default, not
+# a knife-edge fit (zero runtime cost — the power is folded into the IDF at index build).
 #
-# It is a real trade, not free: on *heavily multi-relevant* passage-IR corpora (BEIR
-# NFCorpus ~38 relevant/query, MIRACL-ko ~14) the emphasis hurts — MIRACL-ko drops
-# 0.949 (p=1.0) -> 0.905 (p=1.5) — because betting on one rare term is wrong when many
-# documents are relevant. Pass ``idf_pow=1.0`` for such corpora, via
-# ``build_inmemory(..., vector_kwargs={"idf_pow": 1.0})``. See docs/comparison.
+# It is a real trade, and a smaller one than it looks. Re-ablated under the shipping
+# tokenizer, p=1.5 vs p=1.0 nets +0.0067 MRR across 13 datasets — a wash. It buys AutoRAG
+# (+0.0143), HotPotQA-200 (+0.0119) and Ko-StrategyQA (+0.0062); it costs MIRACL-ko
+# (0.9812 -> 0.9617), finreg (0.8533 -> 0.8400) and NFCorpus (0.5236 -> 0.5182), because
+# betting on one rare term is wrong when many documents are relevant. Pass ``idf_pow=1.0``
+# on heavily multi-relevant corpora, via
+# ``build_inmemory(..., vector_kwargs={"idf_pow": 1.0})``. See eval/results/idf_pow_ablation.json.
 _IDF_POW = 1.5
 
 # Korean particles (조사), verb/adjective endings (어미), and derivational suffixes,

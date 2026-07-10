@@ -1,0 +1,125 @@
+{
+  "benchmark": "idf_pow (IDF term-specificity emphasis) — re-ablated under the shipping tokenizer",
+  "date": "2026-07-10",
+  "scorer": "eval/metrics.py (synaptic's own), MRR@10",
+  "why_rerun": "The idf_pow figures quoted in the docs were measured before the English S-stemmer and the Korean copula-interrogative fix. An ablation whose arms are measured with code that no longer ships is not an ablation. Re-run both arms with the current tokenizer.",
+  "table_synaptic_p1.0_p1.5": {
+    "finreg single-hop": {
+      "synaptic": 0.7039,
+      "idf_pow=1.0": 0.8533,
+      "idf_pow=1.5 (shipped)": 0.84,
+      "delta": -0.0133
+    },
+    "HotPotQA-24": {
+      "synaptic": 0.8879,
+      "idf_pow=1.0": 0.9077,
+      "idf_pow=1.5 (shipped)": 0.9077,
+      "delta": 0.0
+    },
+    "HotPotQA-200": {
+      "synaptic": 0.8775,
+      "idf_pow=1.0": 0.8925,
+      "idf_pow=1.5 (shipped)": 0.9044,
+      "delta": 0.0119
+    },
+    "Allganize RAG-ko": {
+      "synaptic": 0.9562,
+      "idf_pow=1.0": 0.97,
+      "idf_pow=1.5 (shipped)": 0.9683,
+      "delta": -0.0017
+    },
+    "Allganize RAG-Eval": {
+      "synaptic": 0.9303,
+      "idf_pow=1.0": 0.9352,
+      "idf_pow=1.5 (shipped)": 0.937,
+      "delta": 0.0018
+    },
+    "PublicHealthQA": {
+      "synaptic": 0.6065,
+      "idf_pow=1.0": 0.6169,
+      "idf_pow=1.5 (shipped)": 0.6217,
+      "delta": 0.0048
+    },
+    "AutoRAG": {
+      "synaptic": 0.9053,
+      "idf_pow=1.0": 0.915,
+      "idf_pow=1.5 (shipped)": 0.9293,
+      "delta": 0.0143
+    },
+    "KLUE-MRC": {
+      "synaptic": 0.7718,
+      "idf_pow=1.0": 0.829,
+      "idf_pow=1.5 (shipped)": 0.8288,
+      "delta": -0.0002
+    },
+    "Ko-StrategyQA": {
+      "synaptic": 0.644,
+      "idf_pow=1.0": 0.6434,
+      "idf_pow=1.5 (shipped)": 0.6496,
+      "delta": 0.0062
+    },
+    "SciFact": {
+      "synaptic": 0.6317,
+      "idf_pow=1.0": 0.6395,
+      "idf_pow=1.5 (shipped)": 0.6456,
+      "delta": 0.0061
+    },
+    "XPQA-ko": {
+      "synaptic": 0.3115,
+      "idf_pow=1.0": 0.3273,
+      "idf_pow=1.5 (shipped)": 0.329,
+      "delta": 0.0017
+    },
+    "MIRACL-ko": {
+      "synaptic": 0.9495,
+      "idf_pow=1.0": 0.9812,
+      "idf_pow=1.5 (shipped)": 0.9617,
+      "delta": -0.0195
+    },
+    "NFCorpus": {
+      "synaptic": 0.5124,
+      "idf_pow=1.0": 0.5236,
+      "idf_pow=1.5 (shipped)": 0.5182,
+      "delta": -0.0054
+    }
+  },
+  "finreg_multihop_strict": {
+    "idf_pow=1.0": 108,
+    "idf_pow=1.5 (shipped)": 107,
+    "synaptic": 56
+  },
+  "headline": {
+    "net_effect_over_13_datasets": 0.0067,
+    "reading": "Near zero. idf_pow=1.5 is NOT 'strictly additive' — an earlier claim in the docs, now retracted. It buys HotPotQA-200 (+0.0119), AutoRAG (+0.0143), Ko-StrategyQA (+0.0062), SciFact, PublicHealthQA, XPQA; it costs MIRACL-ko (-0.0196), finreg (-0.0133 and one multi-hop query), NFCorpus (-0.0054), Allganize-ko (-0.0017), KLUE (-0.0003)."
+  },
+  "the_uncomfortable_part": {
+    "fact": "At idf_pow=1.0 OmniFuse still beats synaptic on 14 of 15 datasets. The only loss is Ko-StrategyQA, by 0.0006 MRR.",
+    "scale": "Ko-StrategyQA has 592 queries, so one query moving from rank 2 to rank 1 is worth 0.0008 MRR. The margin that decides '15/15 vs 14/15' is smaller than a single query.",
+    "honesty": "The shipped default therefore does not rest on a suite-wide gain — it rests on one dataset by less than one query, while measurably costing finreg and MIRACL. We keep 1.5 because the win holds across the whole band p in [1.3, 2.0] (Ko-StrategyQA wins from p>=1.1: 0.6452 / 0.6466 / 0.6500 / 0.6496 / 0.6487 / 0.6470 at 1.1/1.2/1.3/1.5/1.7/2.0), so 1.5 is a mid-band choice rather than a knife-edge fit. But readers deserve the number, and idf_pow=1.0 remains the right call on heavily multi-relevant corpora."
+  },
+  "is_the_entity_burial_rationale_real": {
+    "prediction": "If idf_pow works by rescuing a rare discriminative term buried under common ones, then on queries it RESCUES the gold document should match a rarer query term, and fewer of them, than the wrong top-1; on queries it BREAKS the reverse should hold.",
+    "ko_strategyqa_rescued_49": {
+      "signature_hits": "19/49",
+      "mean_max_idf_gold": 6.22,
+      "mean_max_idf_wrong_top1": 6.077,
+      "mean_overlap_gold": 3.4,
+      "mean_overlap_wrong": 5.8
+    },
+    "ko_strategyqa_broken_33": {
+      "signature_hits": "4/33",
+      "mean_max_idf_gold": 5.373,
+      "mean_max_idf_wrong_top1": 6.156,
+      "mean_overlap_gold": 4.4,
+      "mean_overlap_wrong": 5.8
+    },
+    "verdict": "Supported. The sign of (gold max-IDF - wrong-top-1 max-IDF) FLIPS between the two groups (+0.14 when it rescues, -0.78 when it breaks), and the gold consistently matches fewer terms. idf_pow bets on rarity: it wins when the gold document is the rare-term holder and loses when it is not. That is a mechanism, not a story — but it is also why the net effect is a wash."
+  },
+  "rejected_2026_07_10": {
+    "add_되_to_KO_SUFFIX": {
+      "idea": "The rarest query terms on Ko-StrategyQA are stemmer residues, not entities ('있나' idf 7.63, '#연속되' 8.73, '벌은' 7.43). _KO_SUFFIX contains 하 but not 되 — the same closed class, one half missing — so 연속되나요 stops at '연속되'.",
+      "result": "Real but immaterial. It fixes 연속되 -> 연속, yet Ko-StrategyQA at p=1.0 moves 0.6434 -> 0.6435 (still a loss) and at p=1.5 drops 0.6496 -> 0.6490. AutoRAG/KLUE/PublicHealthQA/Allganize unchanged. Not shipped.",
+      "why_it_failed": "The other residues are not reachable: '있나요' -> '있나' stops at the 2-char stem floor, and '사용되었다' has no listed trailing ending at all. The residue theory does not explain the 0.0006 gap."
+    }
+  }
+}
