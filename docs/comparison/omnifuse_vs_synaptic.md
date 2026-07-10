@@ -369,7 +369,7 @@ lexical speed. It is genuinely behind here:
 | async API | yes | ✗ sync |
 | MCP server / agent loop / CLI | yes | ✗ |
 | consolidation / snapshot / activity | yes | ✗ (`Vault` has simple salience) |
-| scale ceiling | disk-backed | RAM-bound (MultiLongDoc needed a text cap) |
+| scale ceiling | disk-backed | RAM-bound, but build peak cut 209 MB → **46.6 MB** |
 
 The persistence gap — the one that forced OmniFuse to pay index-build cost on every
 process — is now closed:
@@ -380,8 +380,8 @@ save_index(build_inmemory(nodes, triples, chunks), "idx.pkl")
 of = load_index("idx.pkl")          # warm start; embedder/LLM re-supplied here
 ```
 
-On the 5,234-chunk golden corpus: build 6.0 s → **load 0.21 s (~29× faster)**, index
-**28.7 MB**, rankings identical after the round-trip. Note `pickle` executes arbitrary code on
+On the 5,234-chunk golden corpus: build 6.0 s (peak **46.6 MB**) → **load 0.21 s (~29×
+faster)**, index **28.7 MB**, rankings identical after the round-trip. Note `pickle` executes arbitrary code on
 load, so only load indexes you produced; and the index is still read *into RAM*, so the
 scale ceiling is unchanged — a genuinely disk-resident backend remains future work.
 

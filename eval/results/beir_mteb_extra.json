@@ -141,5 +141,18 @@
       "contribution_q_1.2": 0.761
     },
     "verdict": "NOT shipped. It halves the MIRACL-ko damage but is worse on nine other datasets. Trading nine datasets for two is not an improvement, and picking q per corpus would be the fitting we refuse to do."
+  },
+  "miracl_closure_attempts_2026_07_10": {
+    "conclusion": "MIRACL-ko is the single remaining loss and is not closable by tokenization or weighting. Its best score anywhere is 0.9489 (idf_pow=1.0) vs synaptic 0.9495 — a 0.13-query gap. Relevance is diffuse (14.4 relevant/query); IDF emphasis is a precision move, so it trades against Ko-StrategyQA. Structural, not a defect.",
+    "variants_measured": {
+      "idf_pow band 1.0-2.0": "MIRACL best 0.9489 at p=1.0, but Ko-StrategyQA then loses",
+      "contribution^q power-mean": "MIRACL 0.9321 at q=1.2 (core still 8/8) but worse on nine other sets; 12-set avg MRR 0.7628 -> 0.7610",
+      "emphasis on word tokens only": "MIRACL 0.9199, but Ko-StrategyQA 0.6426 loses",
+      "hangul stem-only (no bi-grams)": "MIRACL 0.8899 — worse",
+      "hangul bi-gram-only (no #stem)": "MIRACL 0.8968 — worse; also loses AutoRAG",
+      "V4 bi-grams over RAW surface + #stem": "MIRACL 0.9027; lifts Ko-StrategyQA to 0.6599 and KLUE to 0.8314 (both best seen) but costs AutoRAG/PublicHealthQA/Allganize-Eval; 7-set avg 0.8355 -> 0.8311",
+      "V5 = V4 + '#raw' token": "Ko-StrategyQA 0.6378 loses"
+    },
+    "refuted_hypothesis": "We suspected Hangul DOUBLE EMISSION (overlapping bi-grams + #stem) made bi-gram rarity a segmentation artifact that emphasis amplified. Refuted: removing either emission makes MIRACL WORSE (0.8899 / 0.8968 vs 0.9052)."
   }
 }

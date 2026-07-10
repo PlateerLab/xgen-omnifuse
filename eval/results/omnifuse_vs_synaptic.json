@@ -75,7 +75,7 @@
     },
     "caveat": "Not a universal speed win. Only the golden-set row (both systems from raw data) is apples-to-apples. omnifuse now has save_index/load_index so it can start warm like synaptic, but the index is read back into RAM — synaptic's SQLite/PostgreSQL backends are disk-resident and queryable, omnifuse's is not.",
     "memory": {
-      "note": "The postings carry precomputed contributions, so term-frequency maps are neither retained nor materialized corpus-wide (IDF needs only document frequency -> two-pass indexing).",
+      "note": "Postings carry precomputed contributions, so term-frequency maps are never retained. IDF still needs corpus-wide df before pass 2, so per-doc counts survive one pass — as interned term ids in array('i'), released per document as pass 2 consumes them. A simpler 'stream and re-tokenize' variant reached the same peak but doubled build time; rejected.",
       "persisted_index_mb": {
         "before": 41.2,
         "after": 28.7
@@ -89,12 +89,14 @@
         "after": 36.0
       },
       "build_inmemory_peak_mb": {
-        "before": 209.3,
-        "after": 177.2
+        "materialized": 209.3,
+        "after_two_pass": 177.2,
+        "after_compact_intermediate": 46.6
       },
       "build_time_s": {
-        "before": 6.07,
-        "after": 6.13
+        "materialized": 6.07,
+        "compact_intermediate": 6.03,
+        "rejected_retokenize_streaming": 13.55
       },
       "rankings": "unchanged (finreg + all 8 public verified)"
     }

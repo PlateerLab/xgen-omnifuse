@@ -100,6 +100,13 @@ def tokenize(text: str) -> list[str]:
     return toks
 
 
+def _passes(docs):
+    """Indexing needs two passes. ``docs`` may be a materialized sequence, or a zero-arg
+    callable returning a fresh iterator — which lets the caller *stream* tokenization
+    instead of holding every tokenized document in memory at once."""
+    return (lambda: iter(docs())) if callable(docs) else (lambda: iter(docs))
+
+
 class BM25:
     """Okapi BM25 over a fixed corpus of pre-tokenized documents.
 
@@ -107,44 +114,64 @@ class BM25:
     can score above zero, so scoring the postings union — rather than all *N*
     documents — is exactly score-preserving and turns a full scan into work
     proportional to the matched postings.
+
+    ``docs_tokens`` may be a list, or a zero-arg callable yielding token lists (streamed).
     """
 
-    def __init__(self, docs_tokens: list[list[str]], *, k1: float = 1.5, b: float = 0.75,
+    def __init__(self, docs_tokens, *, k1: float = 1.5, b: float = 0.75,
                  idf_pow: float = _IDF_POW):
         self.k1, self.b = k1, b
-        self.N = len(docs_tokens)
-        dls = [len(d) for d in docs_tokens]
-        self.avgdl = (sum(dls) / self.N) if self.N else 0.0
-        # Pass 1 — document frequency only. Holding every document's term-count map just
-        # to derive IDF would double peak memory, so the maps are rebuilt in pass 2.
-        df: dict[str, int] = {}
-        for d in docs_tokens:
-            for t in set(d):
-                df[t] = df.get(t, 0) + 1
-        self.idf = {t: math.log(1 + (self.N - n + 0.5) / (n + 0.5)) ** idf_pow for t, n in df.items()}
-        # per-doc length normalization, constant across queries
-        avg = self.avgdl or 1.0
-        norms = [self.k1 * (1 - self.b + self.b * (dl or 1) / avg) for dl in dls]
-        # A term's contribution to a document, idf*(k1+1)*f/(f+norm), does not depend on
-        # the query — only on (term, doc). Fold it into the index so a search is a plain
-        # accumulation of floats: no division, no tf lookup, no length math per query.
-        # Pass 2 — emit the postings. Everything a query needs lives in _pd/_pw afterwards,
-        # so no term-frequency map is ever retained (they are the bulk of the index).
-        k1p1 = self.k1 + 1
-        self._pd: dict[str, array] = {}
-        self._pw: dict[str, array] = {}
-        for i, d in enumerate(docs_tokens):
-            norm = norms[i]
+        stream = _passes(docs_tokens)
+        # Pass 1 — tokenize ONCE. IDF needs corpus-wide document frequency, so the
+        # per-document term counts must survive until pass 2; we keep them as interned
+        # term ids in `array('i')` rather than dicts of strings, which is where the
+        # memory went. Pass 2 then frees each document as it consumes it.
+        vocab: dict[str, int] = {}
+        terms: list[str] = []
+        df: list[int] = []
+        dls: list[int] = []
+        doc_ids: list[array] = []
+        doc_cnt: list[array] = []
+        for d in stream():
+            dls.append(len(d))
             c: dict[str, int] = {}
             for t in d:
                 c[t] = c.get(t, 0) + 1
+            ids, cnt = array("i"), array("i")
             for t, f in c.items():
-                w = self.idf[t] * k1p1 * f / (f + norm)
+                tid = vocab.get(t)
+                if tid is None:
+                    tid = len(terms)
+                    vocab[t] = tid
+                    terms.append(t)
+                    df.append(0)
+                df[tid] += 1
+                ids.append(tid)
+                cnt.append(f)
+            doc_ids.append(ids)
+            doc_cnt.append(cnt)
+        self.N = len(dls)
+        self.avgdl = (sum(dls) / self.N) if self.N else 0.0
+        idfs = [math.log(1 + (self.N - n + 0.5) / (n + 0.5)) ** idf_pow for n in df]
+        self.idf = dict(zip(terms, idfs))
+        avg = self.avgdl or 1.0
+        # A term's contribution to a document, idf*(k1+1)*f/(f+norm), does not depend on
+        # the query — only on (term, doc). Fold it into the index so a search is a plain
+        # accumulation of floats: no division, no tf lookup, no length math per query.
+        k1p1 = self.k1 + 1
+        self._pd: dict[str, array] = {}
+        self._pw: dict[str, array] = {}
+        for i in range(self.N):
+            norm = self.k1 * (1 - self.b + self.b * (dls[i] or 1) / avg)
+            for tid, f in zip(doc_ids[i], doc_cnt[i]):
+                t = terms[tid]
+                w = idfs[tid] * k1p1 * f / (f + norm)
                 if t not in self._pd:
                     self._pd[t] = array("i")
                     self._pw[t] = array("d")
                 self._pd[t].append(i)
                 self._pw[t].append(w)
+            doc_ids[i] = doc_cnt[i] = None  # release as consumed
 
     def score(self, q_tokens: list[str], i: int) -> float:
         """Score of document ``i`` — reads the precomputed contributions straight out of
@@ -186,65 +213,92 @@ class BM25F:
     """Field-weighted BM25 — a short high-signal field (title/heading) counts for
     more than the body, with per-field length normalization (Robertson's BM25F).
 
-    ``docs`` is a list of ``{field: tokens}`` dicts; ``weights`` maps field ->
-    boost. IDF is document-level (a term counts once across fields), so a query
-    term appearing in the title lifts the doc without double-charging IDF.
+    ``docs`` is a list of ``{field: tokens}`` dicts — or a zero-arg callable yielding
+    them, which lets the caller stream tokenization instead of materializing the whole
+    tokenized corpus. ``weights`` maps field -> boost. IDF is document-level (a term
+    counts once across fields), so a query term appearing in the title lifts the doc
+    without double-charging IDF.
     """
 
-    def __init__(self, docs: list[dict[str, list[str]]], weights: dict[str, float],
+    def __init__(self, docs, weights: dict[str, float],
                  *, k1: float = 1.5, b: float = 0.75, idf_pow: float = _IDF_POW):
         self.k1, self.b = k1, b
         self.fields = list(weights.keys())
         self.w = weights
-        self.N = len(docs)
-        self.avglen = {}
-        for f in self.fields:
-            tot = sum(len(d.get(f, ())) for d in docs)
-            self.avglen[f] = (tot / self.N) if self.N else 0.0
-        # Pass 1 — document frequency only. Keeping every document's per-field term-count
-        # map just to derive IDF doubles peak memory, so pass 2 rebuilds them one doc at a
-        # time. Field *lengths* are cheap (a few ints per doc) and are kept.
-        df: dict[str, int] = {}
-        for d in docs:
-            present: set[str] = set()
-            for f in self.fields:
-                present.update(d.get(f, ()))
-            for t in present:
-                df[t] = df.get(t, 0) + 1
-        self.idf = {t: math.log(1 + (self.N - n + 0.5) / (n + 0.5)) ** idf_pow for t, n in df.items()}
+        stream = _passes(docs)
+        nf = len(self.fields)
+        # Pass 1 — tokenize ONCE. IDF needs corpus-wide document frequency, so per-document
+        # counts must survive to pass 2; they are kept as interned term ids in `array('i')`
+        # rather than dicts of strings. Pass 2 frees each document as it consumes it.
+        vocab: dict[str, int] = {}
+        terms: list[str] = []
+        df: list[int] = []
+        totals = [0] * nf
+        doc_ids: list[list[array]] = []
+        doc_cnt: list[list[array]] = []
+        doc_len: list[array] = []
+        self.N = 0
+        for d in stream():
+            self.N += 1
+            f_ids, f_cnt = [], []
+            flen = array("i")
+            present: set[int] = set()
+            for fi, f in enumerate(self.fields):
+                toks = d.get(f, ())
+                flen.append(len(toks))
+                totals[fi] += len(toks)
+                c: dict[str, int] = {}
+                for t in toks:
+                    c[t] = c.get(t, 0) + 1
+                ids, cnt = array("i"), array("i")
+                for t, tf in c.items():
+                    tid = vocab.get(t)
+                    if tid is None:
+                        tid = len(terms)
+                        vocab[t] = tid
+                        terms.append(t)
+                        df.append(0)
+                    ids.append(tid)
+                    cnt.append(tf)
+                    present.add(tid)
+                f_ids.append(ids)
+                f_cnt.append(cnt)
+            for tid in present:
+                df[tid] += 1
+            doc_ids.append(f_ids)
+            doc_cnt.append(f_cnt)
+            doc_len.append(flen)
+        self.avglen = {f: (totals[fi] / self.N if self.N else 0.0) for fi, f in enumerate(self.fields)}
+        idfs = [math.log(1 + (self.N - n + 0.5) / (n + 0.5)) ** idf_pow for n in df]
+        self.idf = dict(zip(terms, idfs))
         self._fw = [self.w[f] for f in self.fields]
         # BM25F sums over the *unique* query terms, so a term's whole contribution to a
         # document — idf * tfw(k1+1)/(k1+tfw) over the weighted fields — depends only on
         # (term, doc). Fold it into the index: a search becomes a sum of precomputed floats.
         k1p1 = self.k1 + 1
+        avgl = [self.avglen[f] or 1 for f in self.fields]
         self._pd: dict[str, array] = {}
         self._pw: dict[str, array] = {}
-        for i, d in enumerate(docs):
-            # per-doc, per-field length normalization — constant across queries
-            fnorm = [1 - self.b + self.b * (len(d.get(f, ())) or 1) / (self.avglen[f] or 1)
-                     for f in self.fields]
-            counts: list[dict[str, int]] = []
-            present = set()
-            for f in self.fields:
-                c: dict[str, int] = {}
-                for t in d.get(f, ()):
-                    c[t] = c.get(t, 0) + 1
-                counts.append(c)
-                present.update(c)
-            for t in present:
-                tfw = 0.0
-                for fi in range(len(self.fields)):
-                    tf = counts[fi].get(t, 0)
-                    if tf:
-                        tfw += self._fw[fi] * tf / fnorm[fi]
+        for i in range(self.N):
+            flen = doc_len[i]
+            fnorm = [1 - self.b + self.b * (flen[fi] or 1) / avgl[fi] for fi in range(nf)]
+            tfws: dict[int, float] = {}
+            for fi in range(nf):
+                wf = self._fw[fi]
+                nrm = fnorm[fi]
+                for tid, tf in zip(doc_ids[i][fi], doc_cnt[i][fi]):
+                    tfws[tid] = tfws.get(tid, 0.0) + wf * tf / nrm
+            for tid, tfw in tfws.items():
                 if not tfw:
                     continue
-                w = self.idf[t] * tfw * k1p1 / (self.k1 + tfw)
+                t = terms[tid]
+                w = idfs[tid] * tfw * k1p1 / (self.k1 + tfw)
                 if t not in self._pd:
                     self._pd[t] = array("i")
                     self._pw[t] = array("d")
                 self._pd[t].append(i)
                 self._pw[t].append(w)
+            doc_ids[i] = doc_cnt[i] = None  # release as consumed
 
     def _score(self, q_terms, i: int) -> float:
         s = 0.0

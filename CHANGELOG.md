@@ -2,6 +2,26 @@
 
 ## Unreleased
 
+- **Index build peaks at ~1/4 the memory, at no cost in build time.** Indexing needs
+  corpus-wide document frequency before it can compute a contribution, so per-document
+  term counts have to survive from pass 1 to pass 2. They used to survive as dicts of
+  strings over the whole corpus — that was the peak. They are now interned **term ids in
+  `array('i')`**, and each document is released the moment pass 2 consumes it. `BM25`/
+  `BM25F` also accept a zero-arg callable yielding documents, so `InMemoryVector` streams
+  tokenization instead of materializing the tokenized corpus. On 5,234 chunks: build peak
+  **177.2 MB → 46.6 MB**, build time **6.13 s → 6.03 s**, rankings unchanged (finreg + all
+  8 public + NFCorpus verified). A first attempt — stream and simply re-tokenize in pass 2
+  — also hit 46.7 MB but doubled build time to 13.6 s; it was rejected.
+- **MIRACL-ko stays the single loss, and we stopped trying to fix it.** Seven principled
+  variants were measured and none wins it or dominates the shipped configuration:
+  `idf_pow` band, `contribution^q` power-mean, emphasis restricted to word tokens,
+  Hangul stem-only, Hangul bi-gram-only, bi-grams over the raw surface form (`V4`), and
+  `V4 + #raw`. `V4` is notable — it lifts Ko-StrategyQA to 0.6599 (best seen) and KLUE to
+  0.8314, but costs AutoRAG, PublicHealthQA and Allganize-Eval, so the 7-set average falls
+  0.8355 → 0.8311. MIRACL's best possible score is 0.9489 at `idf_pow=1.0` against
+  synaptic's 0.9495 — a 0.13-query gap. Its relevance is diffuse (14.4 relevant/query) and
+  emphasis is a precision move; that is a structural trade with Ko-StrategyQA, not a bug.
+
 - **English morphological normalization — NFCorpus flips to a win (0.5053 → 0.5182 vs
   synaptic's 0.5124).** OmniFuse normalized Korean morphology but indexed Latin tokens as
   raw surface forms, so `statin` could never match `statins`. `text._en_stem` adds
@@ -45,11 +65,9 @@
   - They are no longer **retained**: `score()` reads its precomputed contribution straight
     out of the postings (each `_pd[t]` is ascending, so it is a binary search). Persisted
     index **41.2 MB → 28.7 MB**; `load_index` **0.43 s → 0.21 s**.
-  - They are no longer **materialized for the whole corpus** either. IDF needs only
-    document frequency, so indexing is two passes — count `df`, then rebuild each
-    document's term map one at a time to emit its postings. `BM25F` build peak
-    **68.2 MB → 36.0 MB**; full `build_inmemory` peak **209.3 MB → 177.2 MB**, for a ~1 %
-    build-time cost (6.07 s → 6.13 s on 5,234 chunks).
+  - They are no longer **materialized for the whole corpus** either. `BM25F` build peak
+    **68.2 MB → 36.0 MB**; full `build_inmemory` peak 209.3 MB → 177.2 MB here, and then
+    → **46.6 MB** once the pass-1 intermediate was compacted (see the entry at the top).
   - Rankings unchanged throughout (verified on finreg + all 8 public sets).
 - **Index persistence — `save_index` / `load_index`.** A built in-memory index (graph +
   passage store) round-trips to disk with stdlib `pickle`, so a process starts warm

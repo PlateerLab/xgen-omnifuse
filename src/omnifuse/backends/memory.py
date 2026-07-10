@@ -149,11 +149,16 @@ class InMemoryVector:
         self._dense = embedder is not None and bool(chunks) and all(c.embedding for c in chunks)
         self._lexical = any((c.text or c.title) for c in chunks)
         if self._lexical:
+            # Tokenize lazily: indexing takes two passes, and materializing every
+            # tokenized document for both of them is the peak-memory cost of a build.
             if any(c.title for c in chunks):
-                docs = [{"title": tokenize(c.title), "body": tokenize(c.text)} for c in chunks]
+                def docs():
+                    return ({"title": tokenize(c.title), "body": tokenize(c.text)} for c in chunks)
                 self._bm25 = BM25F(docs, {"title": title_weight, "body": 1.0}, idf_pow=idf_pow)
             else:
-                self._bm25 = BM25([tokenize(c.text) for c in chunks], idf_pow=idf_pow)
+                def texts():
+                    return (tokenize(c.text) for c in chunks)
+                self._bm25 = BM25(texts, idf_pow=idf_pow)
 
     def _dense_ranked(self, query: str, limit: int) -> list[tuple[int, float]]:
         q = self.embedder(query)  # type: ignore[misc]
