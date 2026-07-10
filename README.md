@@ -149,6 +149,29 @@ MRR@10), single-shot, k=10. synaptic's column is its *own* `run_all` FTS-only pa
 Full harness + numbers in [`eval/`](eval/) and
 [`docs/comparison/omnifuse_vs_synaptic.md`](docs/comparison/omnifuse_vs_synaptic.md).
 
+<details open>
+<summary><b>Scoring & fairness — how these numbers were audited</b></summary>
+
+- **Not our scorer.** Both systems are scored by *synaptic's own* `metrics.py`
+  (`reciprocal_rank`, k=10), not by a metric we wrote.
+- **Symmetric harness.** Both read the same dataset file → same corpus, queries and qrels;
+  each returns its own top-10; identical scoring.
+- **Both re-run from scratch.** An earlier revision re-measured only OmniFuse and *reused*
+  synaptic's column from prior runs (an assumption, not evidence). Both sides were re-run:
+  all 12 core figures reproduce **to the decimal**.
+- **OmniFuse's field-weighted BM25F (title 4× body) is a design advantage**, not scoring
+  bias — both systems receive the same `(title, text)`; OmniFuse simply exploits the title
+  field harder.
+- **The golden set's questions are LLM-generated** and each has a single relevant chunk, so
+  the absolute MRR is a *lower bound* for both systems; the comparison stays symmetric.
+- **The IDF emphasis is a Pareto trade, not a free win** — it wins the core suite but
+  regresses heavily multi-relevant corpora (see footnote ² below).
+- A parameter sweep we previously published was **invalid** (keyword-only defaults bind at
+  def time, so the monkeypatch changed nothing). The corrected sweep is in
+  [`eval/results/beir_mteb_extra.json`](eval/results/beir_mteb_extra.json).
+
+</details>
+
 Everything in **one table** — MRR@10 unless noted, single-shot, no LLM, no embedder
 (zero-infra lexical track). "winner" = higher score; **OmniFuse leads 13 of 15 datasets**
 (Core 10/10, Extended 2/4, Real-world 1/1).
@@ -188,13 +211,28 @@ MIRACL-ko is **0.9489 vs 0.9495** — a dead heat — but Ko-StrategyQA then fli
 [`eval/results/beir_mteb_extra.json`](eval/results/beir_mteb_extra.json).
 (FiQA 57k-doc and MultiLongDoc-ko 193 MB omitted: synaptic ingest/RAM-bound on a 16 GB box.)
 
-**Speed** (same box, both from raw data — the only apples-to-apples condition): on the
-golden set **OmniFuse 6.6 s vs synaptic 98.0 s** (build 6.1 s + 0.5 s for 215 queries,
-2.3 ms/query). On finreg, where synaptic reuses a *prebuilt* SQLite graph and OmniFuse
-rebuilds its index, OmniFuse is still faster (**7.4 s vs 11.0 s**) — though before the
-inverted-index optimization it was *slower* (26.6 s). OmniFuse can now start warm too
-(`load_index`, 0.43 s vs a 5.98 s rebuild). Where it still genuinely lags synaptic —
-disk-resident backends, rerankers, async, MCP — is listed honestly in
+### Speed — measured, and **not** a universal win
+
+⚠️ **Read the conditions, not just the ratio.** OmniFuse's speed advantage holds when both
+systems index from raw data. It does **not** hold unconditionally, and it did not always
+hold at all:
+
+| scenario | conditions | synaptic | OmniFuse |
+|---|---|---:|---:|
+| golden set (5,234 chunks, 215 q) | both index from raw data — **the only apples-to-apples row** | 98.0 s | **6.6 s** |
+| finreg — *today* | synaptic reuses a **prebuilt** SQLite graph; omni rebuilds | 11.0 s | **7.4 s** |
+| finreg — **before** this optimization | same conditions | **10.9 s** | **26.6 s ← OmniFuse was 2.4× SLOWER** |
+| golden set, warm start (`load_index`) | omni loads a persisted index | — | 0.43 s + 0.5 s queries |
+
+So: the earlier "~7.5× faster" line was **golden-set-only** and it omitted that on finreg
+OmniFuse was *slower* (26.6 s vs 10.9 s), because synaptic starts from a persisted index
+while OmniFuse rebuilt its own on every run. That gap is now closed two ways — an
+inverted-index optimization (6.4× on the lexical path, rankings bit-identical) and
+`save_index`/`load_index` (14× warm start) — but the honest framing stands: **this is a
+workload-dependent result, not a blanket "OmniFuse is faster".**
+
+Where OmniFuse still genuinely lags synaptic — disk-resident queryable backends,
+rerankers, HyDE/query decomposition, entity linking, async, MCP — is listed in
 [the parity table](docs/comparison/omnifuse_vs_synaptic.md#where-omnifuse-lags-synaptic-honest).
 
 ### How OmniFuse wins — two honest, zero-hardcode logic improvements

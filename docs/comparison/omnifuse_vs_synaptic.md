@@ -265,13 +265,18 @@ implementation (verified on finreg + all 8 public sets).
 | golden set, both from raw data (5,234 chunks, 215 queries) | 98.0 s | **6.6 s** (build 6.1 + query 0.5) |
 | per-query latency, golden set | — | **2.3 ms** |
 | finreg — synaptic reuses a *prebuilt* SQLite graph, omni rebuilds | 11.0 s | **7.4 s** |
+| finreg — **before** this optimization, same conditions | 10.9 s | **26.6 s ← OmniFuse was 2.4× SLOWER** |
 | omni self-A/B, 8 public sets (same scores) | — | 249.4 s → **38.7 s** (6.4×) |
 | golden set, warm start (`load_index`) | — | **0.43 s** load + 0.5 s queries |
 
-Only the first row is apples-to-apples. The finreg row is *unfavourable* to OmniFuse
-(synaptic starts from a persisted index) and OmniFuse still wins it — before the
-optimization it did not (26.6 s vs 11.0 s). With `save_index`/`load_index` OmniFuse can
-now start warm too, so that asymmetry is gone.
+**This is not a blanket "OmniFuse is faster".** Only the first row is apples-to-apples
+(both index from raw data). The finreg rows run under conditions *unfavourable* to
+OmniFuse — synaptic starts from a persisted index, OmniFuse rebuilt its own every run —
+and until this optimization OmniFuse **lost** them outright (26.6 s vs 10.9 s). An earlier
+revision of these docs advertised "~7.5× faster" from the golden set alone and never
+mentioned the finreg loss; that was an omission, and it is corrected here. The gap is now
+closed from both ends (inverted-index scoring, and `save_index`/`load_index` warm start),
+but the result remains **workload-dependent**.
 
 ## Where OmniFuse lags synaptic (honest)
 
