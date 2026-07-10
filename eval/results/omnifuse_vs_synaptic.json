@@ -4,7 +4,7 @@
   "omnifuse_version": "0.5.0",
   "reverification_2026_07_10": {
     "what": "Earlier revisions re-measured only omnifuse and REUSED synaptic's column from prior runs (an assumption, not evidence). Both systems were re-run from scratch.",
-    "result": "Every core number reproduces to the decimal on BOTH sides — finreg (0.7039/0.8400, 56/101) and all 8 public datasets.",
+    "result": "Every core number reproduces to the decimal on BOTH sides — finreg (synaptic 0.7039 / 56-of-120; omnifuse re-run reproduced its column too) and all 8 public datasets.",
     "scoring_symmetry": "Both systems read the same dataset file (same corpus, queries, qrels), each returns its own top-10, and both are scored by synaptic's own tests/benchmark/metrics.py (reciprocal_rank, k=10) — not by a metric we wrote.",
     "methodology_bug_found": "An earlier idf_pow sweep was INVALID: idf_pow is a keyword-only default bound at function-definition time, so monkeypatching the module constant silently changed nothing and every swept point ran the same value. Patching BM25/BM25F.__init__.__kwdefaults__ makes it vary. The corrected sweep confirms the core p-band claim AND exposed the Extended-track regression the broken sweep had hidden."
   },
@@ -27,7 +27,7 @@
     "klue_mrc_wall_s": {"before": 230.5, "after": 28.8},
     "golden_set_end_to_end_wall_s": {"synaptic": 98.0, "omnifuse": 6.6, "omnifuse_build": 6.1, "omnifuse_query_215q": 0.5},
     "finreg_wall_s": {"synaptic_prebuilt_sqlite_graph": 11.0, "omnifuse_rebuilds_index": 7.4, "note": "before the optimization omnifuse was SLOWER here: 26.6s"},
-    "persistence": {"corpus_chunks": 5234, "build_s": 5.98, "save_s": 0.65, "load_s": 0.43, "speedup_vs_rebuild": "14.0x", "index_mb": 41.2, "rankings_identical_after_round_trip": true},
+    "persistence": {"corpus_chunks": 5234, "build_s": 5.98, "save_s": 0.65, "load_s": 0.21, "speedup_vs_rebuild": "29x", "index_mb": 28.7, "index_mb_before_tf_drop": 41.2, "rankings_identical_after_round_trip": true},
     "caveat": "Not a universal speed win. Only the golden-set row (both systems from raw data) is apples-to-apples. omnifuse now has save_index/load_index so it can start warm like synaptic, but the index is read back into RAM — synaptic's SQLite/PostgreSQL backends are disk-resident and queryable, omnifuse's is not."
   },
   "protocol": {
@@ -35,7 +35,7 @@
     "metric_module": "eval/metrics.py (identical to synaptic tests/benchmark/metrics.py)",
     "k": 10,
     "synaptic_runner": "synaptic eval.run_all.run_public_dataset / run_gt_corpus, embedder=None, reranker=None (FTS-only)",
-    "omnifuse_runner": "build_inmemory(...).retrieve(), field-weighted BM25F + IDF term-specificity emphasis (idf_pow=1.5) + graph-companion fusion"
+    "omnifuse_runner": "build_inmemory(...).retrieve(), field-weighted BM25F + IDF term-specificity emphasis (idf_pow=1.5) + directed (out-edge) graph-companion fusion"
   },
   "finreg": {
     "corpus_articles": 4417,

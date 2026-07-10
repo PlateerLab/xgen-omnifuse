@@ -14,6 +14,7 @@ from __future__ import annotations
 import math
 import re
 from array import array
+from bisect import bisect_left
 
 _WORD = re.compile(r"[a-z0-9]+")
 _HANGUL = re.compile(r"[가-힣]+")
@@ -94,29 +95,29 @@ class BM25:
                  idf_pow: float = _IDF_POW):
         self.k1, self.b = k1, b
         self.N = len(docs_tokens)
-        self.dl = [len(d) for d in docs_tokens]
-        self.avgdl = (sum(self.dl) / self.N) if self.N else 0.0
-        self.tf: list[dict[str, int]] = []
+        dls = [len(d) for d in docs_tokens]
+        self.avgdl = (sum(dls) / self.N) if self.N else 0.0
+        tf: list[dict[str, int]] = []
         df: dict[str, int] = {}
         for d in docs_tokens:
             c: dict[str, int] = {}
             for t in d:
                 c[t] = c.get(t, 0) + 1
-            self.tf.append(c)
+            tf.append(c)
             for t in c:
                 df[t] = df.get(t, 0) + 1
         self.idf = {t: math.log(1 + (self.N - n + 0.5) / (n + 0.5)) ** idf_pow for t, n in df.items()}
-        # per-doc length normalization, precomputed once (constant across queries)
+        # per-doc length normalization, constant across queries
         avg = self.avgdl or 1.0
-        self._norm = [self.k1 * (1 - self.b + self.b * (dl or 1) / avg) for dl in self.dl]
+        norms = [self.k1 * (1 - self.b + self.b * (dl or 1) / avg) for dl in dls]
         # A term's contribution to a document, idf*(k1+1)*f/(f+norm), does not depend on
         # the query — only on (term, doc). Fold it into the index so a search is a plain
         # accumulation of floats: no division, no tf lookup, no length math per query.
         k1p1 = self.k1 + 1
         self._pd: dict[str, array] = {}
         self._pw: dict[str, array] = {}
-        for i, c in enumerate(self.tf):
-            norm = self._norm[i]
+        for i, c in enumerate(tf):
+            norm = norms[i]
             for t, f in c.items():
                 w = self.idf[t] * k1p1 * f / (f + norm)
                 if t not in self._pd:
@@ -124,16 +125,21 @@ class BM25:
                     self._pw[t] = array("d")
                 self._pd[t].append(i)
                 self._pw[t].append(w)
+        # `tf` and the per-doc norms existed only to derive the postings above. Everything
+        # a query needs now lives in _pd/_pw, so we do not retain the term-frequency maps —
+        # they are the bulk of the index.
 
     def score(self, q_tokens: list[str], i: int) -> float:
-        tf = self.tf[i]
-        norm = self._norm[i]
+        """Score of document ``i`` — reads the precomputed contributions straight out of
+        the postings (each ``_pd[t]`` is ascending, so membership is a binary search)."""
         s = 0.0
         for t in q_tokens:
-            f = tf.get(t)
-            if not f:
+            pd = self._pd.get(t)
+            if pd is None:
                 continue
-            s += self.idf.get(t, 0.0) * (f * (self.k1 + 1)) / (f + norm)
+            k = bisect_left(pd, i)
+            if k < len(pd) and pd[k] == i:
+                s += self._pw[t][k]
         return s
 
     def search(self, query: str, *, limit: int = 20) -> list[tuple[int, float]]:
@@ -178,7 +184,7 @@ class BM25F:
         for f in self.fields:
             tot = sum(len(d.get(f, ())) for d in docs)
             self.avglen[f] = (tot / self.N) if self.N else 0.0
-        self.doc_tf: list[dict[str, dict[str, int]]] = []
+        doc_tf: list[dict[str, dict[str, int]]] = []
         df: dict[str, int] = {}
         for d in docs:
             per_field: dict[str, dict[str, int]] = {}
@@ -189,28 +195,27 @@ class BM25F:
                     c[t] = c.get(t, 0) + 1
                 per_field[f] = c
                 present.update(c)
-            self.doc_tf.append(per_field)
+            doc_tf.append(per_field)
             for t in present:
                 df[t] = df.get(t, 0) + 1
         self.idf = {t: math.log(1 + (self.N - n + 0.5) / (n + 0.5)) ** idf_pow for t, n in df.items()}
-        # per-doc, per-field length normalization — constant across queries, so it is
-        # precomputed once instead of re-summing the field on every term comparison.
+        # per-doc, per-field length normalization — constant across queries
         self._fw = [self.w[f] for f in self.fields]
-        self._fnorm: list[list[float]] = []
-        for per_field in self.doc_tf:
-            self._fnorm.append([
-                1 - self.b + self.b * (sum(per_field[f].values()) or 1) / (self.avglen[f] or 1)
-                for f in self.fields
-            ])
+        fnorms = [
+            [1 - self.b + self.b * (sum(per_field[f].values()) or 1) / (self.avglen[f] or 1)
+             for f in self.fields]
+            for per_field in doc_tf
+        ]
         # BM25F sums over the *unique* query terms, so a term's whole contribution to a
         # document — idf * tfw(k1+1)/(k1+tfw) over the weighted fields — depends only on
         # (term, doc). Fold it into the index: a search becomes a sum of precomputed floats.
+        # Nothing else needs the per-field term-frequency maps, so they are not retained.
         k1p1 = self.k1 + 1
         self._pd: dict[str, array] = {}
         self._pw: dict[str, array] = {}
-        for i, per_field in enumerate(self.doc_tf):
-            fnorm = self._fnorm[i]
-            present: set[str] = set()
+        for i, per_field in enumerate(doc_tf):
+            fnorm = fnorms[i]
+            present = set()
             for f in self.fields:
                 present.update(per_field[f])
             for t in present:
@@ -229,23 +234,19 @@ class BM25F:
                 self._pw[t].append(c)
 
     def _score(self, q_terms, i: int) -> float:
-        per_field = self.doc_tf[i]
-        fnorm = self._fnorm[i]
         s = 0.0
         for t in q_terms:
-            idf = self.idf.get(t)
-            if not idf:
+            pd = self._pd.get(t)
+            if pd is None:
                 continue
-            tfw = 0.0
-            for fi, f in enumerate(self.fields):
-                tf = per_field[f].get(t, 0)
-                if tf:
-                    tfw += self._fw[fi] * tf / fnorm[fi]
-            if tfw:
-                s += idf * tfw * (self.k1 + 1) / (self.k1 + tfw)
+            k = bisect_left(pd, i)
+            if k < len(pd) and pd[k] == i:
+                s += self._pw[t][k]
         return s
 
     def score(self, q_tokens: list[str], i: int) -> float:
+        """Score of document ``i`` — the precomputed contributions are read out of the
+        postings (each ``_pd[t]`` is ascending, so membership is a binary search)."""
         return self._score(set(q_tokens), i)
 
     def search(self, query: str, *, limit: int = 20) -> list[tuple[int, float]]:

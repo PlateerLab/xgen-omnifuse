@@ -32,7 +32,7 @@ Build the index once, start warm afterwards (stdlib pickle, zero deps):
 ```python
 from omnifuse import save_index, load_index
 save_index(of, "idx.pkl")
-of = load_index("idx.pkl")            # 14x faster than rebuilding; pass embedder=/llm= here
+of = load_index("idx.pkl")            # ~29x faster than rebuilding; pass embedder=/llm= here
 ```
 
 ## Why graph fusion (not just vectors)

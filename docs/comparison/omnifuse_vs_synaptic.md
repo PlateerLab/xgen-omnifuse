@@ -339,8 +339,8 @@ save_index(build_inmemory(nodes, triples, chunks), "idx.pkl")
 of = load_index("idx.pkl")          # warm start; embedder/LLM re-supplied here
 ```
 
-On the 5,234-chunk golden corpus: build 5.98 s → **load 0.43 s (14× faster)**, index
-41.2 MB, rankings identical after the round-trip. Note `pickle` executes arbitrary code on
+On the 5,234-chunk golden corpus: build 6.0 s → **load 0.21 s (~29× faster)**, index
+**28.7 MB**, rankings identical after the round-trip. Note `pickle` executes arbitrary code on
 load, so only load indexes you produced; and the index is still read *into RAM*, so the
 scale ceiling is unchanged — a genuinely disk-resident backend remains future work.
 
