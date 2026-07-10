@@ -2,6 +2,36 @@
 
 ## Unreleased
 
+- **The Korean copula's interrogative paradigm was missing from the ending list — and it
+  was the last loss. OmniFuse now wins all 15 datasets.** A per-query diff against synaptic
+  (scored by its own `metrics.reciprocal_rank`) showed OmniFuse losing 29 MIRACL-ko queries
+  and winning 14, with the losses clustered on a single junk document: every
+  *"…어디인가?"* ("where is…?") question retrieved the article titled **"내 친구의 집은
+  어디인가"** — a 4×-weighted title match on nothing but the question word.
+
+  Cause: `-인가/-인가요/-입니까/-인지` were absent from `_KO_SUFFIX`, so `어디인가` stemmed to
+  the *rare* token `어디인` rather than the common word `어디`, and `idf_pow` amplified that
+  rarity. Kiwi splits the copula into morphemes, which is why synaptic never saw it.
+
+  **MIRACL-ko 0.9052 → 0.9617** (synaptic 0.9495) — the extended track goes 4/4 and the
+  suite to **15/15**. Also XPQA-ko 0.3256 → 0.3290, KLUE-MRC 0.8280 → 0.8288, the real-world
+  golden set 0.4775 → **0.4957**. Small, still-winning costs: PublicHealthQA 0.6284 → 0.6217,
+  AutoRAG 0.9309 → 0.9293, Ko-StrategyQA 0.6509 → 0.6496. finreg, HotPotQA, Allganize,
+  NFCorpus and SciFact are bit-identical. Not a fit: every suffix subset from `{인가}` alone
+  to a nine-ending superset wins 8/8 of the Korean-bearing sets — a flat band, and a closed
+  linguistic class like the 조사/어미 already shipped.
+
+  Two standard fixes were tried on the *symptom* first and are recorded as rejected:
+  coordination-level matching (`score *= coverage**λ`) wins MIRACL at 0.9536 but breaks
+  Ko-StrategyQA 0.6135, HotPotQA-200 0.8774, PublicHealthQA 0.5824 and NFCorpus 0.5040;
+  `minimum_should_match ≥ 2` reaches only 0.9167 and collapses Ko-StrategyQA to 0.5663
+  because it filters gold documents that legitimately match one query word.
+
+- **Efficiency is now measured with synaptic's own `mean_search_time_ms`**
+  (`eval/perf_bench.py`), not a timer we invented. NFCorpus: ingest **2.01 s vs 55.01 s**,
+  mean search **1.66 ms vs 14.14 ms**, MRR 0.5182 vs 0.5124. Allganize RAG-ko: **0.18 s /
+  0.18 ms / 0.9683** vs 5.39 s / 4.41 ms / 0.9562.
+
 - **`Feedback` — memory that survives its own placebo, and beats synaptic on the axis that
   names it.** A confirmed query becomes *evidence about* a chunk: it is indexed as a BM25F
   **evidence field** whose terms score the chunk but never enter document frequency, and
@@ -12,9 +42,9 @@
   | ΔMRR@10, held-out re-queries | KRA (ko) all | KRA covered | NFCorpus (en) all | NFCorpus covered |
   |---|---:|---:|---:|---:|
   | synaptic (Hebbian) | +0.0000 | +0.0093 | −0.0010 | −0.0008 |
-  | **OmniFuse (`Feedback`)** | **+0.1958** | **+0.4167** | **+0.0342** | **+0.0460** |
-  | ↳ shuffled placebo | +0.0063 | +0.0243 | −0.0036 | −0.0049 |
-  | ↳ random-query placebo | +0.0275 | +0.0798 | −0.0036 | −0.0048 |
+  | **OmniFuse (`Feedback`)** | **+0.1790** | **+0.3903** | **+0.0150** | **+0.0300** |
+  | ↳ shuffled placebo | +0.0059 | +0.0213 | +0.0015 | +0.0031 |
+  | ↳ random-query placebo | +0.0029 | +0.0215 | +0.0000 | +0.0000 |
 
   Replicated on a **second corpus, second language and a different relevance structure**:
   on NFCorpus both placebos go *negative* while `real` stays positive, and Δuncovered is

@@ -39,6 +39,13 @@ _IDF_POW = 1.5
 # Korean particles (조사), verb/adjective endings (어미), and derivational suffixes,
 # stripped only when trailing (so 상황/성별 — with the char leading — are untouched;
 # and the emitted stem unigram still lets compound forms match). Longest first.
+#
+# The copula's interrogative paradigm (-인가/-인가요/-입니까/-인지) is part of this closed
+# class and was missing. Without it "어디인가" stems to the *rare* token 어디인 instead of
+# the common word 어디, and `idf_pow` then amplifies that rarity: on MIRACL-ko every
+# "…어디인가?" question retrieved the article titled "내 친구의 집은 어디인가" — a 4x-weighted
+# title match on nothing but the question word. Kiwi splits the copula into morphemes, which
+# is why synaptic never saw this.
 _KO_SUFFIX = sorted(set([
     "으로써", "으로서", "이라고", "라고", "에게서", "으로", "에서", "에게", "께서", "한테",
     "부터", "까지", "보다", "처럼", "만큼", "같이", "마다", "조차", "마저", "라도", "이라도",
@@ -50,6 +57,7 @@ _KO_SUFFIX = sorted(set([
     "되며", "하여", "되어", "여", "며", "면", "서", "고", "지", "니", "게", "자", "라",
     "았", "었", "겠", "임", "함", "됨", "기", "음",
     "적으로", "성이", "적인", "화된", "적", "화", "성", "상", "하", "들",
+    "인가요", "입니까", "인가", "인지",
 ]), key=len, reverse=True)
 
 

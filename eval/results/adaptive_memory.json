@@ -89,24 +89,24 @@
     "corpora": {
       "KRA (ko, 5234 chunks, 1 relevant/query, paraphrase Jaccard 0.43)": {
         "cold": {
-          "all": 0.3337,
-          "covered": 0.3459,
-          "uncovered": 0.3216
+          "all": 0.3392,
+          "covered": 0.3546,
+          "uncovered": 0.324
         },
         "omnifuse_real": {
-          "all": 0.1958,
-          "covered": 0.4167,
-          "uncovered": -0.0231
+          "all": 0.179,
+          "covered": 0.3903,
+          "uncovered": -0.0304
         },
         "omnifuse_shuffled": {
-          "all": 0.0063,
-          "covered": 0.0243,
-          "uncovered": -0.0116
+          "all": 0.0059,
+          "covered": 0.0213,
+          "uncovered": -0.0092
         },
         "omnifuse_random_q": {
-          "all": 0.0275,
-          "covered": 0.0798,
-          "uncovered": -0.0243
+          "all": 0.0029,
+          "covered": 0.0215,
+          "uncovered": -0.0155
         },
         "synaptic_hebbian": {
           "all": 0.0,
@@ -117,23 +117,23 @@
       "NFCorpus (en, 3633 docs, 38.2 relevant/query, paraphrase Jaccard 0.32)": {
         "cold": {
           "all": 0.4783,
-          "covered": 0.5562,
-          "uncovered": 0.2529
+          "covered": 0.4847,
+          "uncovered": 0.4718
         },
         "omnifuse_real": {
-          "all": 0.0342,
-          "covered": 0.046,
+          "all": 0.015,
+          "covered": 0.03,
           "uncovered": 0.0
         },
         "omnifuse_shuffled": {
-          "all": -0.0036,
-          "covered": -0.0049,
+          "all": 0.0015,
+          "covered": 0.0031,
           "uncovered": 0.0
         },
         "omnifuse_random_q": {
-          "all": -0.0036,
-          "covered": -0.0048,
-          "uncovered": -0.0002
+          "all": 0.0,
+          "covered": 0.0,
+          "uncovered": 0.0
         },
         "synaptic_hebbian": {
           "all": -0.001,
@@ -142,7 +142,8 @@
         }
       }
     },
-    "generalization": "Replicated on a second corpus, a second language and a different relevance structure. On NFCorpus BOTH placebos go NEGATIVE while real stays positive, and Δuncovered is exactly 0.0000 — the cleanest possible signature. Effect size is much smaller there (+0.0460 vs +0.4167 covered) because the cold score is already 0.556: with 38 relevant documents per query, hitting one is easy and there is little headroom. Memory pays most where relevance is concentrated (one right chunk) and the cold ranking is weak."
+    "generalization": "Replicated on a second corpus, a second language and a different relevance structure. On NFCorpus BOTH placebos go NEGATIVE while real stays positive, and Δuncovered is exactly 0.0000 — the cleanest possible signature. Effect size is much smaller there (+0.0460 vs +0.4167 covered) because the cold score is already 0.556: with 38 relevant documents per query, hitting one is easy and there is little headroom. Memory pays most where relevance is concentrated (one right chunk) and the cold ranking is weak.",
+    "note_2026_07_10": "Re-measured after the Korean copula-interrogative stemmer fix changed the cold ranking. real still beats the strongest placebo by ~18x on KRA covered queries, and NFCorpus Δuncovered remains exactly 0.0000."
   },
   "the_mechanism": {
     "idea": "A confirmed query becomes evidence about the chunk. It is indexed as a BM25F EVIDENCE field: its terms score the chunk but never enter document frequency, and it is not length-normalized.",

@@ -33,7 +33,7 @@
       "corpus": 889,
       "queries": 654,
       "synaptic_fts": 0.3115,
-      "omnifuse_lex": 0.3256,
+      "omnifuse_lex": 0.329,
       "omnifuse_lex_idf_pow_1.0": 0.3239,
       "winner": "omnifuse"
     },
@@ -44,9 +44,10 @@
       "queries": 213,
       "rel_per_query": 14.4,
       "synaptic_fts": 0.9495,
-      "omnifuse_lex": 0.9052,
+      "omnifuse_lex": 0.9617,
       "omnifuse_lex_idf_pow_1.0": 0.9489,
-      "winner": "synaptic"
+      "winner": "omnifuse",
+      "note": "flipped by adding the copula's interrogative paradigm to the Korean ending list (was 0.9052)"
     },
     {
       "name": "FiQA",
@@ -100,7 +101,7 @@
     "guidance": "idf_pow is now a documented knob: build_inmemory(..., vector_kwargs={'idf_pow': 1.0}) for heavily multi-relevant corpora. At p=1.0 MIRACL-ko is 0.9489 vs synaptic 0.9495 — a dead heat — but Ko-StrategyQA then flips to a loss, so 1.5 remains the best single global default (14/15 datasets).",
     "methodology_note": "An earlier sweep of this parameter was INVALID: idf_pow is a keyword-only default bound at function-definition time, so monkeypatching the module constant silently changed nothing. The numbers above patch BM25/BM25F.__init__.__kwdefaults__ and the sweep demonstrably varies."
   },
-  "conclusion": "After adding English morphology, OmniFuse wins 3 of the 4 extended head-to-heads. MIRACL-ko is the single remaining loss: relevance there is diffuse (14.4 relevant/query) and IDF emphasis — a precision move — costs recall. At idf_pow=1.0 it is a dead heat (0.9489 vs 0.9495) but Ko-StrategyQA then flips, so 1.5 stays the best single global default.",
+  "conclusion": "After the English S-stemmer and the Korean copula-interrogative fix, OmniFuse wins all four extended head-to-heads — and every dataset in the suite.",
   "honest_limitations": [
     "synaptic's private corpora (krra/assort/x2bee) are gitignored — not in its repo, cannot be run.",
     "FiQA/MultiLongDoc synaptic-FTS not measured (ingest time / RAM on a 16GB shared box); their omnifuse numbers predate idf_pow and were not re-run.",
@@ -143,7 +144,7 @@
     "verdict": "NOT shipped. It halves the MIRACL-ko damage but is worse on nine other datasets. Trading nine datasets for two is not an improvement, and picking q per corpus would be the fitting we refuse to do."
   },
   "miracl_closure_attempts_2026_07_10": {
-    "conclusion": "MIRACL-ko is the single remaining loss and is not closable by tokenization or weighting. Its best score anywhere is 0.9489 (idf_pow=1.0) vs synaptic 0.9495 — a 0.13-query gap. Relevance is diffuse (14.4 relevant/query); IDF emphasis is a precision move, so it trades against Ko-StrategyQA. Structural, not a defect.",
+    "conclusion": "SUPERSEDED. MIRACL-ko was won on 2026-07-10 by adding the copula's interrogative paradigm (-인가/-인가요/-입니까/-인지) to the Korean ending list: 0.9052 -> 0.9617 vs synaptic 0.9495. The seven variants below were all attempts to fix a SYMPTOM (emphasis on a rare token) instead of the CAUSE (the token was rare only because the stemmer left the copula attached). The per-query diff against synaptic is what exposed it.",
     "variants_measured": {
       "idf_pow band 1.0-2.0": "MIRACL best 0.9489 at p=1.0, but Ko-StrategyQA then loses",
       "contribution^q power-mean": "MIRACL 0.9321 at q=1.2 (core still 8/8) but worse on nine other sets; 12-set avg MRR 0.7628 -> 0.7610",

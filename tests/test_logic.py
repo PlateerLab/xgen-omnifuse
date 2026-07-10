@@ -87,3 +87,39 @@ def test_bm25_label_ranking_order():
     hits = g.search_labels("규정", limit=5)
     assert hits  # '규정' substring matches all *규정 nodes; class '규정' ranks (exact) high
     assert any(n.label == "규정" for n, _ in hits)
+
+
+def test_copula_interrogative_is_stripped():
+    """The copula's interrogative paradigm is part of the closed ending class.
+
+    Without it "어디인가" stems to the rare token 어디인 rather than the common word 어디,
+    and IDF emphasis then amplifies that rarity — on MIRACL-ko every "…어디인가?" question
+    retrieved the article titled "내 친구의 집은 어디인가" on the question word alone.
+    """
+    from omnifuse.text import _ko_stem
+
+    assert _ko_stem("어디인가") == "어디"
+    assert _ko_stem("어디인가요") == "어디"
+    assert _ko_stem("무엇인가") == "무엇"
+    assert _ko_stem("누구입니까") == "누구"
+
+
+def test_copula_stripping_does_not_maul_real_words():
+    from omnifuse.text import _ko_stem
+
+    assert _ko_stem("상황") == "상황"        # leading char, not a suffix
+    assert _ko_stem("인가") == "인가"        # too short to strip into nothing
+    assert _ko_stem("승인가능") == "승인가능"  # '인가' is not trailing
+    assert _ko_stem("부동산") == "부동산"
+
+
+def test_interrogative_no_longer_outranks_the_answer():
+    """The exact MIRACL-ko failure: a title made of the question word must not win."""
+    from omnifuse import Chunk, build_inmemory
+
+    chunks = [
+        Chunk("movie", title="내 친구의 집은 어디인가", text="이란의 영화이다"),
+        Chunk("gold", title="테살로니키", text="그리스의 도시이며 수도 아테네 다음으로 크다"),
+    ]
+    of = build_inmemory([], [], chunks)
+    assert [c.id for c, _ in of.retrieve("그리스의 수도는 어디인가?")][0] == "gold"

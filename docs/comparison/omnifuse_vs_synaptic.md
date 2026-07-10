@@ -45,10 +45,10 @@ them with `python eval/public_bench.py --synaptic-repo /path/to/synaptic-memory`
 | HotPotQA-200 | en | multi-hop | 0.8775 | **0.9044** | OmniFuse |
 | Allganize RAG-ko | ko | enterprise RAG | 0.9562 | **0.9683** | OmniFuse |
 | Allganize RAG-Eval | ko | domain RAG | 0.9303 | **0.9370** | OmniFuse |
-| KLUE-MRC | ko | machine reading | 0.7718 | **0.8280** | OmniFuse |
-| PublicHealthQA | ko | paraphrase QA | 0.6065 | **0.6284** | OmniFuse |
-| AutoRAG | ko | passage retrieval | 0.9053 | **0.9309** | OmniFuse |
-| Ko-StrategyQA | ko | strategy QA | 0.6440 | **0.6509** | OmniFuse |
+| KLUE-MRC | ko | machine reading | 0.7718 | **0.8288** | OmniFuse |
+| PublicHealthQA | ko | paraphrase QA | 0.6065 | **0.6217** | OmniFuse |
+| AutoRAG | ko | passage retrieval | 0.9053 | **0.9293** | OmniFuse |
+| Ko-StrategyQA | ko | strategy QA | 0.6440 | **0.6496** | OmniFuse |
 
 **OmniFuse: 10 wins, 0 losses** (avg MRR 0.844 vs 0.809) — **zero dependencies** (no
 morphological analyzer) vs synaptic's *mandatory* Kiwi. Two honest, general, zero-hardcode
@@ -168,10 +168,10 @@ per chunk).
 | system | MRR@10 | nDCG@10 | R@10 | wall |
 |---|---:|---:|---:|---:|
 | synaptic (FTS) | 0.2547 | 0.2956 | 0.4279 | 98.0 s |
-| **OmniFuse** | **0.4775** | **0.5446** | **0.7535** | **6.6 s** |
+| **OmniFuse** | **0.4957** | **0.5446** | **0.7535** | **6.6 s** |
 
 Wall time is end-to-end from raw data on both sides (OmniFuse: 6.1 s build + 0.5 s for all
-215 queries). **OmniFuse wins by +0.2228 MRR (~1.9×)** on every metric,
+215 queries). **OmniFuse wins by +0.2410 MRR (~1.95×)** on every metric,
 on out-of-distribution real documents — the long-institutional-text regime where a
 specific entity is buried in boilerplate. Ablation (every config still beats synaptic):
 
@@ -228,6 +228,39 @@ nine other datasets, and average MRR over the 12 measured sets drops 0.7628 → 
 Trading nine datasets for two is not an improvement, and picking `q` per corpus is exactly
 the fitting we refuse to do. Not shipped; recorded in
 [`eval/results/beir_mteb_extra.json`](../../eval/results/beir_mteb_extra.json).
+
+## The last loss was ours: a missing copula in the Korean stemmer
+
+MIRACL-ko was the only dataset synaptic still won. Rather than keep trying weightings, we
+dumped the **per-query MRR diff** (scored by synaptic's own `metrics.reciprocal_rank`).
+OmniFuse lost 29 queries and won 14 — and the losses clustered on one junk document:
+
+> `q: 그리스의 수도는 어디인가?`  omni **0.200** / syn **1.000**
+> omni's top-3: **"내 친구의 집은 어디인가"**, "…(영화)", "…(텔레비전 프로그램)"
+
+Every *"…어디인가?"* ("where is…?") question retrieved the film article whose **title is the
+question word**, in a 4×-weighted title field. The cause was not the weighting: the copula's
+interrogative paradigm (`-인가/-인가요/-입니까/-인지`) was missing from `_KO_SUFFIX`, so
+`어디인가` stemmed to the *rare* token `어디인` instead of the common word `어디`, and
+`idf_pow` amplified exactly that rarity. Kiwi splits the copula into morphemes — which is
+why synaptic never saw the failure.
+
+Adding the paradigm — a closed linguistic class, like the 조사/어미 already shipped — takes
+**MIRACL-ko 0.9052 → 0.9617** (synaptic 0.9495) and wins **every dataset in the suite**. It
+is not a fit: every subset from `{인가}` alone to a nine-ending superset wins 8/8 of the
+Korean-bearing sets.
+
+Two textbook fixes were tried on the *symptom* first, and both are Pareto losses:
+
+| attempted fix | MIRACL-ko | what it breaks |
+|---|---:|---|
+| coordination-level matching (`score *= coverage**λ`) | **0.9536** (a win) | Ko-StrategyQA 0.6135, HotPotQA-200 0.8774, PublicHealthQA 0.5824, NFCorpus 0.5040 |
+| coverage over lexical units only | 0.9441 | same sets, and MIRACL is worse |
+| `minimum_should_match ≥ 2` | 0.9167 | Ko-StrategyQA 0.5663 — it filters gold docs that legitimately match one query word |
+| **copula endings (shipped)** | **0.9617** | nothing: 15/15 |
+
+The lesson is the same one this file keeps recording: the diff told us in one look what a
+week of weighting sweeps could not.
 
 ## Graph fusion: direction is the whole signal (and PPR-style propagation loses)
 
@@ -450,9 +483,9 @@ queries, scored by synaptic's own `metrics.py`.
 | ΔMRR@10, held-out re-queries | KRA (ko) all | KRA covered | NFCorpus (en) all | NFCorpus covered |
 |---|---:|---:|---:|---:|
 | synaptic (Hebbian) | +0.0000 | +0.0093 | −0.0010 | −0.0008 |
-| **OmniFuse (`Feedback`)** | **+0.1958** | **+0.4167** | **+0.0342** | **+0.0460** |
-| ↳ shuffled placebo | +0.0063 | +0.0243 | −0.0036 | −0.0049 |
-| ↳ random-query placebo | +0.0275 | +0.0798 | −0.0036 | −0.0048 |
+| **OmniFuse (`Feedback`)** | **+0.1790** | **+0.3903** | **+0.0150** | **+0.0300** |
+| ↳ shuffled placebo | +0.0059 | +0.0213 | +0.0015 | +0.0031 |
+| ↳ random-query placebo | +0.0029 | +0.0215 | +0.0000 | +0.0000 |
 
 `real` is 5.2× the strongest placebo: the `(query, chunk)` pairing carries the signal. And
 on the *disjoint-query* axis — a different question, not a rephrasing — memory correctly

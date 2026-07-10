@@ -1,0 +1,52 @@
+{
+  "benchmark": "Efficiency head-to-head",
+  "date": "2026-07-10",
+  "scorer": "synaptic's own metrics.BenchmarkResult — `mean_search_time_ms`, the efficiency number its own harness records. Not a timer we invented. MRR is reported alongside so a speed claim can never be read apart from what it retrieves.",
+  "harness": "eval/perf_bench.py",
+  "results": [
+    {
+      "dataset": "NFCorpus",
+      "corpus": 3633,
+      "queries": 323,
+      "omnifuse": {
+        "ingest_s": 2.01,
+        "mean_search_ms": 1.66,
+        "mrr": 0.5182
+      },
+      "synaptic": {
+        "ingest_s": 55.01,
+        "mean_search_ms": 14.14,
+        "mrr": 0.5124
+      },
+      "speedup": {
+        "ingest": "27x",
+        "search": "8.5x"
+      }
+    },
+    {
+      "dataset": "Allganize RAG-ko",
+      "corpus": 200,
+      "queries": 200,
+      "omnifuse": {
+        "ingest_s": 0.18,
+        "mean_search_ms": 0.18,
+        "mrr": 0.9683
+      },
+      "synaptic": {
+        "ingest_s": 5.39,
+        "mean_search_ms": 4.41,
+        "mrr": 0.9562
+      },
+      "speedup": {
+        "ingest": "30x",
+        "search": "24x"
+      }
+    }
+  ],
+  "conclusion": "OmniFuse is faster on both axes while retrieving more, on both corpora.",
+  "honest_limitations": [
+    "synaptic is driven through SqliteGraphBackend + graph.search (FTS, no embedder) — the same path used for its accuracy column.",
+    "Ingest here means 'raw corpus -> queryable index'. OmniFuse rebuilds in RAM; synaptic writes a persistent SQLite store, which is real work it does and OmniFuse does not. save_index/load_index gives OmniFuse a warm start (0.21 s) but the index is read back into RAM.",
+    "Single-threaded, CPU-only, 16 GB box."
+  ]
+}

@@ -179,8 +179,8 @@ Full harness + numbers in [`eval/`](eval/) and
 </details>
 
 Everything in **one table** — MRR@10 unless noted, single-shot, no LLM, no embedder
-(zero-infra lexical track). "winner" = higher score; **OmniFuse leads 14 of 15 datasets**
-(Core 10/10, Extended 3/4, Real-world 1/1).
+(zero-infra lexical track). "winner" = higher score; **OmniFuse leads all 15 datasets**
+(Core 10/10, Extended 4/4, Real-world 1/1).
 
 | track | dataset | synaptic (FTS) | **OmniFuse** | winner |
 |---|---|---:|---:|:--|
@@ -190,34 +190,37 @@ Everything in **one table** — MRR@10 unless noted, single-shot, no LLM, no emb
 | | HotPotQA-200 | 0.8775 | **0.9044** | 🟢 OmniFuse |
 | | Allganize RAG-ko | 0.9562 | **0.9683** | 🟢 OmniFuse |
 | | Allganize RAG-Eval | 0.9303 | **0.9370** | 🟢 OmniFuse |
-| | KLUE-MRC | 0.7718 | **0.8280** | 🟢 OmniFuse |
-| | PublicHealthQA | 0.6065 | **0.6284** | 🟢 OmniFuse |
-| | AutoRAG | 0.9053 | **0.9309** | 🟢 OmniFuse |
-| | Ko-StrategyQA | 0.6440 | **0.6509** | 🟢 OmniFuse |
+| | KLUE-MRC | 0.7718 | **0.8288** | 🟢 OmniFuse |
+| | PublicHealthQA | 0.6065 | **0.6217** | 🟢 OmniFuse |
+| | AutoRAG | 0.9053 | **0.9293** | 🟢 OmniFuse |
+| | Ko-StrategyQA | 0.6440 | **0.6496** | 🟢 OmniFuse |
 | | **Core average** | 0.809 | **0.846** | 🟢 **10 / 10** |
 | **Extended** (BEIR/MTEB, HF) | SciFact (EN) | 0.6317 | **0.6456** | 🟢 OmniFuse |
-| | XPQA-ko | 0.3115 | **0.3256** | 🟢 OmniFuse |
+| | XPQA-ko | 0.3115 | **0.3290** | 🟢 OmniFuse |
 | | NFCorpus (EN) | 0.5124 | **0.5182** | 🟢 OmniFuse |
-| | MIRACL-retrieval-ko² | **0.9495** | 0.9052 | ⚪ synaptic |
-| **Real-world** (live xgen corpus) | KRA/마사회 golden¹ | 0.2547 | **0.4775** | 🟢 **OmniFuse (~1.9×)** |
+| | MIRACL-retrieval-ko² | 0.9495 | **0.9617** | 🟢 OmniFuse |
+| **Real-world** (live xgen corpus) | KRA/마사회 golden¹ | 0.2547 | **0.4957** | 🟢 **OmniFuse (~1.9×)** |
 | | ↳ nDCG@10 / R@10 | 0.30 / 0.43 | **0.54 / 0.75** | 🟢 OmniFuse |
 
-**Core: 10 wins / 0 losses** (avg MRR 0.809 → **0.844**) — every synaptic-shipped dataset,
+**Core: 10 wins / 0 losses** (avg MRR 0.809 → **0.843**) — every synaptic-shipped dataset,
 **zero dependencies** (no morphological analyzer) vs synaptic's *mandatory* Kiwi.
-**Extended: 3–1** — the lone remaining loss is MIRACL-ko. **Real-world: +0.2228 MRR (~1.9×)** on a live production corpus (¹한국마사회 docs
+**Extended: 4–0.** **Real-world: +0.2410 MRR (~1.95×)** on a live production corpus (¹한국마사회 docs
 on xgen dev-xgen — 5,234 chunks, 215 LLM-generated natural questions; raw corpus
 private/not committed — [reproducer](eval/golden_devxgen_bench.py) ·
 [numbers](eval/results/golden_devxgen.json)).
 
-²**MIRACL-ko is the one loss, and it is an honest trade.** The IDF emphasis that wins the
-core suite widens it: at `idf_pow=1.0` MIRACL-ko is **0.9489 vs 0.9495** — a dead heat —
-but Ko-StrategyQA then flips to a loss. `idf_pow` is a documented knob; 1.5 is the best
-single global default. *Correction*: an earlier revision blamed the emphasis for the
-**NFCorpus** loss too. That was wrong — with emphasis off, NFCorpus still lost (0.5080 vs
-0.5124). The real cause was that OmniFuse normalized Korean morphology but indexed English
-as raw surface forms, so `statin` never matched `statins`. An S-stemmer flips it to a win.
-Band table + recorded negative results:
-[`eval/results/beir_mteb_extra.json`](eval/results/beir_mteb_extra.json).
+²**MIRACL-ko was the last loss, and it was our bug.** Dumping the per-query diff showed
+every "…어디인가?" (where is…?) question retrieving the article titled **"내 친구의 집은
+어디인가"** — a 4×-weighted title match on nothing but the question word. The cause: the
+copula's interrogative paradigm (`-인가/-인가요/-입니까/-인지`) was missing from the Korean
+ending list, so `어디인가` stemmed to the *rare* token `어디인` instead of the common word
+`어디`, and `idf_pow` amplified that rarity. Kiwi splits the copula into morphemes, which is
+why synaptic never saw it. Adding the paradigm — a closed linguistic class, like the 조사/어미
+already there — takes MIRACL-ko **0.9052 → 0.9617** and wins **every** dataset. It is not a
+fit: every subset from `{인가}` alone to a nine-ending superset wins 8/8 of the Korean-bearing
+sets. Rejected first, and recorded: coordination-level matching (MIRACL 0.9536 but four sets
+break) and `minimum_should_match` (0.9167, Ko-StrategyQA 0.5663).
+
 (FiQA 57k-doc and MultiLongDoc-ko 193 MB omitted: synaptic ingest/RAM-bound on a 16 GB box.)
 
 ### Speed — measured, and **not** a universal win
@@ -281,6 +284,25 @@ python eval/finreg_bench.py                        # finreg, self-contained
 python eval/public_bench.py --synaptic-repo PATH   # the 8 public datasets
 ```
 
+### Efficiency — measured by synaptic's own metric
+
+`metrics.BenchmarkResult` already records `mean_search_time_ms`. We use it for both
+systems, so the efficiency comparison is no more hand-rolled than the accuracy one, and
+MRR is printed beside it so a speed claim can never be read apart from what it retrieves
+(`python eval/perf_bench.py --data-dir … --synaptic-repo …`):
+
+| dataset | system | ingest_s | mean_search_ms | MRR |
+|---|---|---:|---:|---:|
+| NFCorpus (3,633 docs) | synaptic | 55.01 | 14.14 | 0.5124 |
+| | **OmniFuse** | **2.01** | **1.66** | **0.5182** |
+| Allganize RAG-ko (200) | synaptic | 5.39 | 4.41 | 0.9562 |
+| | **OmniFuse** | **0.18** | **0.18** | **0.9683** |
+
+Faster on both axes while retrieving more. Honest framing: *ingest* means "raw corpus →
+queryable index"; synaptic writes a persistent SQLite store, which is real work OmniFuse
+does not do. `save_index`/`load_index` gives OmniFuse a warm start (0.21 s) but its index
+is read back into RAM. Numbers: [`eval/results/perf.json`](eval/results/perf.json).
+
 ## Memory — `Feedback`
 
 The deepest difference between OmniFuse and synaptic-**memory** was never the ranking: it
@@ -305,9 +327,9 @@ case memory exists for. Same corpus, same queries, scored by *synaptic's own* `m
 | ΔMRR@10, held-out re-queries | KRA (ko) all | KRA covered | NFCorpus (en) all | NFCorpus covered |
 |---|---:|---:|---:|---:|
 | synaptic (Hebbian) | +0.0000 | +0.0093 | −0.0010 | −0.0008 |
-| **OmniFuse (`Feedback`)** | **+0.1958** | **+0.4167** | **+0.0342** | **+0.0460** |
-| ↳ shuffled placebo | +0.0063 | +0.0243 | −0.0036 | −0.0049 |
-| ↳ random-query placebo | +0.0275 | +0.0798 | −0.0036 | −0.0048 |
+| **OmniFuse (`Feedback`)** | **+0.1790** | **+0.3903** | **+0.0150** | **+0.0300** |
+| ↳ shuffled placebo | +0.0059 | +0.0213 | +0.0015 | +0.0031 |
+| ↳ random-query placebo | +0.0029 | +0.0215 | +0.0000 | +0.0000 |
 
 `real` is 5.2× the strongest placebo, so the `(query, chunk)` pairing is what carries the
 signal. On *unrelated* held-out questions memory correctly does nothing (+0.0006) and

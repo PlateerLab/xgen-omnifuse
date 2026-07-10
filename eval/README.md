@@ -27,6 +27,7 @@ python eval/finreg_bench.py                              # finreg (self-containe
 python eval/compare_synaptic.py --synaptic-graph PATH    # finreg head-to-head
 python eval/public_bench.py --synaptic-repo PATH         # 8 public datasets
 python eval/adaptive_bench.py --data-dir PATH            # does memory improve retrieval?
+python eval/perf_bench.py --data-dir PATH --synaptic-repo PATH  # efficiency, synaptic's metric
 ```
 
 ## Results — single-shot, no LLM, MRR@10, identical metric
@@ -136,10 +137,10 @@ both retrievers. Both systems then retrieve over the identical corpus/queries/qr
 | system | MRR@10 | nDCG@10 | R@10 | wall |
 |---|---:|---:|---:|---:|
 | synaptic (FTS) | 0.2547 | 0.2956 | 0.4279 | 98.0 s |
-| **OmniFuse** | **0.4775** | **0.5446** | **0.7535** | **6.6 s** |
+| **OmniFuse** | **0.4957** | **0.5446** | **0.7535** | **6.6 s** |
 
 Wall time is end-to-end from raw data on both sides (OmniFuse: 6.1 s index build + 0.5 s
-for all 215 queries = 2.3 ms/query). **OmniFuse wins by +0.2228 MRR (~1.9×)** on every metric —
+for all 215 queries = 2.3 ms/query). **OmniFuse wins by +0.2410 MRR (~1.95×)** on every metric —
 on genuinely out-of-distribution real documents. This is exactly the long-institutional-
 document regime the retrieval logic targets: a specific entity buried in pages of
 boilerplate. Ablation of the two logic improvements on this corpus (every config still
@@ -186,9 +187,9 @@ of them (token Jaccard 0.43). Same corpus, same queries, scored by synaptic's ow
 | ΔMRR@10, held-out re-queries | KRA (ko) all | KRA covered | NFCorpus (en) all | NFCorpus covered |
 |---|---:|---:|---:|---:|
 | synaptic (Hebbian) | +0.0000 | +0.0093 | −0.0010 | −0.0008 |
-| **OmniFuse (`Feedback`)** | **+0.1958** | **+0.4167** | **+0.0342** | **+0.0460** |
-| ↳ shuffled placebo | +0.0063 | +0.0243 | −0.0036 | −0.0049 |
-| ↳ random-query placebo | +0.0275 | +0.0798 | −0.0036 | −0.0048 |
+| **OmniFuse (`Feedback`)** | **+0.1790** | **+0.3903** | **+0.0150** | **+0.0300** |
+| ↳ shuffled placebo | +0.0059 | +0.0213 | +0.0015 | +0.0031 |
+| ↳ random-query placebo | +0.0029 | +0.0215 | +0.0000 | +0.0000 |
 
 `real` is 5.2× the strongest placebo, so the pairing carries the signal. **Disjoint-query
 axis** — a different question, not a rephrasing: memory correctly does nothing (+0.0006),
@@ -199,6 +200,25 @@ collection's IDF is provably untouched. A cold store ranks bit-identically.
 synaptic scores ~0 because in the benchmarked version `graph.search()` reads none of the
 fields `reinforce()` writes. Numbers, controls and the full retraction history:
 [`results/adaptive_memory.json`](results/adaptive_memory.json).
+
+### Efficiency — measured by synaptic's own metric
+
+`metrics.BenchmarkResult` already records `mean_search_time_ms`. We use it for both
+systems, so the efficiency comparison is no more hand-rolled than the accuracy one, and
+MRR is printed beside it so a speed claim can never be read apart from what it retrieves
+(`python eval/perf_bench.py --data-dir … --synaptic-repo …`):
+
+| dataset | system | ingest_s | mean_search_ms | MRR |
+|---|---|---:|---:|---:|
+| NFCorpus (3,633 docs) | synaptic | 55.01 | 14.14 | 0.5124 |
+| | **OmniFuse** | **2.01** | **1.66** | **0.5182** |
+| Allganize RAG-ko (200) | synaptic | 5.39 | 4.41 | 0.9562 |
+| | **OmniFuse** | **0.18** | **0.18** | **0.9683** |
+
+Faster on both axes while retrieving more. Honest framing: *ingest* means "raw corpus →
+queryable index"; synaptic writes a persistent SQLite store, which is real work OmniFuse
+does not do. `save_index`/`load_index` gives OmniFuse a warm start (0.21 s) but its index
+is read back into RAM. Numbers: [`results/perf.json`](results/perf.json).
 
 ### Reproducibility notes
 
