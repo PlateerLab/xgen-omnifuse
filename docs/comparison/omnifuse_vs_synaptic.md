@@ -352,56 +352,65 @@ mentioned the finreg loss; that was an omission, and it is corrected here. The g
 closed from both ends (inverted-index scoring, and `save_index`/`load_index` warm start),
 but the result remains **workload-dependent**.
 
-## The deepest difference: synaptic is stateful. So we measured whether that helps.
+## The deepest difference is statefulness — and neither side's memory works
 
-synaptic-*memory* learns — Hebbian reinforcement of graph nodes and edges on co-activation,
-feeding resonance-ranked search. OmniFuse was a stateless one-shot retriever. That is the
-real gap between the two projects, and neither had ever measured it: synaptic's own memory
-eval (`eval/scripts/memory_operating_poc.py`) is a **contract smoke-gate**, not a quality
-benchmark.
+synaptic-**memory** learns: Hebbian reinforcement of graph nodes and edges on
+co-activation, feeding resonance-ranked search. OmniFuse is a stateless one-shot
+retriever. That, not the ranking, is the real gap between the projects — and neither side
+had ever measured whether the learning improves retrieval. synaptic's own memory eval
+(`eval/scripts/memory_operating_poc.py`) is a contract smoke-gate.
 
-So we built one. Queries are split 50/50 into a FEEDBACK half and a HELD-OUT half. Each
-system searches the feedback half, is told which retrieved documents were relevant, and is
-then re-evaluated on the held-out half — which it never searched during feedback. (Zero
-exact-duplicate and zero near-duplicate queries across the split.)
+So we built the benchmark: split queries 50/50, replay relevance feedback on one half,
+re-measure MRR@10 on the other half, which is never searched during feedback.
 
-| ΔMRR@10 on held-out queries | NFCorpus s0 | NFCorpus s1 | MIRACL-ko s0 | MIRACL-ko s1 |
-|---|---:|---:|---:|---:|
-| synaptic (Hebbian reinforcement) | −0.0002 | **−0.0174** | **−0.0165** | — |
-| **OmniFuse (`Feedback`)** | **+0.0019** | **+0.0076** | **+0.0618** | **+0.0729** |
+| ΔMRR@10 on held-out queries | NFCorpus s0 | NFCorpus s1 | MIRACL-ko s0 |
+|---|---:|---:|---:|
+| synaptic (Hebbian reinforcement) | −0.0002 | **−0.0174** | **−0.0165** |
 
-**Hebbian reinforcement is neutral-to-harmful in every measurement.** The reason is
-structural: reinforcing nodes and edges builds a *query-independent* prior — "this document
-tends to be relevant". But relevance is a property of a *(query, document)* pair. A prior
+**Hebbian reinforcement is neutral to harmful in every measurement.** The reason is
+structural: reinforcing nodes and edges learns a *query-independent* prior — "this document
+tends to be relevant". Relevance is a property of a *(query, document)* pair. A prior
 learned on statins is noise for a query about vitamin D.
 
-We hit that wall from the probabilistic side before we understood it. Multiplying scores by
+### We then built a memory of our own, believed we had won, and were wrong
+
+Query-independent priors failed first, exactly as the theory predicts: multiplying scores by
 a Beta posterior odds `(hits+1)/(misses+1)` cost **−0.0384**; positive-only **−0.0175**;
 empirical-Bayes shrinkage to the corpus base rate — the most "correct" of the three —
-**−0.0489**. Calibration was never the problem. Query-independence was.
+**−0.0489**.
 
-What works is to make the memory **query-conditional and textual**: a confirmed query
-becomes part of what the document is *about*.
+So we made memory *query-conditional and textual*: a confirmed query became part of what the
+document is about, indexed as its own BM25F field. It looked like a decisive win — NFCorpus
++0.0019/+0.0076, MIRACL-ko **+0.0618/+0.0729**. We shipped it.
 
-```python
-fb = Feedback()
-fb.remember("statin side effects", ["doc7"])          # a user confirmed doc7 answered it
-of = build_inmemory(nodes, triples, chunks, feedback=fb)
-```
+Then we ran the controls, and they killed it:
 
-It is indexed as its own BM25F field, and that detail is load-bearing. Appending the query
-to the **body** helps where documents recur across queries (NFCorpus +0.0056) but *hurts*
-where they do not (MIRACL-ko −0.0134): the body grows and BM25's length normalization
-punishes it. A dedicated field has its own length normalization, so an unremembered
-document is untouched and a remembered one is lifted only when the live query genuinely
-overlaps a remembered one. Reusing the 4×-weighted title slot instead over-boosts
-(+0.0009 vs +0.0019).
+| MIRACL-ko, split 0 | Δ overall | Δ covered | **Δ uncovered** |
+|---|---:|---:|---:|
+| real memory | +0.0618 | +0.1430 | **+0.0441** |
+| shuffled (query ↔ doc pairing permuted) | +0.0555 | +0.1079 | +0.0441 |
+| **random query attached to each doc** | **+0.0665** | +0.1430 | +0.0498 |
 
-Nothing is tuned — the memory field carries the same weight as the body — and an empty
-memory field contributes nothing, so **a cold store is bit-identical to one built without
-feedback** (verified across the whole static suite). Memory can never regress a system that
-has not been used yet. Harness: [`eval/adaptive_bench.py`](../../eval/adaptive_bench.py) ·
-numbers: [`eval/results/adaptive_memory.json`](../../eval/results/adaptive_memory.json).
+Two facts end the argument. **Breaking the pairing does not break the gain** — a random
+feedback query scores *better* than the true one. And **held-out queries whose relevant
+documents remembered nothing still gained +0.0441**, which a query-conditional mechanism
+cannot cause.
+
+The real mechanism: injecting query text into documents raises the document frequency of
+query vocabulary and therefore *deflates its IDF corpus-wide*. MIRACL-ko is exactly the
+corpus that prefers weaker emphasis (0.9052 at `idf_pow=1.5` → 0.9489 at 1.0). Our
+"memory" was an accidental, uncontrolled `idf_pow` reduction. The control that pins it: a
+memory built from tokens that can never match any query moves the score by **+0.0000**
+exactly — the effect needs the text to match, so it flows through term statistics, not
+through the pairing.
+
+The feature is reverted. The benchmark stays, with placebos and a covered/uncovered split
+made mandatory, because its naive form produces a convincing false positive — it produced
+one for us. [`eval/adaptive_bench.py`](../../eval/adaptive_bench.py) ·
+[`eval/results/adaptive_memory.json`](../../eval/results/adaptive_memory.json)
+
+**Nothing we tried, and nothing synaptic ships, improves held-out retrieval in a
+query-conditional way.** This remains open.
 
 ## Where OmniFuse lags synaptic (honest)
 
@@ -420,7 +429,7 @@ lexical speed. It is genuinely behind here:
 | async API | yes | ✗ sync |
 | MCP server / agent loop / CLI | yes | ✗ |
 | consolidation / snapshot / activity | yes | ✗ (`Vault` has simple salience) |
-| **memory that improves retrieval** | Hebbian: **−0.0002 / −0.0174 / −0.0165** | `Feedback`: **+0.0019 / +0.0076 / +0.0618 / +0.0729** |
+| memory that *improves retrieval* | Hebbian — measured: **−0.0002 / −0.0174 / −0.0165** | nothing shipped: our design failed its own placebo |
 | scale ceiling | disk-backed | RAM-bound, but build peak cut 209 MB → **46.6 MB** |
 
 The persistence gap — the one that forced OmniFuse to pay index-build cost on every

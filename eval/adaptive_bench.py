@@ -1,33 +1,45 @@
-"""Adaptive-retrieval benchmark — does a system's *memory* improve retrieval?
+"""Does a retrieval system's *memory* improve retrieval? — with the controls that make
+the question answerable.
 
-synaptic-memory learns by Hebbian reinforcement of graph nodes/edges; OmniFuse remembers
-the queries a document was confirmed to answer and indexes them as a `memory` field. Both
-its own memory eval and ours were, until now, contract smoke-gates: nobody had measured
-whether the dynamics improve retrieval quality.
+This is the axis that defines synaptic-**memory**: it is stateful and learns (Hebbian
+reinforcement of graph nodes/edges, feeding resonance-ranked search), while OmniFuse is a
+stateless one-shot retriever. Neither project had measured whether that learning improves
+retrieval quality — synaptic's own memory eval is a contract smoke-gate, not a benchmark.
 
-Protocol (identical for both systems, no labels leak into evaluation):
+Protocol: queries split 50/50 into FEEDBACK (F) and HELD-OUT EVAL (E). Replay F with
+relevance feedback, then re-measure MRR@10 on E, which was never searched during feedback.
 
-    queries are split deterministically into FEEDBACK (F) and HELD-OUT EVAL (E)
-      1. MRR@10 on E                                            (cold)
-      2. replay F: search, then feed back which retrieved docs were relevant
-      3. MRR@10 on E again — E was never searched for feedback   (warm)
+**The controls are not optional.** A naive run of this benchmark will tell you that a
+memory works when it does not. Two placebos are therefore always reported:
 
-Report ``warm - cold``. A memory that works is positive; one that injects
-query-independent noise is not.
+  shuffled : the same documents remember the same *volume* of query text, but the
+             (query <-> document) pairing is permuted. A query-conditional memory must die.
+  random-q : each confirmed document remembers a random *other* feedback query.
 
-    python eval/adaptive_bench.py --dataset nfcorpus.json --data-dir PATH [--split 0]
-    python eval/adaptive_bench.py ... --synaptic-repo PATH   # also run synaptic's Hebbian
+and the held-out set is split into
+
+  covered   : queries whose relevant documents were remembered
+  uncovered : queries whose relevant documents were NOT remembered. A query-conditional
+              memory cannot move these. If they move, the mechanism is a corpus-wide
+              artifact (e.g. injecting query text inflates document frequency and deflates
+              the IDF of query vocabulary), not memory.
+
+We ran exactly this and it killed our own design. See eval/results/adaptive_memory.json.
+
+    python eval/adaptive_bench.py --data-dir <synaptic tests/benchmark/data> \
+        --dataset nfcorpus.json --split 0
 """
 from __future__ import annotations
 
 import argparse
 import json
+import random
 import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
-from omnifuse import Feedback, build_inmemory  # noqa: E402
+from omnifuse import build_inmemory  # noqa: E402
 
 K = 10
 
@@ -60,68 +72,8 @@ def _parse(data):
     return corpus, sorted(ql, key=lambda x: x[0])
 
 
-def run_omnifuse(corpus, F, E):
-    chunks = [{"id": d, "title": t, "text": x} for d, t, x in corpus]
-
-    def ids(of, q):
-        return [c.id for c, _ in of.retrieve(q, limit=K)]
-
-    def mrr(of, qs):
-        return sum(_rr(ids(of, t), r) for _, t, r in qs) / len(qs)
-
-    cold_store = build_inmemory([], [], chunks)
-    cold = mrr(cold_store, E)
-
-    fb = Feedback()
-    for _, text, rel in F:
-        fb.observe_ranked(ids(cold_store, text), relevant=rel, query=text)
-
-    warm = mrr(build_inmemory([], [], chunks, feedback=fb), E)
-    return cold, warm, len(fb)
-
-
-async def run_synaptic(repo, corpus, F, E):
-    sys.path.insert(0, str(repo))
-    import tempfile
-
-    from synaptic.backends.sqlite_graph import SqliteGraphBackend
-    from synaptic.graph import SynapticGraph
-
-    tmp = tempfile.NamedTemporaryFile(prefix="adaptive_", suffix=".db", delete=False)
-    tmp.close()
-    backend = SqliteGraphBackend(tmp.name)
-    await backend.connect()
-    graph = SynapticGraph(backend, embedder=None, reranker=None)
-    for doc_id, title, text in corpus:
-        if text or title:
-            await graph.add(title=title or doc_id, content=text, properties={"doc_id": doc_id})
-
-    async def search(text):
-        res = await graph.search(text, limit=K * 2)
-        out = []
-        for h in res.nodes:
-            d = (h.node.properties or {}).get("doc_id", "")
-            if d and all(d != x[1] for x in out):
-                out.append((h.node.id, d))
-        return out[:K]
-
-    async def mrr(qs):
-        tot = 0.0
-        for _, t, r in qs:
-            tot += _rr([d for _, d in await search(t)], r)
-        return tot / len(qs)
-
-    cold = await mrr(E)
-    for _, text, rel in F:
-        hits = await search(text)
-        good = [nid for nid, d in hits if d in rel]
-        bad = [nid for nid, d in hits if d not in rel]
-        if good:
-            await graph.reinforce(good, success=True)
-        if bad:
-            await graph.reinforce(bad, success=False)
-    warm = await mrr(E)
-    return cold, warm
+def _ids(of, q):
+    return [c.id for c, _ in of.retrieve(q, limit=K)]
 
 
 def main():
@@ -129,23 +81,52 @@ def main():
     ap.add_argument("--dataset", default="nfcorpus.json")
     ap.add_argument("--data-dir", required=True, help="synaptic tests/benchmark/data")
     ap.add_argument("--split", type=int, default=0, choices=(0, 1))
-    ap.add_argument("--synaptic-repo", type=Path, default=None)
+    ap.add_argument("--seed", type=int, default=20260710)
     a = ap.parse_args()
+    rng = random.Random(a.seed)
 
     corpus, ql = _parse(json.load(open(Path(a.data_dir) / a.dataset, encoding="utf-8")))
     F = [q for i, q in enumerate(ql) if i % 2 == a.split]
     E = [q for i, q in enumerate(ql) if i % 2 != a.split]
-    print(f"{a.dataset}  corpus={len(corpus)}  feedback={len(F)}  held-out={len(E)}")
+    chunks = [{"id": d, "title": t, "text": x} for d, t, x in corpus]
 
-    cold, warm, remembered = run_omnifuse(corpus, F, E)
-    print(f"OmniFuse memory : cold={cold:.4f}  warm={warm:.4f}  delta={warm-cold:+.4f}  "
-          f"(docs remembered={remembered})")
+    cold_store = build_inmemory([], [], chunks)
+    base = [_rr(_ids(cold_store, t), r) for _, t, r in E]
+    cold = sum(base) / len(base)
 
-    if a.synaptic_repo:
-        import asyncio
+    pairs = [(t, d) for _, t, rel in F for d in _ids(cold_store, t) if d in rel]
+    docs = [d for _, d in pairs]
+    remembered = set(docs)
+    cov = [i for i, (_, _, r) in enumerate(E) if r & remembered]
+    unc = [i for i in range(len(E)) if i not in set(cov)]
 
-        c, w = asyncio.run(run_synaptic(a.synaptic_repo, corpus, F, E))
-        print(f"synaptic Hebbian: cold={c:.4f}  warm={w:.4f}  delta={w-c:+.4f}")
+    print(f"{a.dataset} split-{a.split}: corpus={len(corpus)} F={len(F)} E={len(E)} "
+          f"cold={cold:.4f} remembered={len(remembered)} covered={len(cov)}/{len(E)}")
+
+    shuffled = [q for q, _ in pairs]
+    rng.shuffle(shuffled)
+    ftexts = [t for _, t, _ in F]
+    memories = {
+        "real": pairs,
+        "shuffled (placebo)": list(zip(shuffled, docs)),
+        "random-q (placebo)": [(rng.choice(ftexts), d) for d in docs],
+    }
+
+    print(f"{'memory':22}{'warm':>9}{'delta':>10}{'Δcovered':>11}{'Δuncovered':>13}")
+    for label, prs in memories.items():
+        mem: dict[str, list[str]] = {}
+        for q, d in prs:
+            mem.setdefault(d, []).append(q)
+        aug = [{**c, "text": c["text"] + " " + " ".join(mem.get(c["id"], ()))} for c in chunks]
+        of = build_inmemory([], [], aug)
+        w = [_rr(_ids(of, t), r) for _, t, r in E]
+        warm = sum(w) / len(w)
+        dc = (sum(w[i] - base[i] for i in cov) / len(cov)) if cov else 0.0
+        du = (sum(w[i] - base[i] for i in unc) / len(unc)) if unc else 0.0
+        print(f"{label:22}{warm:>9.4f}{warm-cold:>+10.4f}{dc:>+11.4f}{du:>+13.4f}")
+
+    print("\nRead it this way: if the placebos match `real`, there is no query-conditional\n"
+          "memory. If Δuncovered is non-zero, the effect is a corpus-wide scoring artifact.")
 
 
 if __name__ == "__main__":

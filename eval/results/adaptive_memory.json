@@ -1,46 +1,42 @@
 {
   "benchmark": "Adaptive retrieval — does a system's memory improve held-out retrieval?",
   "date": "2026-07-10",
-  "omnifuse_version": "0.5.0",
-  "why": "This is the axis that defines synaptic-*memory*: it is stateful and learns (Hebbian edge reinforcement feeding resonance-ranked search), while OmniFuse was a stateless one-shot retriever. Neither project had measured whether the dynamics improve retrieval QUALITY — synaptic's own memory eval is a contract smoke-gate (eval/scripts/memory_operating_poc.py), not a quality benchmark.",
+  "status": "NEGATIVE RESULT. Neither synaptic's Hebbian reinforcement nor any memory design we tried produces a query-conditional improvement. An earlier revision of this repo claimed OmniFuse won this axis; that claim was WRONG and has been reverted.",
+  "why_this_axis": "It is the deepest difference between the projects: synaptic-*memory* is stateful and learns (Hebbian reinforcement of nodes/edges feeding resonance-ranked search); OmniFuse is a stateless one-shot retriever. Neither side had measured whether the dynamics improve retrieval QUALITY — synaptic's own memory eval (eval/scripts/memory_operating_poc.py) is a contract smoke-gate.",
   "protocol": {
-    "split": "queries split deterministically 50/50 into FEEDBACK (F) and HELD-OUT EVAL (E); E is never searched during the feedback phase",
-    "feedback_signal": "identical for both systems — replay F, and for each retrieved top-10 document report whether it was relevant",
-    "metric": "MRR@10 on E, before (cold) and after (warm). Report warm - cold.",
-    "leakage_check": "zero exact-duplicate and (NFCorpus) zero near-duplicate (Jaccard>=0.8) queries between F and E",
-    "reproduce": "python eval/adaptive_bench.py --dataset nfcorpus.json --data-dir <synaptic tests/benchmark/data> --split 0 --synaptic-repo <path>"
+    "split": "queries split deterministically 50/50 into FEEDBACK (F) and HELD-OUT EVAL (E); E is never searched during feedback",
+    "feedback_signal": "identical for both systems — replay F, report which of the retrieved top-10 were relevant",
+    "metric": "MRR@10 on E, before (cold) and after (warm)",
+    "leakage_check": "zero exact-duplicate and zero near-duplicate (Jaccard>=0.8) queries between F and E",
+    "mandatory_controls": "shuffled / random-q placebos (same documents, same volume of remembered text, broken pairing) and a covered/uncovered split of E. Without these the benchmark reports a win that is not there."
   },
-  "results": {
-    "synaptic_hebbian": [
-      {"dataset": "NFCorpus", "split": 0, "cold": 0.5107, "warm": 0.5104, "delta": -0.0002},
-      {"dataset": "NFCorpus", "split": 1, "cold": 0.5141, "warm": 0.4967, "delta": -0.0174},
-      {"dataset": "MIRACL-ko", "split": 0, "cold": 0.9678, "warm": 0.9513, "delta": -0.0165}
-    ],
-    "omnifuse_memory": [
-      {"dataset": "NFCorpus", "split": 0, "cold": 0.5190, "warm": 0.5209, "delta": 0.0019, "docs_remembered": 356},
-      {"dataset": "NFCorpus", "split": 1, "cold": 0.5174, "warm": 0.5250, "delta": 0.0076, "docs_remembered": 317},
-      {"dataset": "MIRACL-ko", "split": 0, "cold": 0.9178, "warm": 0.9796, "delta": 0.0618, "docs_remembered": 815},
-      {"dataset": "MIRACL-ko", "split": 1, "cold": 0.8928, "warm": 0.9657, "delta": 0.0729, "docs_remembered": 815}
-    ]
+  "synaptic_hebbian": [
+    {"dataset": "NFCorpus", "split": 0, "cold": 0.5107, "warm": 0.5104, "delta": -0.0002},
+    {"dataset": "NFCorpus", "split": 1, "cold": 0.5141, "warm": 0.4967, "delta": -0.0174},
+    {"dataset": "MIRACL-ko", "split": 0, "cold": 0.9678, "warm": 0.9513, "delta": -0.0165}
+  ],
+  "synaptic_verdict": "Neutral to harmful in every measurement. Reinforcing nodes and edges learns a QUERY-INDEPENDENT prior — 'this document tends to be relevant' — but relevance is a property of a (query, document) pair.",
+  "omnifuse_designs_all_failed": {
+    "query_independent_priors": {
+      "beta_posterior_odds": {"delta": -0.0384, "detail": "score *= (hits+1)/(misses+1). Judged documents sink relative to never-shown ones: most retrieved documents are irrelevant."},
+      "positive_only": {"delta": -0.0175},
+      "empirical_bayes_lift": {"delta": -0.0489, "detail": "shrink the posterior to the corpus base rate so an average document is exactly neutral. The most 'correct' design, and the worst — calibration was never the problem."}
+    },
+    "query_conditional_text_memory": {
+      "idea": "a confirmed query becomes part of what the document is *about*: stored as text, indexed as its own BM25F field",
+      "apparent_result": {"NFCorpus": [0.0019, 0.0076], "MIRACL-ko": [0.0618, 0.0729]},
+      "verdict": "VOID — the apparent gain survives every placebo",
+      "placebo_MIRACL_split0": {"real": 0.0618, "shuffled": 0.0555, "random_query": 0.0665, "random_doc": 0.0555},
+      "placebo_NFCorpus_split1": {"real": 0.0076, "shuffled": 0.0047, "random_query": 0.0077, "random_doc": 0.0041},
+      "decisive_evidence": "On MIRACL-ko, held-out queries whose relevant documents remembered NOTHING still gained +0.0441. A query-conditional memory cannot move those. Attaching a RANDOM feedback query to each confirmed document scored as well as attaching the real one (+0.0665 vs +0.0618).",
+      "the_actual_mechanism": "Injecting query text into documents raises the document frequency of query vocabulary, which deflates its IDF corpus-wide. MIRACL-ko is exactly the corpus that prefers weaker IDF emphasis (0.9052 at idf_pow=1.5 -> 0.9489 at 1.0), so the 'memory' was an accidental, uncontrolled `idf_pow` reduction.",
+      "control_that_isolates_it": "Memory made of tokens that can never match any query (shared or per-document unique) yields delta = +0.0000 exactly. The effect requires the memory text to match queries — i.e. it flows through term statistics, not through the (query, document) pairing."
+    }
   },
-  "conclusion": "synaptic's Hebbian reinforcement is neutral-to-harmful on held-out queries in every measurement (-0.0002, -0.0174, -0.0165). OmniFuse's query-conditional memory is positive in every measurement (+0.0019, +0.0076, +0.0618, +0.0729). Cold behaviour is bit-identical to having no feedback at all, so memory can never regress an unused system (verified against the full static suite).",
-  "why_hebbian_fails": "Reinforcing nodes/edges builds a QUERY-INDEPENDENT prior — 'this document tends to be relevant'. But relevance is a property of a (query, document) pair, not of a document. A prior learned from one topic is noise for another.",
-  "our_own_failed_designs": {
-    "note": "We reached the same wall first, from the probabilistic side, and had to abandon it. Recorded because the failure is what pointed at the fix.",
-    "beta_posterior_odds": {"delta": -0.0384, "detail": "score *= (hits+1)/(misses+1). Every judged document sinks relative to never-shown ones — most retrieved documents are irrelevant, so the judged pool is systematically demoted."},
-    "positive_only_odds": {"delta": -0.0175, "detail": "score *= (hits+1). Unbounded boost of globally popular documents."},
-    "empirical_bayes_lift": {"delta": -0.0489, "detail": "shrink the posterior to the corpus base rate so an average document is exactly neutral. Worst of the three — the bias was never the calibration, it was the query-independence."}
-  },
-  "the_mechanism_that_works": {
-    "idea": "A confirmed query becomes part of what the document is *about*. Memory is stored as text and indexed as its own BM25F field.",
-    "why_a_separate_field": "Appending the query to the body works on a corpus where documents recur across queries (NFCorpus +0.0056) but HURTS one where they do not (MIRACL-ko -0.0134): the body grows and BM25's length normalization penalizes it. A dedicated field has its own length normalization, so an unremembered document is untouched and a remembered one is only lifted when the current query actually overlaps a remembered one.",
-    "why_not_the_title_field": "Reusing the 4x-weighted title slot over-boosts and dilutes the title norm: +0.0009 vs +0.0019 for a dedicated weight-1.0 field.",
-    "no_tuning": "The memory field carries the same weight as the body (1.0). An empty memory field contributes nothing, so the cold store is bit-identical — verified on the full static suite (finreg, 8 public, NFCorpus, MIRACL-ko)."
-  },
+  "conclusion": "No memory mechanism measured here — synaptic's or ours — improves held-out retrieval in a query-conditional way. The OmniFuse `Feedback` feature was reverted. The benchmark is kept, with placebo and covered/uncovered controls mandatory, because the naive version of it produces a convincing false positive.",
   "honest_limitations": [
-    "Feedback is batch: folding memory into the index requires a rebuild (save_index/load_index make that cheap). There is no incremental update yet.",
-    "The gain scales with how often documents recur across queries. NFCorpus (82% of relevant docs serve >1 query) gains less in absolute MRR than MIRACL-ko only because its cold MRR is far lower and its queries are harder; the mechanism is not a general accuracy boost.",
-    "synaptic was run through its own graph.search + graph.reinforce path (FTS, no embedder). A different synaptic configuration (embedder, EvidenceSearch, consolidation) was not measured.",
-    "Absolute cold MRR here is computed on half the queries, so it does not match the static suite's full-set numbers."
+    "synaptic was driven through graph.search + graph.reinforce (FTS, no embedder). Its EvidenceSearch path, embedder, reranker and consolidation cascade were not measured; a different configuration might behave differently.",
+    "Two corpora and two splits. A larger sweep might find a regime where query-conditional memory transfers — NFCorpus (82% of relevant documents serve more than one query) was chosen precisely because transfer should be easiest there, and it did not appear.",
+    "Absolute cold MRR here is computed on half the queries and does not match the static suite's full-set numbers."
   ]
 }

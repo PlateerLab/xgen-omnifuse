@@ -2,31 +2,32 @@
 
 ## Unreleased
 
-- **`Feedback` — memory that actually improves retrieval, on the axis that defines
-  synaptic-*memory*.** A confirmed query becomes part of what a document is *about*: it is
-  remembered as text and indexed as its own BM25F `memory` field. Measured on a held-out
-  query split (feedback replayed on one half, evaluated on the other, no leakage):
+- **Retracted: `Feedback` (query-conditional memory). The claimed win was not real.**
+  A previous entry claimed OmniFuse beat synaptic on the axis that defines it — memory —
+  by remembering the queries a document was confirmed to answer and indexing them as a
+  BM25F field (NFCorpus +0.0019/+0.0076, MIRACL-ko +0.0618/+0.0729 vs synaptic's
+  −0.0002/−0.0174/−0.0165). Placebo controls destroy that claim:
+  - permuting the (query ↔ document) pairing keeps the gain (+0.0555 on MIRACL-ko);
+  - attaching a **random** feedback query to each confirmed document scores *better* than
+    the real one (+0.0665 vs +0.0618);
+  - held-out queries whose relevant documents remembered **nothing** still gained +0.0441,
+    which a query-conditional mechanism cannot do.
 
-  | | NFCorpus s0 | NFCorpus s1 | MIRACL-ko s0 | MIRACL-ko s1 |
-  |---|---|---|---|---|
-  | synaptic Hebbian | −0.0002 | **−0.0174** | **−0.0165** | — |
-  | **OmniFuse memory** | **+0.0019** | **+0.0076** | **+0.0618** | **+0.0729** |
+  The real mechanism: injecting query text into documents raises the document frequency of
+  query vocabulary and deflates its IDF corpus-wide. MIRACL-ko is precisely the corpus that
+  prefers weaker emphasis (0.9052 at `idf_pow=1.5` → 0.9489 at 1.0), so "memory" was an
+  accidental, uncontrolled `idf_pow` reduction. A control memory made of tokens that can
+  never match a query moves nothing (**+0.0000** exactly), which pins the effect on term
+  statistics rather than on the pairing.
 
-  An unremembered document has an empty memory field, which contributes nothing — the cold
-  store is **bit-identical** to one built with no feedback (verified against the whole
-  static suite), so memory can never regress an unused system. Nothing is tuned: the field
-  carries the same weight as the body.
-
-  *Why Hebbian fails*: reinforcing nodes/edges builds a **query-independent** prior — "this
-  document tends to be relevant". Relevance is a property of a *(query, document)* pair, so
-  a prior learned on one topic is noise on another. We hit the same wall from the
-  probabilistic side first, and record those failures: Beta posterior odds **−0.0384**,
-  positive-only **−0.0175**, empirical-Bayes shrinkage to the base rate **−0.0489**.
-  Appending the query to the *body* also fails on a corpus where documents do not recur
-  (MIRACL-ko −0.0134) because it inflates document length; a dedicated field with its own
-  length normalization is what makes it safe. Harness + numbers:
+  The feature is reverted. The benchmark is kept — with placebo and covered/uncovered
+  controls now mandatory, because its naive form yields a convincing false positive:
   [`eval/adaptive_bench.py`](eval/adaptive_bench.py) ·
   [`eval/results/adaptive_memory.json`](eval/results/adaptive_memory.json).
+
+  Our own query-independent designs failed first and are recorded too (Beta posterior odds
+  −0.0384, positive-only −0.0175, empirical-Bayes shrinkage −0.0489). **Nothing we tried,
+  and nothing synaptic ships, improves held-out retrieval in a query-conditional way.**
 
 - **Index build peaks at ~1/4 the memory, at no cost in build time.** Indexing needs
   corpus-wide document frequency before it can compute a contribution, so per-document
