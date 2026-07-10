@@ -101,7 +101,11 @@ term's IDF to a power > 1 so the rare (high-IDF) entity dominates the sum. It is
   (+0.0119), Ko-StrategyQA (+0.0062), SciFact, PublicHealthQA and XPQA, and it **costs**
   MIRACL-ko (0.9812→0.9617), finreg single-hop (0.8533→0.8400, and one multi-hop query:
   108→107), NFCorpus (0.5236→0.5182), Allganize-ko (−0.0017), KLUE (−0.0003). Across the 13
-  MRR datasets the net is **+0.0067 — a wash.**
+  MRR datasets the net is **+0.0065 — a wash.** Every synaptic number here is re-measured in the
+same pass, through synaptic's own `run_public_dataset`; the first version of this table quoted
+synaptic from older result files, which is not a head-to-head but a memory of one. (All twelve
+re-runs reproduced the recorded values exactly — the column was right, it just had not been
+earned.) Runner: [`eval/idf_pow_bench.py`](../../eval/idf_pow_bench.py).
 
 And the part that is uncomfortable to write: **at `idf_pow=1.0` OmniFuse still beats synaptic
 on 14 of the 15 datasets.** The single loss is Ko-StrategyQA, by **0.0006 MRR** — on a set of

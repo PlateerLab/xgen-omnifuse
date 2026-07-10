@@ -210,11 +210,13 @@ private/not committed — [reproducer](eval/golden_devxgen_bench.py) ·
 [numbers](eval/results/golden_devxgen.json)).
 
 > **One honest caveat on `idf_pow=1.5`.** Re-ablated under the shipping tokenizer it nets
-> **+0.0067 MRR across 13 datasets — a wash**: it buys AutoRAG/HotPotQA-200/Ko-StrategyQA and
+> **+0.0065 MRR across 13 datasets — a wash**: it buys AutoRAG/HotPotQA-200/Ko-StrategyQA and
 > costs MIRACL-ko (0.9812→0.9617), finreg (0.8533→0.8400) and NFCorpus (0.5236→0.5182). At
 > `idf_pow=1.0` OmniFuse still wins **14 of 15**; the one loss is Ko-StrategyQA by **0.0006**,
 > less than a single query on that 592-query set. We keep 1.5 because the win holds across the
 > whole band `p ∈ [1.3, 2.0]`, but the 15/15 rests on that margin and you should know it.
+> synaptic is **re-ingested and re-queried per dataset in the same pass** through its own
+> `run_public_dataset` — no recalled numbers. [`eval/idf_pow_bench.py`](eval/idf_pow_bench.py) ·
 > [`eval/results/idf_pow_ablation.json`](eval/results/idf_pow_ablation.json)
 
 ²**MIRACL-ko was the last loss, and it was our bug.** Dumping the per-query diff showed

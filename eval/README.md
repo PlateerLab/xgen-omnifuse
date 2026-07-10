@@ -28,6 +28,7 @@ python eval/compare_synaptic.py --synaptic-graph PATH    # finreg head-to-head
 python eval/public_bench.py --synaptic-repo PATH         # 8 public datasets
 python eval/adaptive_bench.py --data-dir PATH            # does memory improve retrieval?
 python eval/perf_bench.py --data-dir PATH --synaptic-repo PATH  # efficiency, synaptic's metricpython eval/incremental_bench.py --data-dir PATH        # is remember() exact, what does it cost?
+python eval/idf_pow_bench.py --synaptic-repo PATH       # idf_pow ablation, synaptic re-run per set
 ```
 
 ## Results — single-shot, no LLM, MRR@10, identical metric

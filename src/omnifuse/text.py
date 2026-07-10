@@ -32,7 +32,7 @@ _CJK_OTHER = re.compile(r"[぀-ヿ一-鿿]+")  # kana + hanja: bi-grams, no morp
 # a knife-edge fit (zero runtime cost — the power is folded into the IDF at index build).
 #
 # It is a real trade, and a smaller one than it looks. Re-ablated under the shipping
-# tokenizer, p=1.5 vs p=1.0 nets +0.0067 MRR across 13 datasets — a wash. It buys AutoRAG
+# tokenizer, p=1.5 vs p=1.0 nets +0.0065 MRR across 13 datasets — a wash. It buys AutoRAG
 # (+0.0143), HotPotQA-200 (+0.0119) and Ko-StrategyQA (+0.0062); it costs MIRACL-ko
 # (0.9812 -> 0.9617), finreg (0.8533 -> 0.8400) and NFCorpus (0.5236 -> 0.5182), because
 # betting on one rare term is wrong when many documents are relevant. Pass ``idf_pow=1.0``

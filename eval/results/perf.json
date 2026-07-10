@@ -48,5 +48,32 @@
     "synaptic is driven through SqliteGraphBackend + graph.search (FTS, no embedder) — the same path used for its accuracy column.",
     "Ingest here means 'raw corpus -> queryable index'. OmniFuse rebuilds in RAM; synaptic writes a persistent SQLite store, which is real work it does and OmniFuse does not. save_index/load_index gives OmniFuse a warm start (0.21 s) but the index is read back into RAM.",
     "Single-threaded, CPU-only, 16 GB box."
-  ]
+  ],
+  "reproduction_2026_07_10_full_sweep": {
+    "note": "re-run in the full-suite sweep, same machine, different load. Wall-clock varies run to run; the ratios and MRR do not.",
+    "nfcorpus": {
+      "omnifuse": {
+        "ingest_s": 1.28,
+        "mean_search_ms": 1.0,
+        "mrr": 0.5182
+      },
+      "synaptic": {
+        "ingest_s": 44.33,
+        "mean_search_ms": 13.69,
+        "mrr": 0.5124
+      }
+    },
+    "allganize_rag_ko": {
+      "omnifuse": {
+        "ingest_s": 0.2,
+        "mean_search_ms": 0.17,
+        "mrr": 0.9683
+      },
+      "synaptic": {
+        "ingest_s": 5.01,
+        "mean_search_ms": 4.49,
+        "mrr": 0.9562
+      }
+    }
+  }
 }
