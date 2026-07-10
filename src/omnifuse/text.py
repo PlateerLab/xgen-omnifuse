@@ -306,6 +306,12 @@ class BM25F:
         avgl = [self.avglen[f] or 1 for f in self.fields]
         self._pd: dict[str, array] = {}
         self._pw: dict[str, array] = {}
+        # State for `update_evidence`. A term seen in any content field has a fixed df, so
+        # its IDF can never move. A term seen ONLY in evidence takes its IDF from the
+        # evidence df, which grows as documents remember more — and every one of ITS
+        # postings is evidence-derived. Keeping their tfw lets an update recompute exactly.
+        ev_tfw: dict[str, array] = {}
+        has_ev = bool(self.evidence_fields)
         for i in range(self.N):
             flen = doc_len[i]
             fnorm = [1.0 if self._is_ev[fi] else 1 - self.b + self.b * (flen[fi] or 1) / avgl[fi]
@@ -326,7 +332,97 @@ class BM25F:
                     self._pw[t] = array("d")
                 self._pd[t].append(i)
                 self._pw[t].append(w)
+                if has_ev and not df[tid]:
+                    ev_tfw.setdefault(t, array("d")).append(tfw)
             doc_ids[i] = doc_cnt[i] = None  # release as consumed
+        if self.evidence_fields:
+            self._idf_pow = idf_pow
+            self._totals = totals
+            self._dfe = {terms[tid]: dfe[tid] for tid in range(len(terms)) if not df[tid]}
+            self._ev_tfw = ev_tfw
+
+    def _idf_of(self, n: int) -> float:
+        return math.log(1 + (self.N - n + 0.5) / (n + 0.5)) ** self._idf_pow
+
+    def update_evidence(self, i: int, before: dict, after: dict) -> None:
+        """Fold changed evidence for document ``i`` into the live index.
+
+        ``before``/``after`` are ``{field: tokens}`` for that document; the content fields
+        must be the tokens it was built from, and evidence may only grow. The result is the
+        index a full rebuild would have produced — see ``tests/test_incremental.py``.
+
+        ``N``, the content df and every content term's IDF are fixed by construction, because
+        evidence is excluded from document frequency. The one thing that does move globally is
+        the IDF of a term seen *only* in evidence, which comes from the evidence df that this
+        update grows — but all of that term's postings are evidence-derived, so the work is
+        bounded by the memory rather than by the corpus.
+        """
+        if not self.evidence_fields:
+            raise RuntimeError("BM25F was built without evidence_fields; nothing to update")
+        k1, k1p1 = self.k1, self.k1 + 1
+        ev = [fi for fi, f in enumerate(self.fields) if self._is_ev[fi]]
+
+        # 1. evidence df grows for terms this document did not already hold as evidence
+        held = {t for fi in ev for t in before.get(self.fields[fi], ())}
+        dirty = set()
+        for fi in ev:
+            for t in after.get(self.fields[fi], ()):
+                if t in held:
+                    continue
+                held.add(t)
+                if t in self.idf and t not in self._dfe:
+                    continue  # a content term: its df, and so its IDF, is fixed
+                self._dfe[t] = self._dfe.get(t, 0) + 1
+                dirty.add(t)
+
+        # 2. re-derive the IDF of evidence-only terms, and their postings from the kept tfw
+        for t in dirty:
+            self.idf[t] = idf = self._idf_of(self._dfe[t])
+            pw, tfws = self._pw.get(t), self._ev_tfw.get(t)
+            if pw is None:
+                continue
+            for k, tfw in enumerate(tfws):
+                pw[k] = idf * tfw * k1p1 / (k1 + tfw)
+
+        # 3. re-derive this document's own contributions (its evidence tf changed)
+        tfw_i: dict[str, float] = {}
+        for fi, f in enumerate(self.fields):
+            toks = after.get(f, ())
+            c: dict[str, int] = {}
+            for t in toks:
+                c[t] = c.get(t, 0) + 1
+            nrm = 1.0 if self._is_ev[fi] else (
+                1 - self.b + self.b * (len(toks) or 1) / (self.avglen[f] or 1))
+            wf = self._fw[fi]
+            for t, tf in c.items():
+                tfw_i[t] = tfw_i.get(t, 0.0) + wf * tf / nrm
+        for t, tfw in tfw_i.items():
+            if not tfw:
+                continue
+            w = self.idf[t] * tfw * k1p1 / (k1 + tfw)
+            pd = self._pd.get(t)
+            if pd is None:
+                self._pd[t] = array("i", [i])
+                self._pw[t] = array("d", [w])
+                if t in self._dfe:
+                    self._ev_tfw[t] = array("d", [tfw])
+                continue
+            k = bisect_left(pd, i)
+            if k < len(pd) and pd[k] == i:
+                self._pw[t][k] = w
+                if t in self._dfe:
+                    self._ev_tfw[t][k] = tfw
+            else:
+                pd.insert(k, i)
+                self._pw[t].insert(k, w)
+                if t in self._dfe:
+                    self._ev_tfw[t].insert(k, tfw)
+
+        # 4. evidence is not length-normalized, so avglen is unused for it — keep it honest anyway
+        for fi in ev:
+            f = self.fields[fi]
+            self._totals[fi] += len(after.get(f, ())) - len(before.get(f, ()))
+            self.avglen[f] = self._totals[fi] / self.N if self.N else 0.0
 
     def _score(self, q_terms, i: int) -> float:
         s = 0.0

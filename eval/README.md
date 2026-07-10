@@ -27,7 +27,7 @@ python eval/finreg_bench.py                              # finreg (self-containe
 python eval/compare_synaptic.py --synaptic-graph PATH    # finreg head-to-head
 python eval/public_bench.py --synaptic-repo PATH         # 8 public datasets
 python eval/adaptive_bench.py --data-dir PATH            # does memory improve retrieval?
-python eval/perf_bench.py --data-dir PATH --synaptic-repo PATH  # efficiency, synaptic's metric
+python eval/perf_bench.py --data-dir PATH --synaptic-repo PATH  # efficiency, synaptic's metricpython eval/incremental_bench.py --data-dir PATH        # is remember() exact, what does it cost?
 ```
 
 ## Results — single-shot, no LLM, MRR@10, identical metric
@@ -40,16 +40,17 @@ python eval/perf_bench.py --data-dir PATH --synaptic-repo PATH  # efficiency, sy
 | HotPotQA-200 | EN | multi-hop | 0.8775 | **0.9044** | +0.027 |
 | Allganize RAG-ko | KO | enterprise RAG | 0.9562 | **0.9683** | +0.012 |
 | Allganize RAG-Eval | KO | domain RAG | 0.9303 | **0.9370** | +0.007 |
-| KLUE-MRC | KO | machine reading | 0.7718 | **0.8280** | +0.056 |
-| PublicHealthQA | KO | paraphrase QA | 0.6065 | **0.6284** | +0.022 |
-| AutoRAG | KO | passage retrieval | 0.9053 | **0.9309** | +0.026 |
-| Ko-StrategyQA | KO | strategy QA | 0.6440 | **0.6509** | +0.007 |
+| KLUE-MRC | KO | machine reading | 0.7718 | **0.8288** | +0.057 |
+| PublicHealthQA | KO | paraphrase QA | 0.6065 | **0.6217** | +0.015 |
+| AutoRAG | KO | passage retrieval | 0.9053 | **0.9293** | +0.024 |
+| Ko-StrategyQA | KO | strategy QA | 0.6440 | **0.6496** | +0.006 |
 
-**OmniFuse wins 10, loses 0** (avg MRR 0.844 vs 0.809) — every synaptic-shipped dataset,
+**OmniFuse wins 10, loses 0** (avg MRR 0.843 vs 0.809) — every synaptic-shipped dataset,
 with zero dependencies (no morphological analyzer), versus synaptic's mandatory Kiwi.
-Two honest, general, zero-hardcode logic improvements get here: (1) a dependency-free
-Korean stemmer (strip 조사/어미 + trailing derivational suffixes) and (2) IDF
-term-specificity emphasis (`idf_pow=1.5`) — both no strong embedder, no per-dataset fit.
+Across the extended track too, the score is **15/15**. Three honest, general, zero-hardcode
+logic improvements get here: (1) a dependency-free Korean stemmer (strip 조사/어미/지정사
+의문형 + trailing derivational suffixes), (2) IDF term-specificity emphasis (`idf_pow=1.5`),
+and (3) directed out-edge graph fusion — no strong embedder, no per-dataset fit.
 
 > **Full-pipeline (dense) track**: with a shared dense embedder
 > (`multilingual-e5-small`, same for both), OmniFuse's dense+lexical hybrid beats
@@ -219,6 +220,42 @@ Faster on both axes while retrieving more. Honest framing: *ingest* means "raw c
 queryable index"; synaptic writes a persistent SQLite store, which is real work OmniFuse
 does not do. `save_index`/`load_index` gives OmniFuse a warm start (0.21 s) but its index
 is read back into RAM. Numbers: [`results/perf.json`](results/perf.json).
+
+### Incremental memory
+
+Memory used to be batch: folding a confirmed pair in meant rebuilding the index, which is
+not something a live service can do per click. `remember()` now updates the index in place.
+
+```python
+of = build_inmemory(nodes, triples, chunks, feedback=Feedback())   # an empty Feedback opts in
+of.remember("statin side effects", ["doc7"])                       # ~1 ms, no rebuild
+```
+
+This is what the evidence-field design buys. Evidence never enters document frequency, so
+`N`, the content df and every content term's IDF are **fixed** — remembering rewrites the
+contributions of exactly one document. The single coupling is that a term seen *only* in
+evidence takes its IDF from the evidence df; but every posting of such a term is
+evidence-derived, so the documents to fix are the ones that remember it. The blast radius
+is the memory, not the corpus — measured, **15 such terms out of a 23,610-term vocabulary**.
+
+| | rebuild | `remember()` | per memory |
+|---|---:|---:|---:|
+| NFCorpus (3,633 docs, 100 memories) | 1.389 s | **1.00 ms** | **1,386x** |
+| same memories, a tenth of the corpus | 0.175 s | **1.02 ms** | 172x |
+| KRA (5,234 chunks, 120 memories) | 6.605 s | **1.52 ms** | **4,335x** |
+
+The middle row is the control: ten times fewer documents makes the *rebuild* 7.9x cheaper
+and leaves `remember()` where it was. Cost tracks the memory, not the corpus, and it stays
+flat as memory accumulates.
+
+The bar is that the updated index is **bit-identical** to a full rebuild — every posting,
+every float — not merely close, because a weight that drifts is a scoring bug with a
+stopwatch. The first prototype claimed the update was purely local, skipped the evidence-df
+coupling, and differed from a rebuild in 1,181 terms; the bar caught it.
+[`eval/incremental_bench.py`](incremental_bench.py) ·
+[`eval/results/incremental_memory.json`](results/incremental_memory.json) ·
+[`tests/test_incremental.py`](../tests/test_incremental.py). There is no `forget()`: evidence
+may only grow.
 
 ### Reproducibility notes
 

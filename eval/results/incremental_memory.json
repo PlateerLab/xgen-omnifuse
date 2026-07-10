@@ -1,0 +1,110 @@
+{
+  "benchmark": "Incremental memory — is remember() exact, and does its cost track the memory or the corpus?",
+  "date": "2026-07-10",
+  "runner": "eval/incremental_bench.py",
+  "why_this_axis": "Until now OmniFuse's memory was batch-only: folding a confirmed (query -> documents) pair into the index meant rebuilding it. That was listed as an honest limitation in adaptive_memory.json. A retriever that cannot learn without a rebuild cannot learn in a service.",
+  "correctness_bar": {
+    "claim": "after k calls to remember(), the index is what a full rebuild with the same feedback would have produced",
+    "how": "compare postings key sets, every idf, and every (doc list, weight array) with `==`. Weights are floats: the bar is BIT equality, not isclose. Then compare top-10 rankings on held-out probes.",
+    "why_so_strict": "a fast update that scores even slightly differently is not an optimization, it is a bug with a stopwatch — and it would surface as an unexplained benchmark drift weeks later."
+  },
+  "the_mechanism": {
+    "what_is_local": "Evidence fields are excluded from document frequency and are not length-normalized. So N never changes, the content df never changes, every content term's IDF is fixed, and the evidence field's avglen is unused (b=0). Remembering a query therefore rewrites the contributions of exactly ONE document.",
+    "the_one_coupling": "A term seen ONLY in evidence has content-df 0 and takes its IDF from the evidence df — which grows as documents remember more. That IDF change is global in principle.",
+    "why_it_stays_cheap": "Every posting of such a term is evidence-derived, so the documents to fix are exactly the documents that remember it. The blast radius is the memory, not the corpus. Measured: after 100 memories NFCorpus has 15 such terms out of a 23,610-term vocabulary; after 120 memories KRA has 40 out of 71,284.",
+    "exactness": "BM25F folds `idf * tfw(k1+1)/(k1+tfw)` into the postings at build. The index keeps the tfw of evidence-only terms alongside their weights, so when their IDF moves the weight is recomputed from the same expression rather than rescaled — which is why the result is bit-identical rather than merely close.",
+    "an_earlier_wrong_claim": "The first prototype asserted the update was PURELY local and skipped the evidence-df coupling. Its postings differed from a rebuild in 1,181 terms. The correctness bar caught it; the mechanism above is what survived."
+  },
+  "results": {
+    "NFCorpus (en, 3,633 docs, 100 memories)": {
+      "rebuild_s": 1.389,
+      "ms_per_update": 1.002,
+      "speedup_per_memory": 1386,
+      "bit_identical_to_rebuild": true,
+      "identical_top10": true,
+      "evidence_only_terms": 15,
+      "vocab": 23610
+    },
+    "NFCorpus corpus/10 (en, 363 docs, 30 memories)": {
+      "rebuild_s": 0.175,
+      "ms_per_update": 1.019,
+      "speedup_per_memory": 172,
+      "bit_identical_to_rebuild": true,
+      "identical_top10": true,
+      "evidence_only_terms": 9,
+      "vocab": 6796,
+      "reading": "the control. Ten times fewer documents: the rebuild gets 7.9x cheaper, remember() does not move (1.002 -> 1.019 ms). Cost tracks the memory, not the corpus."
+    },
+    "KRA (ko, 5,234 chunks, 120 memories, private)": {
+      "rebuild_s": 6.605,
+      "ms_per_update": 1.524,
+      "speedup_per_memory": 4335,
+      "bit_identical_to_rebuild": true,
+      "identical_top10": true,
+      "evidence_only_terms": 40,
+      "vocab": 71284
+    }
+  },
+  "does_it_degrade_as_memory_grows": {
+    "setup": "KRA, 215 memories folded in one at a time, mean ms per 50",
+    "ms": [
+      1.99,
+      1.68,
+      1.65,
+      1.34,
+      1.69
+    ],
+    "reading": "flat. A postings insert is a memmove into an array, so the cost is bounded by posting-list length, not by how much has already been remembered."
+  },
+  "memory_axis_through_the_incremental_path": {
+    "setup": "the re-query (paraphrase) axis of adaptive_memory.json, but memories are folded in with remember() instead of a rebuild. Scored by synaptic's own metrics.reciprocal_rank.",
+    "cold": {
+      "all": 0.3392,
+      "covered": 0.3652,
+      "uncovered": 0.3135
+    },
+    "real": {
+      "d_all": 0.1963,
+      "d_covered": 0.4192,
+      "d_uncovered": -0.0245
+    },
+    "shuffled_placebo": {
+      "d_all": 0.0013,
+      "d_covered": 0.0125,
+      "d_uncovered": -0.0098
+    },
+    "random_q_placebo": {
+      "d_all": -0.0101,
+      "d_covered": 0.0131,
+      "d_uncovered": -0.033
+    },
+    "reading": "real beats the strongest placebo by 32x on covered queries and both placebos stay at noise — the same signature as the batch path, which is what bit-identity guarantees. 107 memories folded in 178 ms.",
+    "note": "this harness re-derives the covered/uncovered split from sorted query ids, so its cold baseline differs slightly from adaptive_memory.json's. The comparison inside each run is the point, not the absolute cold number."
+  },
+  "cost": {
+    "index_state_added": "for evidence-bearing indexes only: the evidence df of evidence-only terms, their tfw, and the per-field token totals. Nothing is added to a plain BM25/BM25F index.",
+    "build_loop": "one  per (term, document) posting — short-circuits on a local bool when there are no evidence fields",
+    "static_suite": "unchanged: finreg single-hop 0.8400 / nDCG 0.8663 / hit 114 / multi-hop 107 / R@10 0.9250, and the 8 public datasets are bit-identical",
+    "cold_path_opt_in_KRA_5234_chunks": {
+      "no_feedback": {
+        "build_s": 6.24,
+        "index_mb": 28.71,
+        "load_s": 0.2,
+        "search_ms": 1.552
+      },
+      "empty_Feedback": {
+        "build_s": 6.4,
+        "index_mb": 28.71,
+        "load_s": 0.21,
+        "search_ms": 1.544
+      },
+      "reading": "opting in costs +2.6% build (one tokenize('') per chunk for the empty memory field) and nothing else: identical index size, identical load, identical search, and bit-identical cold rankings. Measured without tracemalloc, which inflates build ~4x."
+    }
+  },
+  "honest_limitations": [
+    "Evidence may only grow. There is no `forget()`: removing a memory would require the document's old evidence tokens, which the index does not keep.",
+    "The content fields of a remembering document must be the tokens it was built from. `remember()` re-tokenizes them from the stored chunk, so this holds — but a caller who mutates chunk text behind the index will get a stale posting rather than an error.",
+    "This makes memory incremental. The index is still read back into RAM: there is no disk-resident queryable backend.",
+    "synaptic's consolidation cascade, embedder and reranker remain unmeasured, as in adaptive_memory.json."
+  ]
+}

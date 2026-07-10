@@ -2,6 +2,42 @@
 
 ## Unreleased
 
+- **`remember()` — memory folds into the live index, bit-identically, in ~1 ms.** Memory was
+  batch-only: a confirmed `(query -> documents)` pair required an index rebuild, which no live
+  service can afford per click. It is now an in-place update.
+
+  This is what the evidence-field design was always worth. Evidence is excluded from document
+  frequency and is not length-normalized, so `N`, the content df, every content term's IDF and
+  the content fields' avglen are all **fixed** — remembering rewrites the contributions of
+  exactly one document. The single coupling is that a term seen *only* in evidence takes its
+  IDF from the evidence df, which grows; but all of that term's postings are evidence-derived,
+  so the documents to fix are exactly the ones that remember it. Measured, that coupled set is
+  **15 terms out of a 23,610-term vocabulary** (NFCorpus, 100 memories).
+
+  | | rebuild | `remember()` | per memory |
+  |---|---:|---:|---:|
+  | NFCorpus (3,633 docs, 100 memories) | 1.389 s | **1.00 ms** | **1,386x** |
+  | same memories, a tenth of the corpus | 0.175 s | **1.02 ms** | 172x |
+  | KRA (5,234 chunks, 120 memories) | 6.605 s | **1.52 ms** | **4,335x** |
+
+  The middle row is the control: ten times fewer documents makes the rebuild 7.9x cheaper and
+  leaves `remember()` where it was, so the cost tracks the memory rather than the corpus. It is
+  also flat as memory accumulates (1.99 -> 1.69 ms per 50 over 215 KRA memories).
+
+  The bar was **bit equality** with a full rebuild — every posting, every float — not `isclose`,
+  because a weight that drifts is a scoring bug with a stopwatch. To meet it the index keeps the
+  tfw of evidence-only terms beside their weights, so a moved IDF is recomputed rather than
+  rescaled. The first prototype asserted the update was purely local, skipped the evidence-df
+  coupling entirely, and differed from a rebuild in 1,181 terms; the bar caught it, and the
+  wrong claim is recorded in `eval/results/incremental_memory.json`.
+
+  New: `OmniFuse.remember()`, `InMemoryVector.remember()`, `BM25F.update_evidence()`,
+  `eval/incremental_bench.py`, `tests/test_incremental.py` (7 tests, incl. bit-identity at every
+  prefix and `remember` after `save_index`/`load_index`). Building with an *empty* `Feedback()`
+  now opts a store into the memory field — previously an empty `Feedback` was falsy and silently
+  fell back to a non-evidence index. A cold store still ranks identically. Static suite
+  unchanged; no `forget()` — evidence may only grow.
+
 - **The Korean copula's interrogative paradigm was missing from the ending list — and it
   was the last loss. OmniFuse now wins all 15 datasets.** A per-query diff against synaptic
   (scored by its own `metrics.reciprocal_rank`) showed OmniFuse losing 29 MIRACL-ko queries

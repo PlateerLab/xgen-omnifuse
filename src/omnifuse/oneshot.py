@@ -77,6 +77,11 @@ class OmniFuse:
         self.fusion_neighbor_limit = fusion_neighbor_limit
         self.fusion_direction = fusion_direction
 
+    def remember(self, query: str, doc_ids: list[str]) -> None:
+        """Teach the store that ``query`` was answered by ``doc_ids`` — folded into the
+        live index without a rebuild. Raises unless it was built with a ``Feedback``."""
+        self.vector.remember(query, doc_ids)
+
     def retrieve(self, question: str, *, limit: Optional[int] = None) -> list[tuple]:
         """Ranked (chunk, score) fusing lexical/vector seeds with 1-hop graph
         structure — a passage cited/linked by a strong seed is surfaced beside it

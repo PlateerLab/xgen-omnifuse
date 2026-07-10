@@ -337,6 +337,42 @@ signal. On *unrelated* held-out questions memory correctly does nothing (+0.0006
 ranks **bit-identically** to one built with no feedback, so memory can never regress a
 system that has not been used. Nothing is tuned.
 
+### Learning without a rebuild
+
+Memory used to be batch: folding a confirmed pair in meant rebuilding the index, which is
+not something a live service can do per click. `remember()` now updates the index in place.
+
+```python
+of = build_inmemory(nodes, triples, chunks, feedback=Feedback())   # an empty Feedback opts in
+of.remember("statin side effects", ["doc7"])                       # ~1 ms, no rebuild
+```
+
+This is what the evidence-field design buys. Evidence never enters document frequency, so
+`N`, the content df and every content term's IDF are **fixed** — remembering rewrites the
+contributions of exactly one document. The single coupling is that a term seen *only* in
+evidence takes its IDF from the evidence df; but every posting of such a term is
+evidence-derived, so the documents to fix are the ones that remember it. The blast radius
+is the memory, not the corpus — measured, **15 such terms out of a 23,610-term vocabulary**.
+
+| | rebuild | `remember()` | per memory |
+|---|---:|---:|---:|
+| NFCorpus (3,633 docs, 100 memories) | 1.389 s | **1.00 ms** | **1,386x** |
+| same memories, a tenth of the corpus | 0.175 s | **1.02 ms** | 172x |
+| KRA (5,234 chunks, 120 memories) | 6.605 s | **1.52 ms** | **4,335x** |
+
+The middle row is the control: ten times fewer documents makes the *rebuild* 7.9x cheaper
+and leaves `remember()` where it was. Cost tracks the memory, not the corpus, and it stays
+flat as memory accumulates.
+
+The bar is that the updated index is **bit-identical** to a full rebuild — every posting,
+every float — not merely close, because a weight that drifts is a scoring bug with a
+stopwatch. The first prototype claimed the update was purely local, skipped the evidence-df
+coupling, and differed from a rebuild in 1,181 terms; the bar caught it.
+[`eval/incremental_bench.py`](eval/incremental_bench.py) ·
+[`eval/results/incremental_memory.json`](eval/results/incremental_memory.json) ·
+[`tests/test_incremental.py`](tests/test_incremental.py). There is no `forget()`: evidence
+may only grow.
+
 Why synaptic scores ~0: in the benchmarked version its `graph.search()` reads none of the
 fields `reinforce()` writes. Harness, controls and the full retraction history:
 [`eval/adaptive_bench.py`](eval/adaptive_bench.py) ·

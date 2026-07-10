@@ -164,7 +164,7 @@
   "honest_limitations": [
     "synaptic was driven through graph.search + graph.reinforce (FTS, no embedder). Its consolidation cascade, embedder and reranker were not measured. Its resonance-scored paths (search.py HybridSearch, agent_search.py) are not what graph.search calls in this version.",
     "The re-query axis uses LLM-generated paraphrases of LLM-generated questions over a private corpus; the corpus is not committed. Absolute MRR is a lower bound, and the comparison is symmetric.",
-    "Memory is batch: folding it in requires an index rebuild (save_index/load_index make that cheap). No incremental update.",
+    "Memory is incremental as of 2026-07-10: remember() folds a confirmed pair into the live index in ~1 ms, bit-identically to a rebuild (eval/results/incremental_memory.json). There is no forget(): evidence may only grow.",
     "Re-query axis replicated on two corpora (ko/en). The disjoint axis was run on NFCorpus and MIRACL-ko. Broader sweeps remain future work."
   ],
   "static_suite_reverification_after_evidence_field": {

@@ -146,6 +146,7 @@ class InMemoryVector:
                  feedback: Optional[Feedback] = None):
         self.chunks = chunks
         self._by_id = {c.id: c for c in chunks}
+        self._ix = {c.id: i for i, c in enumerate(chunks)}
         self.embedder = embedder
         self.lexical_weight, self.dense_weight, self._pool = lexical_weight, dense_weight, pool
         self._dense = embedder is not None and bool(chunks) and all(c.embedding for c in chunks)
@@ -158,7 +159,7 @@ class InMemoryVector:
             # field: it scores the chunk but never enters document frequency, so it cannot
             # deflate the collection's IDF, and it is not length-normalized. An empty
             # memory field contributes nothing, so a cold store scores bit-identically.
-            if feedback:
+            if feedback is not None:
                 def docs():
                     return ({"title": tokenize(c.title), "body": tokenize(c.text),
                              "memory": tokenize(feedback.text(c.id))} for c in chunks)
@@ -193,6 +194,28 @@ class InMemoryVector:
         if self._lexical:
             return [(self.chunks[i], s) for i, s in self._bm25.search(query, limit=limit)]
         return []
+
+    def remember(self, query: str, doc_ids: list[str]) -> None:
+        """Fold a confirmed (query -> documents) pair into the live index, incrementally.
+
+        Requires the store to have been built with a ``Feedback`` (an empty one is fine —
+        an empty evidence field scores bit-identically to no field at all). Only the
+        remembering chunks move: evidence never enters document frequency, so N and every
+        content term's IDF are fixed. Cost is bounded by the memory, not the corpus.
+        """
+        if self.feedback is None or not isinstance(self._bm25, BM25F) or not self._bm25.evidence_fields:
+            raise RuntimeError(
+                "this store cannot remember incrementally — build it with feedback=Feedback()")
+        for did in doc_ids:
+            i = self._ix.get(did)
+            if i is None:
+                continue
+            c = self.chunks[i]
+            content = {"title": tokenize(c.title), "body": tokenize(c.text)}
+            before = dict(content, memory=tokenize(self.feedback.text(did)))
+            self.feedback.remember(query, [did])
+            after = dict(content, memory=tokenize(self.feedback.text(did)))
+            self._bm25.update_evidence(i, before, after)
 
     def fetch(self, ids: list[str]) -> list[Chunk]:
         return [self._by_id[i] for i in ids if i in self._by_id]

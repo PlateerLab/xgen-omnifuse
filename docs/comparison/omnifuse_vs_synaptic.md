@@ -229,6 +229,41 @@ Trading nine datasets for two is not an improvement, and picking `q` per corpus 
 the fitting we refuse to do. Not shipped; recorded in
 [`eval/results/beir_mteb_extra.json`](../../eval/results/beir_mteb_extra.json).
 
+## What the evidence field was actually worth: memory that learns in 1 ms
+
+synaptic is a *memory* system: it is stateful and it learns. OmniFuse's answer, `Feedback`,
+was for a long time batch-only — a confirmed pair meant a rebuild — and we listed that as an
+honest limitation. Removing it turned out not to need a new mechanism, only the consequences
+of the one already there.
+
+Because evidence is excluded from document frequency and is not length-normalized, `N`, the
+content df, every content term's IDF, and the content fields' avglen are all fixed. So
+`remember()` rewrites the contributions of exactly one document. The one thing that *is*
+global — a term seen only in evidence takes its IDF from the evidence df — turns out to be
+cheap for the same reason: every posting of such a term is evidence-derived, so the documents
+to fix are exactly the ones that remember it. Measured on NFCorpus after 100 memories, that
+coupled set is **15 terms out of a 23,610-term vocabulary**.
+
+| | rebuild | `remember()` | per memory |
+|---|---:|---:|---:|
+| NFCorpus (3,633 docs, 100 memories) | 1.389 s | **1.00 ms** | **1,386x** |
+| same memories, a tenth of the corpus | 0.175 s | **1.02 ms** | 172x |
+| KRA (5,234 chunks, 120 memories) | 6.605 s | **1.52 ms** | **4,335x** |
+
+The middle row is the control that makes the claim falsifiable: ten times fewer documents
+makes the *rebuild* 7.9x cheaper and leaves `remember()` exactly where it was.
+
+The correctness bar was bit equality with a full rebuild — every posting, every float. Our
+first prototype asserted the update was purely local, ignored the evidence-df coupling, and
+differed from a rebuild in 1,181 terms. It was fast, it was plausible, and it was wrong; the
+bar is the only reason we know. This is the third time in this file that an assertion died to
+a control, and the pattern is not an accident: a memory that "obviously" cannot move anything
+global is exactly the kind of claim that must be measured rather than reasoned.
+
+Contrast: synaptic's `reinforce()` is genuinely incremental (a SQLite write), but in the
+benchmarked version `graph.search()` reads none of the fields it writes, so its measured
+retrieval delta is noise around zero. Being incremental is not the same as being wired in.
+
 ## The last loss was ours: a missing copula in the Korean stemmer
 
 MIRACL-ko was the only dataset synaptic still won. Rather than keep trying weightings, we
