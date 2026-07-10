@@ -275,6 +275,38 @@ python eval/finreg_bench.py                        # finreg, self-contained
 python eval/public_bench.py --synaptic-repo PATH   # the 8 public datasets
 ```
 
+## Memory — `Feedback`
+
+The deepest difference between OmniFuse and synaptic-**memory** was never the ranking: it
+was that synaptic is *stateful* and learns (Hebbian reinforcement), while OmniFuse was a
+stateless one-shot retriever. Neither project had measured whether that learning improves
+retrieval. So we built a held-out benchmark — feedback on one half of the queries, evaluate
+on the other half, which is never searched during feedback:
+
+| ΔMRR@10 on held-out queries | NFCorpus s0 | NFCorpus s1 | MIRACL-ko s0 | MIRACL-ko s1 |
+|---|---:|---:|---:|---:|
+| synaptic (Hebbian) | −0.0002 | **−0.0174** | **−0.0165** | — |
+| **OmniFuse (`Feedback`)** | **+0.0019** | **+0.0076** | **+0.0618** | **+0.0729** |
+
+Reinforcing nodes and edges learns a *query-independent* prior — "this document tends to be
+relevant" — but relevance belongs to a *(query, document)* pair, so it injects noise. What
+works is remembering **which query** a document answered, and indexing that as its own
+BM25F field:
+
+```python
+from omnifuse import Feedback, build_inmemory
+fb = Feedback()
+fb.remember("statin side effects", ["doc7"])          # a user confirmed doc7 answered it
+of = build_inmemory(nodes, triples, chunks, feedback=fb)
+```
+
+An unremembered document has an empty memory field and contributes nothing, so a **cold
+store ranks bit-identically to no feedback at all** — memory cannot regress an unused
+system. Nothing is tuned. Our own query-independent designs failed first (Beta odds
+−0.0384, empirical-Bayes −0.0489); those negative results and the reproducer are in
+[`eval/results/adaptive_memory.json`](eval/results/adaptive_memory.json) ·
+[`eval/adaptive_bench.py`](eval/adaptive_bench.py).
+
 ## Roadmap
 
 - `backends/qdrant.py` vector adapter; jena-text fast path for `FusekiGraph`

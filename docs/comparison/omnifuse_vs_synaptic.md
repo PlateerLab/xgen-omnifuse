@@ -352,6 +352,57 @@ mentioned the finreg loss; that was an omission, and it is corrected here. The g
 closed from both ends (inverted-index scoring, and `save_index`/`load_index` warm start),
 but the result remains **workload-dependent**.
 
+## The deepest difference: synaptic is stateful. So we measured whether that helps.
+
+synaptic-*memory* learns — Hebbian reinforcement of graph nodes and edges on co-activation,
+feeding resonance-ranked search. OmniFuse was a stateless one-shot retriever. That is the
+real gap between the two projects, and neither had ever measured it: synaptic's own memory
+eval (`eval/scripts/memory_operating_poc.py`) is a **contract smoke-gate**, not a quality
+benchmark.
+
+So we built one. Queries are split 50/50 into a FEEDBACK half and a HELD-OUT half. Each
+system searches the feedback half, is told which retrieved documents were relevant, and is
+then re-evaluated on the held-out half — which it never searched during feedback. (Zero
+exact-duplicate and zero near-duplicate queries across the split.)
+
+| ΔMRR@10 on held-out queries | NFCorpus s0 | NFCorpus s1 | MIRACL-ko s0 | MIRACL-ko s1 |
+|---|---:|---:|---:|---:|
+| synaptic (Hebbian reinforcement) | −0.0002 | **−0.0174** | **−0.0165** | — |
+| **OmniFuse (`Feedback`)** | **+0.0019** | **+0.0076** | **+0.0618** | **+0.0729** |
+
+**Hebbian reinforcement is neutral-to-harmful in every measurement.** The reason is
+structural: reinforcing nodes and edges builds a *query-independent* prior — "this document
+tends to be relevant". But relevance is a property of a *(query, document)* pair. A prior
+learned on statins is noise for a query about vitamin D.
+
+We hit that wall from the probabilistic side before we understood it. Multiplying scores by
+a Beta posterior odds `(hits+1)/(misses+1)` cost **−0.0384**; positive-only **−0.0175**;
+empirical-Bayes shrinkage to the corpus base rate — the most "correct" of the three —
+**−0.0489**. Calibration was never the problem. Query-independence was.
+
+What works is to make the memory **query-conditional and textual**: a confirmed query
+becomes part of what the document is *about*.
+
+```python
+fb = Feedback()
+fb.remember("statin side effects", ["doc7"])          # a user confirmed doc7 answered it
+of = build_inmemory(nodes, triples, chunks, feedback=fb)
+```
+
+It is indexed as its own BM25F field, and that detail is load-bearing. Appending the query
+to the **body** helps where documents recur across queries (NFCorpus +0.0056) but *hurts*
+where they do not (MIRACL-ko −0.0134): the body grows and BM25's length normalization
+punishes it. A dedicated field has its own length normalization, so an unremembered
+document is untouched and a remembered one is lifted only when the live query genuinely
+overlaps a remembered one. Reusing the 4×-weighted title slot instead over-boosts
+(+0.0009 vs +0.0019).
+
+Nothing is tuned — the memory field carries the same weight as the body — and an empty
+memory field contributes nothing, so **a cold store is bit-identical to one built without
+feedback** (verified across the whole static suite). Memory can never regress a system that
+has not been used yet. Harness: [`eval/adaptive_bench.py`](../../eval/adaptive_bench.py) ·
+numbers: [`eval/results/adaptive_memory.json`](../../eval/results/adaptive_memory.json).
+
 ## Where OmniFuse lags synaptic (honest)
 
 OmniFuse is a focused retrieval library, not a memory system. It leads on retrieval
@@ -369,6 +420,7 @@ lexical speed. It is genuinely behind here:
 | async API | yes | ✗ sync |
 | MCP server / agent loop / CLI | yes | ✗ |
 | consolidation / snapshot / activity | yes | ✗ (`Vault` has simple salience) |
+| **memory that improves retrieval** | Hebbian: **−0.0002 / −0.0174 / −0.0165** | `Feedback`: **+0.0019 / +0.0076 / +0.0618 / +0.0729** |
 | scale ceiling | disk-backed | RAM-bound, but build peak cut 209 MB → **46.6 MB** |
 
 The persistence gap — the one that forced OmniFuse to pay index-build cost on every

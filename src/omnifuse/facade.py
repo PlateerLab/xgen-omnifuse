@@ -5,6 +5,7 @@ import pickle
 from typing import Callable, Optional
 
 from .backends.memory import InMemoryGraph, InMemoryVector
+from .feedback import Feedback
 from .llm import EchoLLM
 from .loaders import (
     derive_nodes,
@@ -21,6 +22,7 @@ from .oneshot import OmniFuse
 
 def build_inmemory(nodes, triples, chunks, *, llm=None,
                    embedder: Optional[Callable[[str], list[float]]] = None,
+                   feedback: Optional[Feedback] = None,
                    vector_kwargs: Optional[dict] = None, **kwargs) -> OmniFuse:
     """Build an OmniFuse over zero-infra in-memory backends from Node/Triple/Chunk lists.
 
@@ -28,7 +30,8 @@ def build_inmemory(nodes, triples, chunks, *, llm=None,
     BM25; ``lexical_weight``/``dense_weight`` for the hybrid dense+lexical fusion).
     """
     graph = InMemoryGraph([to_node(n) for n in nodes], [to_triple(t) for t in triples])
-    vector = InMemoryVector([to_chunk(c) for c in chunks], embedder=embedder, **(vector_kwargs or {}))
+    vector = InMemoryVector([to_chunk(c) for c in chunks], embedder=embedder,
+                            feedback=feedback, **(vector_kwargs or {}))
     return OmniFuse(graph, vector, llm or EchoLLM(), **kwargs)
 
 
