@@ -229,6 +229,28 @@ Trading nine datasets for two is not an improvement, and picking `q` per corpus 
 the fitting we refuse to do. Not shipped; recorded in
 [`eval/results/beir_mteb_extra.json`](../../eval/results/beir_mteb_extra.json).
 
+### Prior art, and what is actually ours
+
+Indexing confirmed queries as a *field of the document* is not our idea. BM25F was defined
+over fields like title, body and **anchor text** (Robertson & Zaragoza), and putting
+**query-click logs in as a field** is standard web-search practice — reported as the single
+most important field in machine-learned BM25F work (Svore & Burges, *A machine learning
+approach for improved BM25 retrieval*). Blending document frequency across fields is what
+Elasticsearch's `cross_fields` already does. We borrowed the mechanism.
+
+What we chose, and did not find in the literature, is the opposite of that blend: the
+evidence field is **excluded from document frequency entirely** and is **not
+length-normalized**. And we did not choose it to be different. We chose it because the
+controls forced it — injecting remembered queries into the body raised the df of query
+vocabulary, deflated its IDF corpus-wide, and moved *uncovered* held-out questions, which is
+the signature of a scoring artifact rather than memory. Excluding evidence from df is what
+makes Δuncovered structurally zero.
+
+The order matters and is worth being plain about: we did not design for incremental updates
+and get honesty for free. We designed for honesty, and the frozen df handed us the
+incremental update. Two web searches turned up no prior art for the df-exclusion; that is
+not the same as there being none, and we make no novelty claim.
+
 ## What the evidence field was actually worth: memory that learns in 1 ms
 
 synaptic is a *memory* system: it is stateful and it learns. OmniFuse's answer, `Feedback`,

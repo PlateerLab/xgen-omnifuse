@@ -321,6 +321,11 @@ fb.remember("statin side effects", ["doc7"])          # a user confirmed doc7 an
 of = build_inmemory(nodes, triples, chunks, feedback=fb)
 ```
 
+Indexing confirmed queries as a document *field* is borrowed — BM25F over title/body/anchor-text,
+and query-click logs as a field, are standard web-search practice. What is ours is excluding that
+field from document frequency and from length normalization, which the placebo controls forced.
+No novelty is claimed; see [`docs/comparison`](docs/comparison/omnifuse_vs_synaptic.md).
+
 Feedback on the original questions, evaluation on held-out **paraphrases** of them — the
 case memory exists for. Same corpus, same queries, scored by *synaptic's own* `metrics.py`:
 

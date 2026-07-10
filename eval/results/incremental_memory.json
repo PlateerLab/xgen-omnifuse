@@ -106,5 +106,11 @@
     "The content fields of a remembering document must be the tokens it was built from. `remember()` re-tokenizes them from the stored chunk, so this holds — but a caller who mutates chunk text behind the index will get a stale posting rather than an error.",
     "This makes memory incremental. The index is still read back into RAM: there is no disk-resident queryable backend.",
     "synaptic's consolidation cascade, embedder and reranker remain unmeasured, as in adaptive_memory.json."
-  ]
+  ],
+  "prior_art": {
+    "borrowed": "Indexing confirmed queries as a document FIELD is standard: BM25F was defined over title/body/anchor-text (Robertson & Zaragoza), and query-click logs as a field are reported as the single most important field in machine-learned BM25F (Svore & Burges). Blending df across fields is what Elasticsearch cross_fields does.",
+    "ours": "The opposite of that blend: evidence is excluded from document frequency entirely and is not length-normalized. Chosen because the placebo/uncovered controls forced it, not for novelty — and it is what makes delta-uncovered structurally zero, and what later made the incremental update local.",
+    "no_novelty_claim": "Two web searches found no prior art for the df-exclusion. That is not evidence of absence. We make no novelty claim.",
+    "not_borrowed_from_synaptic": "synaptic's reinforce() is genuinely incremental (a SQLite write), but in the benchmarked version graph.search() reads none of the fields it writes, so there was nothing to copy."
+  }
 }
