@@ -477,6 +477,7 @@ lexical speed. It is genuinely behind here:
 | async API | yes | ✗ sync |
 | MCP server / agent loop / CLI | yes | ✗ |
 | consolidation / snapshot / activity | yes | ✗ (`Vault` has simple salience) |
+| **memory that improves retrieval** (ΔMRR@10, held-out re-queries) | Hebbian: **+0.0093** — not wired into `graph.search` | `Feedback`: **+0.4167**, placebos +0.024 / +0.080 |
 | scale ceiling | disk-backed | RAM-bound, but build peak cut 209 MB → **46.6 MB** |
 
 The persistence gap — the one that forced OmniFuse to pay index-build cost on every
