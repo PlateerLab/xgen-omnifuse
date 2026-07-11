@@ -255,8 +255,10 @@ stopwatch. The first prototype claimed the update was purely local, skipped the 
 coupling, and differed from a rebuild in 1,181 terms; the bar caught it.
 [`eval/incremental_bench.py`](incremental_bench.py) ·
 [`eval/results/incremental_memory.json`](results/incremental_memory.json) ·
-[`tests/test_incremental.py`](../tests/test_incremental.py). There is no `forget()`: evidence
-may only grow.
+[`tests/test_incremental.py`](../tests/test_incremental.py). `forget(query, doc_ids)` is
+the exact inverse (~1 ms, bit-identical to a rebuild without the pair; forget-everything lands
+bit-identically on the cold index). The bench's forget pass withdraws half the memories in
+place and compares against a rebuild with the other half.
 
 ### Reproducibility notes
 

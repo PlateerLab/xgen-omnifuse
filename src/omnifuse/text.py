@@ -349,38 +349,43 @@ class BM25F:
         return math.log(1 + (self.N - n + 0.5) / (n + 0.5)) ** self._idf_pow
 
     def update_evidence(self, i: int, before: dict, after: dict) -> None:
-        """Fold changed evidence for document ``i`` into the live index.
+        """Fold changed evidence for document ``i`` into the live index — grow or shrink.
 
         ``before``/``after`` are ``{field: tokens}`` for that document; the content fields
-        must be the tokens it was built from, and evidence may only grow. The result is the
-        index a full rebuild would have produced — see ``tests/test_incremental.py``.
+        must be the tokens it was built from. The result is the index a full rebuild would
+        have produced — see ``tests/test_incremental.py``.
 
         ``N``, the content df and every content term's IDF are fixed by construction, because
         evidence is excluded from document frequency. The one thing that does move globally is
         the IDF of a term seen *only* in evidence, which comes from the evidence df that this
-        update grows — but all of that term's postings are evidence-derived, so the work is
-        bounded by the memory rather than by the corpus.
+        update grows or shrinks — but all of that term's postings are evidence-derived, so the
+        work is bounded by the memory rather than by the corpus. A shrink that leaves a term
+        with no evidence holder erases it from the index entirely, exactly as a rebuild would.
         """
         if not self.evidence_fields:
             raise RuntimeError("BM25F was built without evidence_fields; nothing to update")
         k1, k1p1 = self.k1, self.k1 + 1
         ev = [fi for fi, f in enumerate(self.fields) if self._is_ev[fi]]
 
-        # 1. evidence df grows for terms this document did not already hold as evidence
-        held = {t for fi in ev for t in before.get(self.fields[fi], ())}
+        # 1. evidence df: +1 for terms this document newly holds, -1 for terms it dropped
+        held_before = {t for fi in ev for t in before.get(self.fields[fi], ())}
+        held_after = {t for fi in ev for t in after.get(self.fields[fi], ())}
         dirty = set()
-        for fi in ev:
-            for t in after.get(self.fields[fi], ()):
-                if t in held:
-                    continue
-                held.add(t)
-                if t in self.idf and t not in self._dfe:
-                    continue  # a content term: its df, and so its IDF, is fixed
-                self._dfe[t] = self._dfe.get(t, 0) + 1
+        for t in held_after - held_before:
+            if t in self.idf and t not in self._dfe:
+                continue  # a content term: its df, and so its IDF, is fixed
+            self._dfe[t] = self._dfe.get(t, 0) + 1
+            dirty.add(t)
+        for t in held_before - held_after:
+            if t in self._dfe:
+                self._dfe[t] -= 1
                 dirty.add(t)
 
         # 2. re-derive the IDF of evidence-only terms, and their postings from the kept tfw
+        #    (a term whose evidence df hit 0 is erased below, once this doc's entry is gone)
         for t in dirty:
+            if self._dfe.get(t, 0) <= 0:
+                continue
             self.idf[t] = idf = self._idf_of(self._dfe[t])
             pw, tfws = self._pw.get(t), self._ev_tfw.get(t)
             if pw is None:
@@ -421,6 +426,24 @@ class BM25F:
                 self._pw[t].insert(k, w)
                 if t in self._dfe:
                     self._ev_tfw[t].insert(k, tfw)
+        # terms this document no longer holds in ANY field: delete its posting entry
+        for t in held_before - held_after:
+            if t in tfw_i:
+                continue  # still held via a content field
+            pd = self._pd.get(t)
+            if pd is None:
+                continue
+            k = bisect_left(pd, i)
+            if k < len(pd) and pd[k] == i:
+                pd.pop(k)
+                self._pw[t].pop(k)
+                if t in self._ev_tfw:
+                    self._ev_tfw[t].pop(k)
+            if not pd and self._dfe.get(t, 0) <= 0:
+                # this document was the term's last holder: erase it, as a rebuild would
+                del self._pd[t], self._pw[t], self.idf[t]
+                self._ev_tfw.pop(t, None)
+                self._dfe.pop(t, None)
 
         # 4. evidence is not length-normalized, so avglen is unused for it — keep it honest anyway
         for fi in ev:

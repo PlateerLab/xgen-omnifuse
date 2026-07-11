@@ -217,6 +217,25 @@ class InMemoryVector:
             after = dict(content, memory=tokenize(self.feedback.text(did)))
             self._bm25.update_evidence(i, before, after)
 
+    def forget(self, query: str, doc_ids: list[str]) -> None:
+        """Withdraw a remembered pair from the live index — the exact inverse of
+        ``remember``. The updated index is bit-identical to one rebuilt without the pair;
+        forgetting a pair that was never remembered is a no-op."""
+        if self.feedback is None or not isinstance(self._bm25, BM25F) or not self._bm25.evidence_fields:
+            raise RuntimeError(
+                "this store cannot forget incrementally — build it with feedback=Feedback()")
+        for did in doc_ids:
+            i = self._ix.get(did)
+            if i is None:
+                continue
+            c = self.chunks[i]
+            content = {"title": tokenize(c.title), "body": tokenize(c.text)}
+            before = dict(content, memory=tokenize(self.feedback.text(did)))
+            self.feedback.forget(query, [did])
+            after = dict(content, memory=tokenize(self.feedback.text(did)))
+            if before != after:
+                self._bm25.update_evidence(i, before, after)
+
     def fetch(self, ids: list[str]) -> list[Chunk]:
         return [self._by_id[i] for i in ids if i in self._by_id]
 

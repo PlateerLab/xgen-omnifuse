@@ -385,11 +385,14 @@ stopwatch. The first prototype claimed the update was purely local, skipped the 
 coupling, and differed from a rebuild in 1,181 terms; the bar caught it.
 [`eval/incremental_bench.py`](eval/incremental_bench.py) ·
 [`eval/results/incremental_memory.json`](eval/results/incremental_memory.json) ·
-[`tests/test_incremental.py`](tests/test_incremental.py). There is no `forget()`: evidence
-may only grow.
+[`tests/test_incremental.py`](tests/test_incremental.py). `forget(query, doc_ids)` is the
+exact inverse — it withdraws a pair in ~1 ms, bit-identical to a rebuild without it, and a
+term whose last holder forgets it is erased from the vocabulary. Remember everything, forget
+everything, and you land bit-identically on the cold index.
 
 Why synaptic scores ~0: in the benchmarked version its `graph.search()` reads none of the
-fields `reinforce()` writes. Harness, controls and the full retraction history:
+fields `reinforce()` writes. Its consolidation cascade is the same story, now measured: `maintain()`
+promotes 54 nodes and decays all 5,234, and retrieval moves by exactly **+0.0000**. Harness, controls and the full retraction history:
 [`eval/adaptive_bench.py`](eval/adaptive_bench.py) ·
 [`eval/results/adaptive_memory.json`](eval/results/adaptive_memory.json).
 

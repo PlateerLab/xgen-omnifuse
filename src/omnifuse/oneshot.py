@@ -82,6 +82,10 @@ class OmniFuse:
         live index without a rebuild. Raises unless it was built with a ``Feedback``."""
         self.vector.remember(query, doc_ids)
 
+    def forget(self, query: str, doc_ids: list[str]) -> None:
+        """Withdraw a remembered pair — the inverse of ``remember``, same in-place cost."""
+        self.vector.forget(query, doc_ids)
+
     def retrieve(self, question: str, *, limit: Optional[int] = None) -> list[tuple]:
         """Ranked (chunk, score) fusing lexical/vector seeds with 1-hop graph
         structure — a passage cited/linked by a strong seed is surfaced beside it

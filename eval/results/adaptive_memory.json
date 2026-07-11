@@ -162,9 +162,9 @@
     }
   },
   "honest_limitations": [
-    "synaptic was driven through graph.search + graph.reinforce (FTS, no embedder). Its consolidation cascade, embedder and reranker were not measured. Its resonance-scored paths (search.py HybridSearch, agent_search.py) are not what graph.search calls in this version.",
+    "synaptic was driven through graph.search + graph.reinforce (FTS, no embedder). Its consolidation cascade IS now measured (see synaptic_consolidation_measured_2026_07_10: it runs, promotes 54 nodes, and moves retrieval by exactly 0.0000). Its embedder and reranker remain unmeasured — the shared-embedder full-pipeline track covers the embedder question separately. Its resonance-scored paths (search.py HybridSearch, agent_search.py) are not what graph.search calls in this version.",
     "The re-query axis uses LLM-generated paraphrases of LLM-generated questions over a private corpus; the corpus is not committed. Absolute MRR is a lower bound, and the comparison is symmetric.",
-    "Memory is incremental as of 2026-07-10: remember() folds a confirmed pair into the live index in ~1 ms, bit-identically to a rebuild (eval/results/incremental_memory.json). There is no forget(): evidence may only grow.",
+    "Memory is incremental and reversible as of 2026-07-10: remember() folds a confirmed pair into the live index in ~1 ms and forget() withdraws one at the same cost, both bit-identically to a rebuild (eval/results/incremental_memory.json).",
     "Re-query axis replicated on two corpora (ko/en). The disjoint axis was run on NFCorpus and MIRACL-ko. Broader sweeps remain future work."
   ],
   "static_suite_reverification_after_evidence_field": {
@@ -204,5 +204,34 @@
     "ours": "The opposite of that blend: evidence is excluded from document frequency entirely and is not length-normalized. Chosen because the placebo/uncovered controls forced it, not for novelty — and it is what makes delta-uncovered structurally zero, and what later made the incremental update local.",
     "no_novelty_claim": "Two web searches found no prior art for the df-exclusion. That is not evidence of absence. We make no novelty claim.",
     "not_borrowed_from_synaptic": "synaptic's reinforce() is genuinely incremental (a SQLite write), but in the benchmarked version graph.search() reads none of the fields it writes, so there was nothing to copy."
+  },
+  "synaptic_consolidation_measured_2026_07_10": {
+    "question": "does synaptic's consolidation cascade (maintain = consolidate + decay + prune) change retrieval?",
+    "setup": "KRA re-query axis, synaptic's own graph.search (FTS, embedder=None), scored by its own metrics.reciprocal_rank. Two fresh stores: (a) cold -> maintain(), (b) cold -> reinforce (Hebbian warm) -> maintain().",
+    "results": {
+      "cold": {
+        "all": 0.2028,
+        "covered": 0.1628,
+        "uncovered": 0.2424
+      },
+      "maintain_on_cold": {
+        "delta_all": 0.0,
+        "consolidated": "0 promotions",
+        "decayed": 5234,
+        "pruned": 0
+      },
+      "warm_reinforce": {
+        "delta_covered": 0.0093,
+        "note": "reproduces the Hebbian number exactly"
+      },
+      "maintain_on_warm": {
+        "delta_vs_warm": 0.0,
+        "consolidated": "54 node promotions (fed by reinforce success counts)",
+        "decayed": 5234,
+        "pruned": 0
+      }
+    },
+    "reading": "The cascade RUNS — reinforcement feeds it and it promotes 54 nodes, decay touches all 5,234 — but graph.search() reads none of it: retrieval delta is exactly +0.0000 on both stores. Same channel isolation as reinforce(). Being maintained is not the same as being wired into retrieval.",
+    "caveat": "TTL expiry (72h/90d/365d) cannot trigger on a fresh ingest; what is measured is promotion + decay + prune on the benchmark timescale, i.e. the parts that could possibly move a same-session benchmark."
   }
 }

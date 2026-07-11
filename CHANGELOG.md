@@ -2,6 +2,33 @@
 
 ## Unreleased
 
+- **`forget()` — memory can now be withdrawn, in place, to the same bar.** `remember()`'s
+  inverse: `OmniFuse.forget(query, doc_ids)` removes a remembered pair from the live index in
+  ~1 ms (NFCorpus 1.11 ms, KRA 1.52 ms), **bit-identical** to an index rebuilt without that
+  pair. `BM25F.update_evidence` is generalized from grow-only to grow-or-shrink: the evidence
+  df decrements, evidence-only terms whose IDF moves are recomputed from their kept `tfw`, and
+  a term whose last holder forgets it is **erased from the vocabulary exactly as a rebuild
+  would**. Strongest inverse property, tested: remember everything, forget everything, land
+  bit-identically on the cold index. Forgetting a pair that was never remembered is a no-op.
+  Closes the "evidence may only grow" limitation. `tests/test_incremental.py` 7 → 13.
+
+- **The `idf_pow` ablation is now a real head-to-head, and its honest summary got sharper.**
+  The docs claimed idf_pow=1.5 was "strictly additive"; that was measured before the English
+  S-stemmer and the Korean copula fix. Re-ablated under the shipping tokenizer — with
+  **synaptic re-ingested and re-queried per dataset in the same pass** (`eval/idf_pow_bench.py`,
+  driving synaptic's own `run_public_dataset`; all 13 re-measured values reproduced the
+  recorded ones exactly) — the net effect of 1.5 vs 1.0 over 13 datasets is **+0.0065, a wash**:
+  it buys AutoRAG/HotPotQA-200/Ko-StrategyQA and costs MIRACL-ko (0.9812→0.9617), finreg
+  (0.8533→0.8400) and NFCorpus. At `idf_pow=1.0` OmniFuse still wins **14 of 15**; the single
+  loss is Ko-StrategyQA by **0.0006** — less than one query's worth on that 592-query set.
+  The per-query diff at p=1.0 shows **92 losses / 94 wins / 406 ties** against synaptic (RR
+  mass 36.49 vs 36.14): no clustered defect, so no principled fix exists and chasing the
+  margin would be label-fitting. 1.5 stays (band-robust across p∈[1.3, 2.0]; the entity-burial
+  mechanism verified by a sign-flip test: gold max-IDF 6.22 vs 6.08 where it rescues, 5.37 vs
+  6.16 where it breaks), with the margin disclosed everywhere the 15/15 is claimed.
+  Also rejected and recorded: adding 되 to `_KO_SUFFIX` (right in principle, immaterial in
+  measurement). See `eval/results/idf_pow_ablation.json`.
+
 - **`remember()` — memory folds into the live index, bit-identically, in ~1 ms.** Memory was
   batch-only: a confirmed `(query -> documents)` pair required an index rebuild, which no live
   service can afford per click. It is now an in-place update.

@@ -64,6 +64,21 @@ def run(name: str, chunks: list[dict], memories: list[tuple[str, list[str]]], pr
     drift = _identical(inc, full)
     same_ranks = ([[c.id for c, _ in inc.retrieve(p, limit=10)] for p in probes]
                   == [[c.id for c, _ in full.retrieve(p, limit=10)] for p in probes])
+
+    # forget: withdraw the odd-indexed half in place, compare against a rebuild with the
+    # even half. The inverse operation gets the same bar as the forward one.
+    per_f = []
+    for q, ids in memories[1::2]:
+        t0 = time.perf_counter()
+        inc.forget(q, ids)
+        per_f.append(time.perf_counter() - t0)
+    fb2 = Feedback()
+    for q, ids in memories[0::2]:
+        fb2.remember(q, ids)
+    half = build_inmemory([], [], chunks, feedback=fb2)
+    drift_f = _identical(inc, half)
+    ms_f = sum(per_f) / len(per_f) * 1000 if per_f else 0.0
+
     ms = sum(per) / len(per) * 1000
     bm = full.vector._bm25
     out = {
@@ -72,6 +87,8 @@ def run(name: str, chunks: list[dict], memories: list[tuple[str, list[str]]], pr
         "speedup_per_memory": round(rebuild_s * 1000 / ms, 1),
         "bit_identical_to_rebuild": drift is None, "drift": drift,
         "identical_top10": same_ranks,
+        "ms_per_forget": round(ms_f, 3),
+        "forget_bit_identical_to_rebuild": drift_f is None, "forget_drift": drift_f,
         "vocab": len(bm.idf), "evidence_only_terms": len(bm._dfe),
         # does cost drift as memory accumulates? (a postings insert is a memmove)
         "ms_per_update_by_decile": [round(sum(per[i:i + max(1, len(per) // 10)])
@@ -83,6 +100,8 @@ def run(name: str, chunks: list[dict], memories: list[tuple[str, list[str]]], pr
           f"-> {out['speedup_per_memory']:,.0f}x per memory")
     print(f"  bit-identical to full rebuild: {'YES' if drift is None else 'NO -> ' + drift}"
           f"   identical top-10: {same_ranks}")
+    print(f"  forget() {out['ms_per_forget']} ms — bit-identical to a rebuild without the "
+          f"forgotten half: {'YES' if drift_f is None else 'NO -> ' + drift_f}")
     print(f"  evidence-only terms (the only IDF that can move): {out['evidence_only_terms']:,}"
           f" / {out['vocab']:,} vocab")
     return out

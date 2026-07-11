@@ -102,15 +102,33 @@
     }
   },
   "honest_limitations": [
-    "Evidence may only grow. There is no `forget()`: removing a memory would require the document's old evidence tokens, which the index does not keep.",
     "The content fields of a remembering document must be the tokens it was built from. `remember()` re-tokenizes them from the stored chunk, so this holds — but a caller who mutates chunk text behind the index will get a stale posting rather than an error.",
     "This makes memory incremental. The index is still read back into RAM: there is no disk-resident queryable backend.",
-    "synaptic's consolidation cascade, embedder and reranker remain unmeasured, as in adaptive_memory.json."
+    "synaptic's consolidation cascade is measured in adaptive_memory.json (runs, promotes, moves retrieval by exactly 0.0000); its embedder and reranker remain unmeasured beyond the shared-embedder full-pipeline track."
   ],
   "prior_art": {
     "borrowed": "Indexing confirmed queries as a document FIELD is standard: BM25F was defined over title/body/anchor-text (Robertson & Zaragoza), and query-click logs as a field are reported as the single most important field in machine-learned BM25F (Svore & Burges). Blending df across fields is what Elasticsearch cross_fields does.",
     "ours": "The opposite of that blend: evidence is excluded from document frequency entirely and is not length-normalized. Chosen because the placebo/uncovered controls forced it, not for novelty — and it is what makes delta-uncovered structurally zero, and what later made the incremental update local.",
     "no_novelty_claim": "Two web searches found no prior art for the df-exclusion. That is not evidence of absence. We make no novelty claim.",
     "not_borrowed_from_synaptic": "synaptic's reinforce() is genuinely incremental (a SQLite write), but in the benchmarked version graph.search() reads none of the fields it writes, so there was nothing to copy."
+  },
+  "forget_2026_07_10": {
+    "what": "forget(query, doc_ids) — remember()'s exact inverse, in place. Feedback keeps the remembered queries per document, so the before/after evidence tokens are reconstructible; update_evidence now handles shrink: the evidence df decrements, evidence-only terms with moved IDF are recomputed from their kept tfw, and a term whose last holder forgets it is erased from idf and postings exactly as a rebuild would.",
+    "bar": "same as remember(): BIT equality with a rebuild that never saw the forgotten pair. Plus the strongest inverse property: remember all -> forget all -> bit-identical to the cold index. Forgetting an unknown pair is a no-op.",
+    "measured": {
+      "NFCorpus (100 memories, forget odd half)": {
+        "ms_per_forget": 1.113,
+        "bit_identical": true
+      },
+      "NFCorpus corpus/10": {
+        "ms_per_forget": 1.021,
+        "bit_identical": true
+      },
+      "KRA (120 memories, forget odd half)": {
+        "ms_per_forget": 1.519,
+        "bit_identical": true
+      }
+    },
+    "tests": "tests/test_incremental.py 7 -> 13 (forget-one, forget-all==cold, last-holder erasure, unknown no-op, interleaved remember/forget at every step, forget after save/load)"
   }
 }

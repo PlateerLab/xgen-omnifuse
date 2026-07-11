@@ -108,3 +108,77 @@ def test_remember_survives_save_load(tmp_path):
     back = load_index(p)
     back.remember("아테네는 어느 나라의 수도인가요?", ["b", "d"])
     _assert_same_index(back, _rebuild(MEMORIES[:2]))
+
+
+def _forgotten(memories, query, doc_id):
+    out, removed = [], False
+    for q, ids in memories:
+        if not removed and q == query and doc_id in ids:
+            kept = [d for d in ids if d != doc_id]
+            removed = True
+            if kept:
+                out.append((q, kept))
+        else:
+            out.append((q, ids))
+    return out
+
+
+def test_forget_equals_rebuild_without_the_pair():
+    of = _incremental(MEMORIES)
+    of.forget("캘리포니아 해안 도로", ["a"])
+    _assert_same_index(of, _rebuild(_forgotten(MEMORIES, "캘리포니아 해안 도로", "a")))
+
+
+def test_forget_everything_returns_to_the_cold_index():
+    """The strongest inverse property: remember all, forget all, land exactly on cold."""
+    of = _incremental(MEMORIES)
+    for q, ids in MEMORIES:
+        of.forget(q, ids)
+    _assert_same_index(of, build_inmemory([], [], CHUNKS, feedback=Feedback()))
+
+
+def test_forget_last_holder_erases_the_evidence_only_term():
+    """A term alive only through one memory must vanish from the vocabulary, as a rebuild would."""
+    of = build_inmemory([], [], CHUNKS, feedback=Feedback())
+    of.remember("제티마 프로토콜", ["e"])          # a term no chunk contains
+    bm = of.vector._bm25
+    assert "#제티마" in bm.idf
+    of.forget("제티마 프로토콜", ["e"])
+    assert "#제티마" not in bm.idf and "#제티마" not in bm._pd
+    _assert_same_index(of, _rebuild([]))
+
+
+def test_forget_unknown_pair_is_a_noop():
+    of = _incremental(MEMORIES[:2])
+    of.forget("한 번도 기억한 적 없는 질문", ["a"])
+    of.forget("그리스의 수도는 어디인가?", ["e"])   # right query, wrong doc
+    _assert_same_index(of, _rebuild(MEMORIES[:2]))
+
+
+def test_interleaved_remember_and_forget_at_every_step():
+    """Grow/shrink interleaved; after each step the index must equal a from-scratch rebuild."""
+    of = build_inmemory([], [], CHUNKS, feedback=Feedback())
+    state: list[tuple[str, list[str]]] = []
+    script = [("remember", MEMORIES[0]), ("remember", MEMORIES[1]),
+              ("forget", MEMORIES[0]), ("remember", MEMORIES[4]),
+              ("remember", MEMORIES[0]), ("forget", MEMORIES[1]), ("forget", MEMORIES[4])]
+    for op, (q, ids) in script:
+        if op == "remember":
+            of.remember(q, ids)
+            state.append((q, ids))
+        else:
+            of.forget(q, ids)
+            state = _forgotten(state, q, ids[0]) if len(ids) == 1 else [
+                (sq, [d for d in sids if not (sq == q and d in ids)]) for sq, sids in state]
+            state = [(sq, sids) for sq, sids in state if sids]
+        _assert_same_index(of, _rebuild(state))
+
+
+def test_forget_survives_save_load(tmp_path):
+    from omnifuse import load_index, save_index
+    of = _incremental(MEMORIES[:3])
+    p = tmp_path / "ix.pkl"
+    save_index(of, p)
+    back = load_index(p)
+    back.forget("아테네는 어느 나라의 수도인가요?", ["b", "d"])
+    _assert_same_index(back, _rebuild([MEMORIES[0], MEMORIES[2]]))

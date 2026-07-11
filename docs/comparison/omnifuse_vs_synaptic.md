@@ -335,6 +335,15 @@ Contrast: synaptic's `reinforce()` is genuinely incremental (a SQLite write), bu
 benchmarked version `graph.search()` reads none of the fields it writes, so its measured
 retrieval delta is noise around zero. Being incremental is not the same as being wired in.
 
+The consolidation cascade completes the picture, measured on the same axis: `maintain()`
+(consolidate + decay + prune) **does run** — reinforcement feeds it, it promotes 54 nodes and
+decays vitality on all 5,234 — and retrieval moves by exactly **+0.0000**, on a cold store and
+on a warm one. Being maintained is not the same as being wired into retrieval either. (TTL
+expiry cannot trigger on a same-session benchmark; what is measured is promotion + decay +
+prune.) And the inverse direction now exists on our side: `forget()` withdraws a remembered
+pair in ~1 ms, bit-identical to a rebuild that never saw it — remember everything, forget
+everything, and you land bit-identically on the cold index.
+
 ## The last loss was ours: a missing copula in the Korean stemmer
 
 MIRACL-ko was the only dataset synaptic still won. Rather than keep trying weightings, we

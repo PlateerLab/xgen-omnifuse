@@ -54,6 +54,16 @@ class Feedback:
             if q not in seen:
                 seen.append(q)
 
+    def forget(self, query: str, doc_ids: Iterable[str]) -> None:
+        """Withdraw a remembered ``(query -> document)`` pair. Unknown pairs are a no-op."""
+        q = (query or "").strip()
+        for doc_id in doc_ids:
+            seen = self._mem.get(doc_id)
+            if seen and q in seen:
+                seen.remove(q)
+                if not seen:
+                    del self._mem[doc_id]
+
     def observe_ranked(self, retrieved: Iterable[str], relevant: Iterable[str], query: str) -> None:
         """Record a judged result list: only the confirmed-relevant chunks remember it."""
         rel = set(relevant)
