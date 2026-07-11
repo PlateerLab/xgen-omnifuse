@@ -1,0 +1,162 @@
+{
+  "benchmark": "Full-suite verification sweep — every axis, every dataset, synaptic re-run in the same pass",
+  "date": "2026-07-10",
+  "scorer": "synaptic's own tests/benchmark/metrics.py everywhere: MRR@10, nDCG@10, Recall@10, mean_search_time_ms",
+  "synaptic_provenance": "re-ingested and re-queried per dataset (its own run_public_dataset / SqliteGraphBackend + graph.search, embedder=None, reranker=None); finreg from its own prebuilt eval graph. No recalled numbers anywhere in this sweep.",
+  "accuracy_mrr10": {
+    "finreg": {
+      "synaptic": 0.7039,
+      "omnifuse": 0.84,
+      "multihop_strict": "56 vs 107",
+      "ndcg": "0.7410 vs 0.8663",
+      "recall_multihop": "0.6667 vs 0.9250"
+    },
+    "public_and_extended_12": {
+      "HotPotQA-24": [
+        0.8879,
+        0.9077
+      ],
+      "HotPotQA-200": [
+        0.8775,
+        0.9044
+      ],
+      "Allganize RAG-ko": [
+        0.9562,
+        0.9683
+      ],
+      "Allganize RAG-Eval": [
+        0.9303,
+        0.937
+      ],
+      "PublicHealthQA": [
+        0.6065,
+        0.6217
+      ],
+      "AutoRAG": [
+        0.9053,
+        0.9293
+      ],
+      "KLUE-MRC": [
+        0.7718,
+        0.8288
+      ],
+      "Ko-StrategyQA": [
+        0.644,
+        0.6496
+      ],
+      "SciFact": [
+        0.6317,
+        0.6456
+      ],
+      "XPQA-ko": [
+        0.3115,
+        0.329
+      ],
+      "NFCorpus": [
+        0.5124,
+        0.5182
+      ],
+      "MIRACL-ko": [
+        0.9495,
+        0.9617
+      ],
+      "format": "[synaptic, omnifuse @ shipped idf_pow=1.5]"
+    },
+    "golden_KRA_realworld": {
+      "synaptic": {
+        "mrr": 0.2547,
+        "ndcg": 0.2956,
+        "recall": 0.4279
+      },
+      "omnifuse": {
+        "mrr": 0.4957,
+        "ndcg": 0.5618,
+        "recall": 0.7674
+      }
+    },
+    "verdict": "15/15 at the shipped config. idf_pow=1.0 arm: 14/15, losing only Ko-StrategyQA by 0.0006 — disclosed in idf_pow_ablation.json."
+  },
+  "efficiency_speed": {
+    "metric": "synaptic's own mean_search_time_ms + ingest wall clock, MRR printed beside so speed is never read apart from quality",
+    "NFCorpus": {
+      "omnifuse": {
+        "ingest_s": 1.35,
+        "search_ms": 1.06,
+        "mrr": 0.5182
+      },
+      "synaptic": {
+        "ingest_s": 43.54,
+        "search_ms": 13.47,
+        "mrr": 0.5124
+      }
+    },
+    "Allganize_RAG_ko": {
+      "omnifuse": {
+        "ingest_s": 0.25,
+        "search_ms": 0.2,
+        "mrr": 0.9683
+      },
+      "synaptic": {
+        "ingest_s": 4.93,
+        "search_ms": 4.04,
+        "mrr": 0.9562
+      }
+    },
+    "golden_KRA": {
+      "omnifuse": {
+        "ingest_s": 6.21,
+        "search_ms": 2.17,
+        "mrr": 0.4957
+      },
+      "synaptic": {
+        "ingest_s": 90.26,
+        "search_ms": 20.47,
+        "mrr": 0.2547
+      }
+    },
+    "verdict": "search 9.4-20x faster, ingest 14.5-32x faster, with higher MRR on every corpus"
+  },
+  "memory": {
+    "requery_paraphrase_KRA": {
+      "cold": {
+        "all": 0.3392,
+        "covered": 0.3546,
+        "uncovered": 0.324
+      },
+      "real": {
+        "d_all": 0.179,
+        "d_covered": 0.3903,
+        "d_uncovered": -0.0304
+      },
+      "shuffled_placebo": {
+        "d_all": -0.0235,
+        "d_covered": -0.0254
+      },
+      "random_q_placebo": {
+        "d_all": 0.0248,
+        "d_covered": 0.0566
+      },
+      "reading": "real is 6.9x the strongest placebo on covered; synaptic's Hebbian is +0.0093 and its consolidation exactly +0.0000 on this axis (adaptive_memory.json)"
+    },
+    "disjoint_NFCorpus": {
+      "real_d_covered": 0.0066,
+      "placebos": 0.0,
+      "d_uncovered_real": 0.0
+    },
+    "incremental": {
+      "remember_ms": [
+        0.947,
+        1.026,
+        1.435
+      ],
+      "forget_ms": [
+        0.918,
+        1.089,
+        1.392
+      ],
+      "bit_identical": "YES on all six configurations (remember and forget, three corpora)"
+    }
+  },
+  "unit_tests": "pytest 66 passed",
+  "note_golden_ndcg_recall": "MRR matches golden_devxgen.json exactly (0.4957); nDCG/recall are slightly higher here (0.5618/0.7674 vs 0.5446/0.7535) because this harness retrieves limit=2K then dedupes to K (the convention of public_bench), while the recorded runner retrieved K. Symmetric for both systems in this sweep."
+}
