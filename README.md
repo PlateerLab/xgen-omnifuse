@@ -330,6 +330,14 @@ MRR is printed beside it so a speed claim can never be read apart from what it r
 | KRA golden (5,234 chunks, 215 q) | synaptic | 96.98 | 21.35 | 0.2547 |
 | | **OmniFuse** | **6.09** | **2.13** | **0.4973** |
 
+**Storage** — the persisted index (pickle+gzip since 2026-07-10, lossless: loaded indexes
+score bit-identically) is **2.5–3.5× smaller than synaptic's SQLite store** on the same
+documents, and about the size of the raw text itself: NFCorpus **5.9 vs 20.8 MB**,
+Allganize-ko **0.31 vs 0.76 MB**, KRA **9.7 vs 32.3 MB**. Honest note: before compression
+omnifuse *lost* the tiny-corpus case (1.34 vs 0.76 MB on 200 docs) — that measurement is
+what motivated the gzip, and it is recorded in
+[`eval/results/perf.json`](eval/results/perf.json).
+
 Faster on both axes while retrieving more. Honest framing: *ingest* means "raw corpus →
 queryable index"; synaptic writes a persistent SQLite store, which is real work OmniFuse
 does not do. `save_index`/`load_index` gives OmniFuse a warm start (0.21 s) but its index

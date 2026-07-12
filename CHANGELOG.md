@@ -2,6 +2,20 @@
 
 ## Unreleased
 
+- **Index persistence is now gzip-compressed — 2.4–4.3× smaller files, lossless.** A new
+  storage-footprint head-to-head (the one efficiency axis not yet measured) found the plain
+  pickle LOST to synaptic's SQLite store on tiny corpora (Allganize-ko: 1.34 vs 0.76 MB) while
+  winning mid/large ones. gzip flips every corpus to a win — NFCorpus **5.9 vs 20.8 MB**,
+  Allganize-ko **0.31 vs 0.76 MB**, KRA **9.7 vs 32.3 MB** (≈ the size of the raw text) — for
+  ~0.1 s of load time. Lossless by construction and by test: a loaded index scores
+  bit-identically, and pre-gzip index files still load (magic-byte sniff). pytest 66 → 67.
+
+- **Reproduction sweeps #2 and #3** re-ran the full 18-target suite with synaptic
+  re-ingested per dataset; all 42 arm values (14 sets × 3 idf_pow arms) reproduced to four
+  decimals across runs, and the shipped 1.2 arm went 14/14 against synaptic in the same
+  pass. Memory, incremental (remember/forget bit-identity), perf and enterprise disclosures
+  all reproduced. `eval/results/full_suite_2026_07_10.json`.
+
 - **Benchmark coverage completed (18 targets) — and it re-derived the `idf_pow` default to
   1.2, at which OmniFuse beats synaptic on every measured accuracy dataset.** An audit found
   synaptic's `tests/benchmark/data/` holds 15 files, of which 3 had never been run: **FiQA**

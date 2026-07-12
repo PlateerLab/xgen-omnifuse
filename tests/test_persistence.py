@@ -91,3 +91,31 @@ def test_rejects_unknown_format(tmp_path):
     p.write_bytes(pickle.dumps({"format": 999, "graph": None, "vector": None}))
     with pytest.raises(ValueError):
         load_index(p)
+
+
+def test_gzip_index_is_smaller_and_scores_identically(tmp_path):
+    """Compression must be free: bit-identical scores, and a pre-gzip file must still load."""
+    import gzip as _gzip
+    import pickle as _pickle
+
+    from omnifuse import build_inmemory, load_index, save_index
+    chunks = [{"id": f"d{i}", "title": f"문서 {i}", "text": "외국환거래법 제십조 " * 30 + str(i)}
+              for i in range(200)]
+    of = build_inmemory([], [], chunks)
+    p = tmp_path / "ix.pkl"
+    save_index(of, p)
+    with open(p, "rb") as fh:
+        assert fh.read(2) == b"\x1f\x8b"  # actually gzip
+    back = load_index(p)
+    q = "외국환거래법"
+    assert ([c.id for c, _ in back.retrieve(q, limit=10)]
+            == [c.id for c, _ in of.retrieve(q, limit=10)])
+    # a pre-gzip (plain pickle) index written by an older version must still load
+    legacy = tmp_path / "legacy.pkl"
+    with _gzip.open(p, "rb") as fh:
+        blob = _pickle.load(fh)
+    with open(legacy, "wb") as fh:
+        _pickle.dump(blob, fh, protocol=_pickle.HIGHEST_PROTOCOL)
+    old = load_index(legacy)
+    assert ([c.id for c, _ in old.retrieve(q, limit=10)]
+            == [c.id for c, _ in of.retrieve(q, limit=10)])

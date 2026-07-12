@@ -113,5 +113,45 @@
         "mrr": 0.2547
       }
     }
+  },
+  "storage_footprint_2026_07_10": {
+    "what": "persisted-index size, both systems' own formats: omnifuse save_index (pickle+gzip) vs synaptic's SQLite store, same documents",
+    "before_compression": {
+      "NFCorpus": {
+        "omnifuse_mb": 13.52,
+        "synaptic_mb": 20.74
+      },
+      "Allganize_ko": {
+        "omnifuse_mb": 1.34,
+        "synaptic_mb": 0.76,
+        "note": "the one loss — pickle overhead dominates tiny corpora"
+      },
+      "KRA": {
+        "omnifuse_mb": 28.71,
+        "synaptic_mb": 32.31
+      }
+    },
+    "after_gzip_shipped": {
+      "NFCorpus": {
+        "raw_text_mb": 5.78,
+        "omnifuse_mb": 5.9,
+        "synaptic_mb": 20.75,
+        "ratio": 3.5
+      },
+      "Allganize_ko": {
+        "raw_text_mb": 0.18,
+        "omnifuse_mb": 0.31,
+        "synaptic_mb": 0.76,
+        "ratio": 2.5
+      },
+      "KRA": {
+        "raw_text_mb": 9.52,
+        "omnifuse_mb": 9.66,
+        "synaptic_mb": 32.31,
+        "ratio": 3.3
+      }
+    },
+    "cost": "gzip is lossless (loaded index scores bit-identically; round-trip + legacy-format tests added); load time +~0.1s (KRA 0.19 -> 0.28s)",
+    "honest_note": "measured uncompressed first, and the Allganize loss is recorded above rather than hidden — compression was added because of it."
   }
 }
