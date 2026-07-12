@@ -40,6 +40,7 @@ DATASETS = [
     ("KLUE-MRC", "klue_mrc.json"), ("Ko-StrategyQA", "ko_strategyqa.json"),
     ("SciFact", "scifact.json"), ("XPQA-ko", "xpqa_ko.json"),
     ("NFCorpus", "nfcorpus.json"), ("MIRACL-ko", "miracl_retrieval_ko.json"),
+    ("FiQA", "fiqa.json"), ("MultiLongDoc-ko", "multilongdoc_ko.json"),
 ]
 K = 10
 ARMS = (1.0, 1.5)
@@ -67,7 +68,9 @@ def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--synaptic-repo", type=Path, required=True)
     ap.add_argument("--out", type=Path)
+    ap.add_argument("--datasets", help="comma-separated dataset names to run (default: all)")
     a = ap.parse_args()
+    only = {x.strip() for x in a.datasets.split(",")} if a.datasets else None
     bd = a.synaptic_repo / "tests" / "benchmark" / "data"
 
     print(f"scored by eval/metrics.py (synaptic's own), MRR@10, k={K}. synaptic re-run per dataset.\n")
@@ -75,6 +78,8 @@ def main() -> None:
     print("-" * 76)
     rows, t0 = {}, time.time()
     for name, fn in DATASETS:
+        if only and name not in only:
+            continue
         path = bd / fn
         if not path.exists():
             print(f"{name:20}{'(missing)':>10}")

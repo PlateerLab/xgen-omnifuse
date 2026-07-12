@@ -35,18 +35,18 @@ python eval/idf_pow_bench.py --synaptic-repo PATH       # idf_pow ablation, syna
 
 | dataset | lang | task | synaptic (FTS) | **OmniFuse** | Δ |
 |---|---|---|---:|---:|---:|
-| **finreg single-hop** | KO | statute retrieval | 0.7039 | **0.8400** | **+0.136** |
-| **finreg multi-hop** (strict/120) | KO | cite-following | 56 | **107** | **+51** |
+| **finreg single-hop** | KO | statute retrieval | 0.7039 | **0.8471** | **+0.143** |
+| **finreg multi-hop** (strict/120) | KO | cite-following | 56 | **108** | **+52** |
 | HotPotQA-24 | EN | multi-hop | 0.8879 | **0.9077** | +0.020 |
-| HotPotQA-200 | EN | multi-hop | 0.8775 | **0.9044** | +0.027 |
+| HotPotQA-200 | EN | multi-hop | 0.8775 | **0.8958** | +0.018 |
 | Allganize RAG-ko | KO | enterprise RAG | 0.9562 | **0.9683** | +0.012 |
-| Allganize RAG-Eval | KO | domain RAG | 0.9303 | **0.9370** | +0.007 |
-| KLUE-MRC | KO | machine reading | 0.7718 | **0.8288** | +0.057 |
-| PublicHealthQA | KO | paraphrase QA | 0.6065 | **0.6217** | +0.015 |
-| AutoRAG | KO | passage retrieval | 0.9053 | **0.9293** | +0.024 |
-| Ko-StrategyQA | KO | strategy QA | 0.6440 | **0.6496** | +0.006 |
+| Allganize RAG-Eval | KO | domain RAG | 0.9303 | **0.9371** | +0.007 |
+| KLUE-MRC | KO | machine reading | 0.7718 | **0.8293** | +0.058 |
+| PublicHealthQA | KO | paraphrase QA | 0.6065 | **0.6133** | +0.007 |
+| AutoRAG | KO | passage retrieval | 0.9053 | **0.9282** | +0.023 |
+| Ko-StrategyQA | KO | strategy QA | 0.6440 | **0.6466** | +0.003 |
 
-**OmniFuse wins 10, loses 0** (avg MRR 0.843 vs 0.809) — every synaptic-shipped dataset,
+**OmniFuse wins 10, loses 0** (avg MRR 0.842 vs 0.809) — every synaptic-shipped dataset,
 with zero dependencies (no morphological analyzer), versus synaptic's mandatory Kiwi.
 Across the extended track too, the score is **15/15**. Three honest, general, zero-hardcode
 logic improvements get here: (1) a dependency-free Korean stemmer (strip 조사/어미/지정사
@@ -212,12 +212,12 @@ MRR is printed beside it so a speed claim can never be read apart from what it r
 
 | dataset | system | ingest_s | mean_search_ms | MRR |
 |---|---|---:|---:|---:|
-| NFCorpus (3,633 docs) | synaptic | 55.01 | 14.14 | 0.5124 |
-| | **OmniFuse** | **2.01** | **1.66** | **0.5182** |
+| NFCorpus (3,633 docs) | synaptic | 44.77 | 13.67 | 0.5124 |
+| | **OmniFuse** | **1.23** | **0.97** | **0.5175** |
 | Allganize RAG-ko (200) | synaptic | 5.39 | 4.41 | 0.9562 |
 | | **OmniFuse** | **0.18** | **0.18** | **0.9683** |
-| KRA golden (5,234 chunks, 215 q) | synaptic | 90.26 | 20.47 | 0.2547 |
-| | **OmniFuse** | **6.21** | **2.17** | **0.4957** |
+| KRA golden (5,234 chunks, 215 q) | synaptic | 96.98 | 21.35 | 0.2547 |
+| | **OmniFuse** | **6.09** | **2.13** | **0.4973** |
 
 Faster on both axes while retrieving more. Honest framing: *ingest* means "raw corpus →
 queryable index"; synaptic writes a persistent SQLite store, which is real work OmniFuse

@@ -75,5 +75,43 @@
         "mrr": 0.9562
       }
     }
+  },
+  "remeasured_at_default_1.2_2026_07_10": {
+    "nfcorpus": {
+      "omnifuse": {
+        "ingest_s": 1.23,
+        "mean_search_ms": 0.97,
+        "mrr": 0.5175
+      },
+      "synaptic": {
+        "ingest_s": 44.77,
+        "mean_search_ms": 13.67,
+        "mrr": 0.5124
+      }
+    },
+    "allganize_rag_ko": {
+      "omnifuse": {
+        "ingest_s": 0.19,
+        "mean_search_ms": 0.17,
+        "mrr": 0.9683
+      },
+      "synaptic": {
+        "ingest_s": 4.95,
+        "mean_search_ms": 4.06,
+        "mrr": 0.9562
+      }
+    },
+    "golden_KRA": {
+      "omnifuse": {
+        "ingest_s": 6.09,
+        "mean_search_ms": 2.13,
+        "mrr": 0.4973
+      },
+      "synaptic": {
+        "ingest_s": 96.98,
+        "mean_search_ms": 21.35,
+        "mrr": 0.2547
+      }
+    }
   }
 }

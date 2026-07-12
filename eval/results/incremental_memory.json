@@ -130,5 +130,23 @@
       }
     },
     "tests": "tests/test_incremental.py 7 -> 13 (forget-one, forget-all==cold, last-holder erasure, unknown no-op, interleaved remember/forget at every step, forget after save/load)"
+  },
+  "reverified_at_default_1.2_2026_07_10": {
+    "NFCorpus": {
+      "remember_ms": 0.964,
+      "forget_ms": 0.903,
+      "bit_identical": true
+    },
+    "NFCorpus_corpus_div_10": {
+      "remember_ms": 0.918,
+      "forget_ms": 1.04,
+      "bit_identical": true
+    },
+    "KRA": {
+      "remember_ms": 1.51,
+      "forget_ms": 1.415,
+      "bit_identical": true
+    },
+    "note": "bit-identity is independent of idf_pow (the update recomputes with whatever exponent the index was built with); re-verified anyway after the default change."
   }
 }

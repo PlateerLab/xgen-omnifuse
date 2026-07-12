@@ -233,5 +233,51 @@
     },
     "reading": "The cascade RUNS — reinforcement feeds it and it promotes 54 nodes, decay touches all 5,234 — but graph.search() reads none of it: retrieval delta is exactly +0.0000 on both stores. Same channel isolation as reinforce(). Being maintained is not the same as being wired into retrieval.",
     "caveat": "TTL expiry (72h/90d/365d) cannot trigger on a fresh ingest; what is measured is promotion + decay + prune on the benchmark timescale, i.e. the parts that could possibly move a same-session benchmark."
+  },
+  "remeasured_at_default_1.2_2026_07_10": {
+    "why": "the idf_pow default moved 1.5 -> 1.2 (see idf_pow_ablation.json); the memory axes were re-measured at the shipping default",
+    "KRA_requery": {
+      "real": {
+        "d_all": 0.1843,
+        "d_covered": 0.4016,
+        "d_uncovered": -0.031
+      },
+      "shuffled": {
+        "d_all": -0.0184,
+        "d_covered": -0.0217
+      },
+      "random_q": {
+        "d_all": 0.0263,
+        "d_covered": 0.059
+      }
+    },
+    "NFCorpus_requery_canonical_runner": {
+      "cold": {
+        "all": 0.0985
+      },
+      "real": {
+        "d_all": 0.1133,
+        "d_covered": 0.1785,
+        "d_uncovered": 0.0
+      },
+      "shuffled": {
+        "d_all": 0.0028,
+        "d_covered": 0.0044
+      },
+      "random_q": {
+        "d_all": 0.0002,
+        "d_covered": 0.0006
+      },
+      "synaptic_hebbian_same_protocol": {
+        "d_all": -0.001,
+        "d_covered": -0.0002
+      }
+    },
+    "disjoint_NFCorpus": {
+      "real_d_covered": 0.0012,
+      "placebos": 0.0,
+      "d_uncovered_real": 0.0
+    },
+    "reading": "the signature strengthens at 1.2: real beats the strongest placebo 6.8x (KRA) / 40x (NFCorpus) on covered, both placebos die, and real's d_uncovered is exactly 0.0000 on NFCorpus."
   }
 }

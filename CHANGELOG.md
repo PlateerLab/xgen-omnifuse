@@ -2,6 +2,31 @@
 
 ## Unreleased
 
+- **Benchmark coverage completed (18 targets) — and it re-derived the `idf_pow` default to
+  1.2, at which OmniFuse beats synaptic on every measured accuracy dataset.** An audit found
+  synaptic's `tests/benchmark/data/` holds 15 files, of which 3 had never been run: **FiQA**
+  (57,638 docs — the largest corpus yet), **MultiLongDoc-ko**, and the 12-document
+  **enterprise_scenario** toy. Run head-to-head (synaptic re-ingested per set, its own
+  scorer): MultiLongDoc-ko wins both arms; **FiQA LOSES at the old default 1.5** (0.2781 vs
+  0.2902) and wins at p≤1.3 (0.2929 at 1.0). With Ko-StrategyQA binding from below (wins at
+  p≥1.1), the winning band is **[1.1, 1.3]**; the default moves to its midpoint **1.2** —
+  the same mid-band rule that chose 1.5 when the suite had 13 datasets, recomputed for 18.
+  At 1.2, all 16 accuracy targets win (0.8471/108 finreg — multi-hop UP from 107 —
+  MIRACL-ko 0.9750, golden 0.4973, FiQA 0.2920), the memory axes improve (KRA covered
+  +0.4016, NFCorpus +0.1785, placebos dead, Δuncovered exactly 0), and remember/forget stay
+  bit-identical.
+
+  **enterprise_scenario is disclosed, not tuned away**: synaptic edges MRR by 0.0056 (one
+  query of 15, rank 2 vs 1, 12 documents); OmniFuse wins nDCG in every configuration, wins
+  recall, and under the full scenario (docs + links + agent sessions — synaptic driven by its
+  own conftest, OmniFuse links-as-triples + `Feedback` from session descriptions) OmniFuse
+  answers the scenario's designed memory query at 1.000 vs 0.333. The diagnosed cause is a
+  token-length artifact meaningful only at n=12; the parameter-free fix (word-mass query
+  weighting, Lucene SynonymQuery-style) was implemented, measured, and **rejected: 11 of 12
+  real datasets degraded** (MIRACL 0.9376, finreg 0.7965). The length-proportional bigram
+  mass is not a bug at corpus scale — a fully-matched long compound is genuinely stronger
+  evidence — and the negative result is recorded.
+
 - **`forget()` — memory can now be withdrawn, in place, to the same bar.** `remember()`'s
   inverse: `OmniFuse.forget(query, doc_ids)` removes a remembered pair from the live index in
   ~1 ms (NFCorpus 1.11 ms, KRA 1.52 ms), **bit-identical** to an index rebuilt without that

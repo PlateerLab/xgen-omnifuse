@@ -158,5 +158,6 @@
     }
   },
   "unit_tests": "pytest 66 passed",
-  "note_golden_ndcg_recall": "MRR matches golden_devxgen.json exactly (0.4957); nDCG/recall are slightly higher here (0.5618/0.7674 vs 0.5446/0.7535) because this harness retrieves limit=2K then dedupes to K (the convention of public_bench), while the recorded runner retrieved K. Symmetric for both systems in this sweep."
+  "note_golden_ndcg_recall": "MRR matches golden_devxgen.json exactly (0.4957); nDCG/recall are slightly higher here (0.5618/0.7674 vs 0.5446/0.7535) because this harness retrieves limit=2K then dedupes to K (the convention of public_bench), while the recorded runner retrieved K. Symmetric for both systems in this sweep.",
+  "superseded_note": "Measured at the old default idf_pow=1.5, before coverage completion added FiQA/MultiLongDoc/enterprise and re-derived the default to 1.2. Current per-dataset numbers: idf_pow_ablation.json (default_rederivation_2026_07_10), missing_datasets_2026_07_10.json, and the README master table."
 }

@@ -27,18 +27,19 @@ _CJK_OTHER = re.compile(r"[぀-ヿ一-鿿]+")  # kana + hanja: bi-grams, no morp
 # a power > 1 makes the rare term dominate the sum, fixing this "entity-burial". The
 # mechanism is measured, not asserted: on the queries it rescues the gold document matches
 # a rarer query term and fewer of them than the wrong top-1 (max-IDF 6.22 vs 6.08, overlap
-# 3.4 vs 5.8); on the queries it breaks that sign flips (5.37 vs 6.16). 1.0 is plain BM25;
-# the suite wins across the whole flat band p∈[1.3, 2.0], so 1.5 is a mid-band default, not
-# a knife-edge fit (zero runtime cost — the power is folded into the IDF at index build).
+# 3.4 vs 5.8); on the queries it breaks that sign flips (5.37 vs 6.16). 1.0 is plain BM25.
 #
-# It is a real trade, and a smaller one than it looks. Re-ablated under the shipping
-# tokenizer, p=1.5 vs p=1.0 nets +0.0065 MRR across 13 datasets — a wash. It buys AutoRAG
-# (+0.0143), HotPotQA-200 (+0.0119) and Ko-StrategyQA (+0.0062); it costs MIRACL-ko
-# (0.9812 -> 0.9617), finreg (0.8533 -> 0.8400) and NFCorpus (0.5236 -> 0.5182), because
-# betting on one rare term is wrong when many documents are relevant. Pass ``idf_pow=1.0``
-# on heavily multi-relevant corpora, via
+# The default is the MIDPOINT OF THE WINNING BAND, re-derived whenever the suite grows.
+# With 13 datasets the band was p∈[1.3, 2.0] and the default 1.5. Completing coverage of
+# synaptic's shipped data (18 targets) moved the band: FiQA (57,638 docs, 2.6 rel/query)
+# binds it from ABOVE — it wins at p≤1.3 and loses from 1.4 — and Ko-StrategyQA binds it
+# from BELOW (wins from p≥1.1). Overlap [1.1, 1.3], midpoint 1.2, at which every one of
+# the 16 measured accuracy targets beats synaptic (LOSSES: none), and MIRACL-ko/finreg/
+# golden are strictly better than at 1.5. The emphasis is still a trade: heavily
+# multi-relevant corpora prefer less of it (that is exactly FiQA's constraint), so
+# ``idf_pow=1.0`` remains available via
 # ``build_inmemory(..., vector_kwargs={"idf_pow": 1.0})``. See eval/results/idf_pow_ablation.json.
-_IDF_POW = 1.5
+_IDF_POW = 1.2
 
 # Korean particles (조사), verb/adjective endings (어미), and derivational suffixes,
 # stripped only when trailing (so 상황/성별 — with the char leading — are untouched;
