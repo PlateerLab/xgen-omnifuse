@@ -216,6 +216,8 @@ MRR is printed beside it so a speed claim can never be read apart from what it r
 | | **OmniFuse** | **2.01** | **1.66** | **0.5182** |
 | Allganize RAG-ko (200) | synaptic | 5.39 | 4.41 | 0.9562 |
 | | **OmniFuse** | **0.18** | **0.18** | **0.9683** |
+| KRA golden (5,234 chunks, 215 q) | synaptic | 90.26 | 20.47 | 0.2547 |
+| | **OmniFuse** | **6.21** | **2.17** | **0.4957** |
 
 Faster on both axes while retrieving more. Honest framing: *ingest* means "raw corpus →
 queryable index"; synaptic writes a persistent SQLite store, which is real work OmniFuse

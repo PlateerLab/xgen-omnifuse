@@ -182,6 +182,10 @@ Everything in **one table** — MRR@10 unless noted, single-shot, no LLM, no emb
 (zero-infra lexical track). "winner" = higher score; **OmniFuse leads all 15 datasets**
 (Core 10/10, Extended 4/4, Real-world 1/1).
 
+Every number below was **re-verified 2026-07-10 in a single sweep** — synaptic re-ingested
+and re-queried per dataset through its own drivers, both systems scored by synaptic's own
+`metrics.py` ([`eval/results/full_suite_2026_07_10.json`](eval/results/full_suite_2026_07_10.json)):
+
 | track | dataset | synaptic (FTS) | **OmniFuse** | winner |
 |---|---|---:|---:|:--|
 | **Core** (synaptic-shipped, 10/10) | finreg single-hop | 0.7039 | **0.8400** | 🟢 OmniFuse |
@@ -307,6 +311,8 @@ MRR is printed beside it so a speed claim can never be read apart from what it r
 | | **OmniFuse** | **2.01** | **1.66** | **0.5182** |
 | Allganize RAG-ko (200) | synaptic | 5.39 | 4.41 | 0.9562 |
 | | **OmniFuse** | **0.18** | **0.18** | **0.9683** |
+| KRA golden (5,234 chunks, 215 q) | synaptic | 90.26 | 20.47 | 0.2547 |
+| | **OmniFuse** | **6.21** | **2.17** | **0.4957** |
 
 Faster on both axes while retrieving more. Honest framing: *ingest* means "raw corpus →
 queryable index"; synaptic writes a persistent SQLite store, which is real work OmniFuse
@@ -369,11 +375,14 @@ evidence takes its IDF from the evidence df; but every posting of such a term is
 evidence-derived, so the documents to fix are the ones that remember it. The blast radius
 is the memory, not the corpus — measured, **15 such terms out of a 23,610-term vocabulary**.
 
-| | rebuild | `remember()` | per memory |
-|---|---:|---:|---:|
-| NFCorpus (3,633 docs, 100 memories) | 1.389 s | **1.00 ms** | **1,386x** |
-| same memories, a tenth of the corpus | 0.175 s | **1.02 ms** | 172x |
-| KRA (5,234 chunks, 120 memories) | 6.605 s | **1.52 ms** | **4,335x** |
+| | rebuild | `remember()` | `forget()` | per memory |
+|---|---:|---:|---:|---:|
+| NFCorpus (3,633 docs, 100 memories) | 1.389 s | **1.00 ms** | **1.11 ms** | **1,386x** |
+| same memories, a tenth of the corpus | 0.175 s | **1.02 ms** | 1.02 ms | 172x |
+| KRA (5,234 chunks, 120 memories) | 6.605 s | **1.52 ms** | **1.52 ms** | **4,335x** |
+
+Both directions are **bit-identical** to a rebuild on all three corpora — remember with the
+pair, forget without it.
 
 The middle row is the control: ten times fewer documents makes the *rebuild* 7.9x cheaper
 and leaves `remember()` where it was. Cost tracks the memory, not the corpus, and it stays
