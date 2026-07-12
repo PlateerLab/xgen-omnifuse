@@ -43,7 +43,7 @@ DATASETS = [
     ("FiQA", "fiqa.json"), ("MultiLongDoc-ko", "multilongdoc_ko.json"),
 ]
 K = 10
-ARMS = (1.0, 1.5)
+ARMS = (1.0, 1.2, 1.5)  # band edges + the shipped default
 
 
 def omni_mrr(path: Path, idf_pow: float) -> float:
@@ -90,6 +90,7 @@ def main() -> None:
         rows[name] = {"synaptic": round(syn, 4),
                       **{f"omnifuse_idf_pow_{p}": round(arms[p], 4) for p in ARMS},
                       "delta_1.5_minus_1.0": round(arms[1.5] - arms[1.0], 4),
+                      "shipped_1.2_beats_synaptic": arms[1.2] > syn,
                       "p1.0_beats_synaptic": arms[1.0] > syn, "p1.5_beats_synaptic": arms[1.5] > syn}
         print(f"{name:20}{syn:>10.4f}{arms[1.0]:>12.4f}{arms[1.5]:>12.4f}"
               f"{arms[1.5]-arms[1.0]:>+9.4f}  {', '.join(w)}")
