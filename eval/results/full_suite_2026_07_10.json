@@ -199,5 +199,20 @@
       "incremental": "remember 0.91-1.45ms / forget 0.92-1.47ms, bit-identical on all six configurations"
     },
     "verdict": "every winnable metric won at the shipped default; the only remaining MRR gap is the 12-doc enterprise toy, disclosed with its diagnosis and the Pareto-rejected fix"
+  },
+  "reproduction_sweep_2_shipped_arm_same_pass": {
+    "when": "2026-07-10, second full sweep after the default re-derivation",
+    "what_is_new": "the shipped default (idf_pow=1.2) was scored as a third arm IN THE SAME PASS as the synaptic re-run on all 14 BEIR-style sets — closing the last provenance gap (previous 1.2 numbers were measured against same-day synaptic constants).",
+    "result": {
+      "unit_tests": "pytest 66 passed",
+      "shipped_arm_vs_synaptic": "14/14 wins, zero losses; every 1.2 value reproduced the prior measurement to 4 decimals",
+      "finreg": "0.8471 / strict 108 / nDCG 0.8738 / hit 115 vs synaptic 0.7039 / 56 — identical reproduction",
+      "golden_KRA": "0.4973 / 0.5621 / 0.7628, search 2.08ms vs synaptic 0.2547 / 0.2956 / 0.4279, 20.87ms",
+      "efficiency": "NFCorpus 1.33s/0.99ms/0.5175 vs 43.78s/13.52ms/0.5124; Allganize 0.17s/0.17ms/0.9683 vs 4.92s/4.29ms/0.9562",
+      "memory": "KRA real +0.4016 covered (placebos -0.0217/+0.0590); NFCorpus real +0.1785 (placebos +0.0044/+0.0006, d_uncovered exactly 0); disjoint clean",
+      "incremental": "remember 0.92-1.46ms / forget 0.92-1.41ms, bit-identical on all six configurations",
+      "enterprise_toy": "unchanged disclosure (synaptic MRR by 0.0056 docs-only; omnifuse nDCG/recall/designed-memory-query)"
+    },
+    "verdict": "full reproduction; every winnable metric won at the shipped default, now with zero recalled numbers anywhere in the chain"
   }
 }
