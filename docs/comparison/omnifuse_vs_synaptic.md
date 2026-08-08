@@ -1,9 +1,60 @@
 # OmniFuse vs synaptic-memory — reproducible benchmark
 
-Every number here is regenerable from source (`eval/`), single-shot, **no LLM and
-no embedder on either side**. synaptic numbers come from synaptic's *own*
-`eval.run_all` runner in FTS-only mode (`embedder=None, reranker=None`) — exactly
-what synaptic reports on itself. Same corpus, same queries, same qrels, same
+> **Historical comparison (through 2026-07-10).** This document preserves the investigation and rejected variants from that run; its old totals and default-setting arguments are not current claims. The latest controlled result is the 2026-08-08 v22 official HotPotQA retrieval and local-LLM E2E cohort, where OmniFuse wins 11/11 retrieval/evidence/efficiency and 10/10 answer-quality/cost aggregate metrics; see the [root README](../../README.md#official-hotpotqa-retrieval-and-local-llm-e2e-cohort-2026-08-08-v22), [`retrieval` artifact](../../eval/results/e2e_qa_retrieval_synaptic_tag_v0.27.0_836d536_20260808_v22.json) and [`answer` artifact](../../eval/results/e2e_qa_answer_synaptic_tag_v0.27.0_836d536_qwen3.5_4b_20260808_v22.json). The 2026-08-03 v20 LongMemEval cohort wins 8/8 aggregate retrieval and efficiency metrics, while v19 separates unlabeled and qrels-supervised ablation stages. The v18 direct14 and QA cohorts, v17 native SQLite cohort and v8 in-memory/CDC cohort remain controlled evidence. Embedding, reranking, PostgreSQL and unrelated agent-memory capabilities remain outside these cohorts; v22's answer result is one complete local `qwen3.5:4b` run, not a cross-model constant. The separate 2026-07-14 public8 and extended9 artifacts target upstream `main` at `7470e728`, whose package metadata says 0.27.0 but which is not the tag. Historical upstream-main evidence remains in [`public_v027_20260714_canonical.json`](../../eval/results/public_v027_20260714_canonical.json) and [`extended9_v027_20260714_canonical.json`](../../eval/results/extended9_v027_20260714_canonical.json).
+
+## Current controlled evidence (through 2026-08-08, v22)
+
+The v22 official HotPotQA path is summarized in the root README and immutable artifacts
+linked above. Its structural change is an opt-in static-corpus title-reference graph: a
+token trie links only unambiguous multi-token title mentions and never reads benchmark
+queries, answers or qrels. It improves retrieval recall from the v21 OmniFuse baseline
+0.8958 to 0.9792 and removes the only aggregate answer-cost loss, producing 11/11 retrieval
+and 10/10 local-LLM answer wins. The zero-inclusive correctness comparison is 0.7542 versus
+0.5040; p95 generation is 55.40 versus 65.62 seconds.
+
+The v20 LongMemEval-S cohort reproduces the tagged test's seed-42 balanced sample, exact
+turn-pair records and plain `graph.search(question, limit=20)` session-recall calculation.
+The nominal 50-question default yields 48 questions across six types, 2,296 sessions and
+11,935 turn pairs. Two fresh workers per system run AB/BA using one immutable selected-sample
+artifact so the 277 MB source JSON parser does not contaminate index RSS. OmniFuse wins all
+8 aggregate comparisons: mean session recall 0.9705 versus 0.8413, hit rate 1.0000 versus
+0.9167, MRR 0.8936 versus 0.6990, nDCG 0.8937 versus 0.6898, total build 20.49 versus
+82.11 ms, mean retrieval 51.63 versus 235.11 ms, p95 58.45 versus 252.83 ms, and maximum
+per-question RSS delta 1.006 versus 2.177 MB. Session recall has 10 per-question wins,
+38 ties and no losses; MRR and nDCG each have two local losses and therefore remain aggregate
+claims. OmniFuse lexical materialization is charged to the single reported retrieval rather
+than hidden behind a warm-up. External LLM answer generation is excluded. Evidence:
+[`longmemeval_retrieval_synaptic_tag_v0.27.0_836d536_20260803_v20.json`](../../eval/results/longmemeval_retrieval_synaptic_tag_v0.27.0_836d536_20260803_v20.json).
+
+The v19 raw tagged ablation suite ran for 16:26:38 and ended 13/13 skipped at the S8 external
+LLM stage, so it is not called a passing benchmark. A controlled S0-S7 comparison separates
+unlabeled S0/S1/S2/S6 from qrels-supervised S3/S4/S5. OmniFuse beats the best comparable
+Synaptic stage on AutoRAG cold MRR/nDCG (0.8908/0.9187 versus 0.8173/0.8591), NFCorpus cold
+MRR/nDCG (0.5486/0.3334 versus 0.5116/0.2959), and NFCorpus supervised MRR/nDCG
+(0.6276/0.5121 versus 0.2908/0.1832), while also retaining lower build and query time.
+AutoRAG has no feedback-eligible query, S7's failed Ollama fallback is excluded, and S8 remains
+outside the retrieval claim. Evidence:
+[`AutoRAG`](../../eval/results/ablation_autorag_synaptic_tag_v0.27.0_836d536_20260730_v19.json)
+and [`NFCorpus`](../../eval/results/ablation_nfcorpus_synaptic_tag_v0.27.0_836d536_20260730_v19.json).
+
+The official-tag direct cohort completes every executable upstream external case: 14 datasets and 2,269 queries per system. OmniFuse wins all 14 datasets on MRR@20, MRR@10, Precision@10, F1@10 and nDCG@10; Recall@10 is 13 wins and one tie. The unweighted dataset macros are 0.7038 versus 0.6553 MRR@20, 0.7022 versus 0.6537 MRR@10, 0.1776 versus 0.1505 Precision@10, 0.7178 versus 0.6606 Recall@10, 0.2206 versus 0.1919 F1@10 and 0.6747 versus 0.6100 nDCG@10. v15 and v18 preserve identical metrics and all 2,269 OmniFuse top-20 rankings; the canonical ranking bundle SHA-256 is `3b6bd4f9d3213036adb128637bff52adfe08803ec00389d1e8a7ec3c742c25c6`.
+
+The v18 official QA cohort reproduces Synaptic's exact 150-document fixture, 16 queries and cold `p95 < 100 ms` / `average < 50 ms` gates in four fresh workers per system. OmniFuse passes both gates in 4/4 workers; tagged Synaptic passes each in 0/4. Median cold p95 is 49.25 versus 3,079.71 ms, steady p95 is 0.052 versus 21.447 ms, post-query RSS is 35.43 versus 534.99 MB, and lifetime peak is 45.30 versus 598.32 MB. OmniFuse wins all 10 common efficiency metrics. The structural forward-only build change reduces its own cold p95 by 33.1% with an unchanged exact ranking hash. Evidence: [`qa_memory_synaptic_tag_v0.27.0_836d536_20260728_v18_forward_fast_v1.json`](../../eval/results/qa_memory_synaptic_tag_v0.27.0_836d536_20260728_v18_forward_fast_v1.json).
+
+v15 replaces reverse/update state in immutable graph and non-feedback vector stores with a forward-only compact snapshot. The internal 30,000-document diagnostic preserves every ranking and score while reducing measured index RSS by 73.9%, serialized state by 68.6% and serialization time by 94.4%. It also exposes real costs: build time rises 15.3% and a cold unseen-term lookup rises from 0.020 to 0.134 ms; repeated-query p50 is effectively unchanged at 0.019 versus 0.020 ms. This is an OmniFuse implementation diagnostic, not a Synaptic comparison.
+
+The v17 native SQLite cohort runs 28 fresh workers across Allganize RAG-ko, AutoRAG, NFCorpus and the 171,332-document TREC-COVID corpus. It records 76 strict wins, 0 ties and 0 losses over thirteen efficiency and six official accuracy metrics per dataset. Phase RSS releases ingestion-only staging before clean open and records post-create, clean-open and post-query memory identically for both systems. v16 supplied the exact raw-scorer optimization; v17 preserves its rankings, scoring formula and artifact layout while generalizing canonical preflight to doctor-registered non-direct datasets. The compact evidence is [`persistence_memory4_synaptic_tag_v0.27.0_836d536_20260728_v17_summary.json`](../../eval/results/persistence_memory4_synaptic_tag_v0.27.0_836d536_20260728_v17_summary.json).
+
+The 171,332-document TREC-COVID run is capability-qualified: OmniFuse uses `build_inmemory`, while Synaptic uses its durable `SqliteGraphBackend`. The v15 follow-up preserves MRR@10 0.9083 and records p50 109.49 ms versus canonical Synaptic 2,937.81 ms, but the disk-backed Synaptic worker has lower current RSS, 412.88 versus 786.08 MB. Both lifetime peaks are about 2.13 GB because frozen-input parsing dominates. The follow-up reuses the frozen input and is not a new counterbalanced two-system cohort. See [`eval/README.md`](../../eval/README.md) for protocols, hashes and all qualifications.
+
+The v17 same-backend TREC cohort removes that capability confound: both systems create, close, reopen and query native SQLite artifacts. OmniFuse records create 38.62 versus 42.84 s, p50 895.14 versus 1,466.23 ms, artifact 183.8 versus 630.2 MB, post-query RSS 407.20 versus 454.48 MB and MRR@10 0.9017 versus 0.7210. Its 0.41 MB lifetime-peak margin is parser-dominated and not operationally meaningful; workload peak is 463.53 versus 595.19 MB.
+
+The public-input numbers here are regenerable from source (`eval/`), single-shot,
+**no LLM and no embedder on either side**. The historical private KRA result also
+requires its original corpus and credentials, which are not committed. Synaptic numbers
+come from the selected main checkout's own native `eval.run_all` public runner in FTS-only mode
+(`embedder=None, reranker=None`). This is not a direct invocation of upstream
+`tests/benchmark/test_external_datasets.py`. Same corpus, same queries, same qrels, same
 metric (`eval/metrics.py`, MRR@10, k=10).
 
 Machine-readable dump: [`eval/results/omnifuse_vs_synaptic.json`](../../eval/results/omnifuse_vs_synaptic.json).
@@ -475,7 +526,92 @@ flips to a loss. So `1.5` stays the best single global default (13/15 datasets),
 build_inmemory(nodes, triples, chunks, vector_kwargs={"idf_pow": 1.0})  # multi-relevant corpora
 ```
 
-## Performance — measured, with the asymmetry stated
+## Current official-tag performance and change-data capture (2026-07-23, v8)
+
+The remaining static-ingest deficit was architectural, not a scoring problem. A plain static
+`InMemoryVector` used to build BM25/BM25F eagerly even when construction was the only measured
+operation, while Synaptic stored nodes and deferred its query work. OmniFuse now snapshots the
+scalar title/text inputs at construction and materializes its immutable lexical index exactly
+once on the first lexical query under a lock. Mutable and feedback-backed stores remain eager,
+preserving their mutation, evidence and snapshot contracts. Pickle round trips and legacy
+materialized state remain supported.
+
+The official no-embedding `MemoryBackend` protocol uses two fresh counterbalanced AB/BA workers,
+one warm-up, five measured rounds, monotonic nanosecond timing and immutable source/input/doctor
+bindings. All measured top-20 rankings remain equal to the canonical 2026-07-22 direct14
+reference.
+
+| dataset | ingest, Synaptic / OmniFuse | p50 query, Synaptic / OmniFuse | end-to-end, Synaptic / OmniFuse | MRR@10, OmniFuse / Synaptic |
+|---|---:|---:|---:|---:|
+| AutoRAG | 7.46× | 513.25× | 492.05× | **0.8919 / 0.8310** |
+| Allganize RAG-ko | 5.86× | 892.09× | 739.50× | **0.9683 / 0.9468** |
+| NFCorpus | 8.49× | 1,546.95× | 433.65× | **0.5058 / 0.4771** |
+
+The separate NFCorpus CDC protocol applies 36 inserts, 36 updates, 36 deletes and 36 no-ops.
+Both systems match their own full rebuild at every checkpoint, including exact rankings and
+`float.hex` scores. OmniFuse is higher on all six shared metrics: MRR@20 **0.5080 vs 0.4799**,
+MRR@10 **0.5056 vs 0.4771**, Precision@10 **0.2960 vs 0.2507**, Recall@10
+**0.1514 vs 0.1323**, F1@10 **0.1401 vs 0.1206**, and nDCG@10 **0.2927 vs 0.2481**.
+Synaptic/OmniFuse p50 cost ratios are 4.82× initial ingest, 6.86× mutation, 14.49× cold first
+query-set round, 461.72× steady round and 14.49× incremental end-to-end. The cold number
+explicitly includes OmniFuse's deferred first-use materialization rather than hiding it in a
+warm-up.
+
+These are current-host observations for selected official in-memory fixtures. They do not
+establish superiority over Synaptic's persistent stores, embedding/reranking pipelines or
+broader agent-memory product surface. Full compact provenance is linked at the top of this
+document and in the root README.
+
+## Native SQLite persistence comparison (2026-07-23, v10)
+
+The persistent-store scope is measured separately from the in-memory cohort. Both systems
+receive byte-identical official selections and finish durable creation with closed SQLite
+artifacts. Four fresh workers per system run in counterbalanced AB/BA/AB/BA order. Synaptic
+uses `SqliteGraphBackend.save_nodes_batch` and `SynapticGraph.search`; OmniFuse uses
+`build_sqlite_index` and `open_sqlite_index`. The byte-identical upstream scorer supplies
+MRR@20, MRR@10, Precision@10, Recall@10, F1@10 and nDCG@10.
+
+| median efficiency metric | Allganize RAG-ko O / S | AutoRAG O / S | NFCorpus O / S |
+|---|---:|---:|---:|
+| durable create (s) | **0.1243 / 3.4995** | **0.6177 / 12.2348** | **1.0164 / 1.1430** |
+| clean open (ms) | **0.8726 / 2.5218** | **1.0534 / 2.5747** | **0.9594 / 2.3301** |
+| first query (ms) | **1.1902 / 132.6709** | **5.4444 / 255.0016** | **0.6330 / 63.1317** |
+| steady p50 (ms) | **1.2023 / 130.8702** | **6.1607 / 248.0345** | **1.7996 / 244.5423** |
+| steady p95 (ms) | **2.0324 / 144.5882** | **10.0886 / 299.0717** | **18.2367 / 284.1643** |
+| query round (s) | **0.2540 / 23.4815** | **0.7359 / 28.5703** | **0.5465 / 18.8906** |
+| artifact (bytes) | **499,712 / 524,288** | **2,686,976 / 4,526,080** | **5,627,904 / 18,132,992** |
+| post-run RSS (MB) | **34.15 / 521.95** | **37.95 / 529.17** | **43.97 / 50.22** |
+| lifetime peak RSS (MB) | **35.82 / 599.44** | **44.73 / 601.25** | **49.88 / 55.68** |
+| workload peak RSS (MB) | **34.76 / 539.10** | **44.47 / 548.16** | **49.86 / 55.68** |
+
+| official accuracy metric | Allganize RAG-ko O / S | AutoRAG O / S | NFCorpus O / S |
+|---|---:|---:|---:|
+| MRR@20 | **0.9683 / 0.9585** | **0.8919 / 0.8911** | **0.5173 / 0.5088** |
+| MRR@10 | **0.9683 / 0.9585** | **0.8919 / 0.8905** | **0.5147 / 0.5080** |
+| Precision@10 | **0.1065 / 0.1058** | **0.1000 / 0.0991** | **0.3010 / 0.2844** |
+| Recall@10 | **1.0000 / 0.9950** | **1.0000 / 0.9912** | **0.1521 / 0.1448** |
+| F1@10 | **0.1890 / 0.1877** | **0.1818 / 0.1802** | **0.1412 / 0.1329** |
+| nDCG@10 | **0.9765 / 0.9673** | **0.9192 / 0.9155** | **0.2980 / 0.2807** |
+
+`O / S` means OmniFuse / Synaptic. OmniFuse records **48 strict wins, 0 ties and 0
+losses**. This is not achieved by cutting result lists or recognizing benchmark IDs. Korean
+query coordination keeps closed-class operators in scoring while requiring a subject-bearing
+anchor for candidate admission. Snapshot schema v3 stores text losslessly as raw-or-zlib,
+keeps exact term frequencies and field lengths, and streams postings into bounded 64 KiB
+SQLite blocks. The ASCII tokenizer retains the same `[a-z0-9]+` contract on a faster C path.
+
+The benchmark harness also stopped constructing a second full canonical JSON payload before
+measurement. It now verifies the file by streaming SHA-256 and incremental canonical encoding
+for both systems, so lifetime peak RSS is no longer a shared parser artifact. The file remains
+fsynced and atomically replaced, and the full suite passes 618 tests.
+
+Evidence:
+[`persistence_memory3_synaptic_tag_v0.27.0_836d536_20260723_v10_summary.json`](../../eval/results/persistence_memory3_synaptic_tag_v0.27.0_836d536_20260723_v10_summary.json)
+(SHA-256 `3ab84d3dda2467f31ef710189029d80600f7d68ab191e920a51eae766d408542`).
+This is a current-host, no-embedding native SQLite cohort; PostgreSQL, embedding/reranking
+and broader agent-memory capabilities remain separate work.
+
+## Historical performance context (2026-07-10)
 
 The lexical hot path now folds each `(term, doc)` contribution — which is entirely
 query-independent — into the inverted index at build time, so a search is a plain
@@ -503,10 +639,10 @@ but the result remains **workload-dependent**.
 ## The deepest difference is statefulness — and this is where it lands
 
 synaptic-**memory** learns: Hebbian reinforcement of graph nodes and edges on
-co-activation, feeding resonance-ranked search. OmniFuse is a stateless one-shot
-retriever. That, not the ranking, is the real gap between the projects — and neither side
-had ever measured whether the learning improves retrieval. synaptic's own memory eval
-(`eval/scripts/memory_operating_poc.py`) is a contract smoke-gate.
+co-activation, feeding resonance-ranked search. OmniFuse was a stateless one-shot
+retriever at this point in the history. Synaptic already tested reinforcement and
+consolidation contracts; the narrower missing measurement was held-out retrieval through
+the `graph.search` path used here.
 
 So we built the benchmark: split queries 50/50, replay relevance feedback on one half,
 re-measure MRR@10 on the other half, which is never searched during feedback.
@@ -597,27 +733,26 @@ queries, scored by synaptic's own `metrics.py`.
 
 | ΔMRR@10, held-out re-queries | KRA (ko) all | KRA covered | NFCorpus (en) all | NFCorpus covered |
 |---|---:|---:|---:|---:|
-| synaptic (Hebbian) | +0.0000 | +0.0093 | −0.0010 | −0.0008 |
-| **OmniFuse (`Feedback`)** | **+0.1790** | **+0.3903** | **+0.0150** | **+0.0300** |
-| ↳ shuffled placebo | +0.0059 | +0.0213 | +0.0015 | +0.0031 |
-| ↳ random-query placebo | +0.0029 | +0.0215 | +0.0000 | +0.0000 |
+| synaptic (Hebbian) | +0.0000 | +0.0093 | −0.0010 | −0.0002 |
+| **OmniFuse (`Feedback`)** | **+0.1843** | **+0.4016** | **+0.1133** | **+0.1785** |
+| ↳ shuffled placebo | −0.0184 | −0.0217 | +0.0028 | +0.0044 |
+| ↳ random-query placebo | +0.0263 | +0.0590 | +0.0002 | +0.0006 |
 
-`real` is 5.2× the strongest placebo: the `(query, chunk)` pairing carries the signal. And
+On covered KRA queries `real` is 6.8× the strongest placebo, and on NFCorpus it is about
+40×: the `(query, chunk)` pairing carries the signal. And
 on the *disjoint-query* axis — a different question, not a rephrasing — memory correctly
 does **nothing** (+0.0006), with Δuncovered **exactly 0.0000**, because the collection's
 IDF is provably untouched. A cold store ranks bit-identically to one built without
-feedback. Nothing is tuned.
+feedback. There is no per-dataset runtime switch.
 
 ## Where OmniFuse lags synaptic (honest)
 
-OmniFuse is a focused retrieval library, not a memory system. It leads on retrieval
-quality (13/15 datasets), zero dependencies, one-shot fusion (no agent loop) and, now,
-lexical speed. It is genuinely behind here:
+OmniFuse is a focused retrieval library, not a full agent-memory platform. The official v15 direct artifact has no dataset loss across the six shared metrics, and the v8 in-memory/CDC plus v17 native SQLite cohorts win every measured row in their stated scopes. None establishes universal superiority on every product capability. The earlier TREC RAM-versus-SQLite observation is now controlled by the v17 same-backend cohort, where OmniFuse wins every measured row. Remaining gaps are product capabilities rather than a measured loss in the current retrieval cohorts:
 
 | capability | synaptic-memory | OmniFuse |
 |---|---|---|
-| index persistence | SQLite / PostgreSQL store | ✓ `save_index` / `load_index` (stdlib pickle) |
-| persistent *queryable* backend | SQLite (FTS5), PostgreSQL | ✗ index is loaded back into RAM |
+| index persistence | SQLite / PostgreSQL store | ✓ native SQLite snapshot plus `save_index` / `load_index` pickle |
+| persistent *queryable* backend | SQLite (FTS5), PostgreSQL | ✓ read-only native SQLite lexical/graph snapshot; no PostgreSQL backend |
 | vector DB adapter | Qdrant, Kuzu, MinIO | ✗ roadmap |
 | reranker | cross-encoder, ColBERT, LLM | ✗ roadmap |
 | query rewriting / HyDE / decomposition | yes | ✗ |
@@ -625,11 +760,10 @@ lexical speed. It is genuinely behind here:
 | async API | yes | ✗ sync |
 | MCP server / agent loop / CLI | yes | ✗ |
 | consolidation / snapshot / activity | yes | ✗ (`Vault` has simple salience) |
-| **memory that improves retrieval** (ΔMRR@10, held-out re-queries) | Hebbian: **+0.0093** — not wired into `graph.search` | `Feedback`: **+0.4167**, placebos +0.024 / +0.080 |
-| scale ceiling | disk-backed | RAM-bound, but build peak cut 209 MB → **46.6 MB** |
+| **memory that improves retrieval** (ΔMRR@10, held-out re-queries) | Hebbian covered KRA: **+0.0093** in this `graph.search` track | `Feedback` covered KRA: **+0.4016**, strongest placebo +0.0590 |
+| scale ceiling | disk-backed mutable stores | static lexical/graph snapshots are disk-queryable; mutable/feedback stores remain RAM-backed |
 
-The persistence gap — the one that forced OmniFuse to pay index-build cost on every
-process — is now closed:
+The earlier pickle-only warm start remains available:
 
 ```python
 from omnifuse import build_inmemory, save_index, load_index
@@ -637,16 +771,18 @@ save_index(build_inmemory(nodes, triples, chunks), "idx.pkl")
 of = load_index("idx.pkl")          # warm start; embedder/LLM re-supplied here
 ```
 
-On the 5,234-chunk golden corpus: build 6.0 s (peak **46.6 MB**) → **load 0.21 s (~29×
-faster)**, index **28.7 MB**, rankings identical after the round-trip. Note `pickle` executes arbitrary code on
-load, so only load indexes you produced; and the index is still read *into RAM*, so the
-scale ceiling is unchanged — a genuinely disk-resident backend remains future work.
+On the 5,234-chunk golden corpus that historical path built in 6.0 s and loaded in 0.21 s,
+with identical rankings. `pickle` executes arbitrary code, so only load indexes you produced.
+For static lexical/graph workloads, v10 instead provides `build_sqlite_index` and
+`open_sqlite_index`: the SQLite artifact stays queryable without reconstructing the corpus
+index in RAM. It is intentionally read-only and does not close Synaptic's PostgreSQL,
+disk-backed mutation, embedding or reranking capability gaps.
 
 ## Reproduce
 
 ```bash
 pip install -e .
 python eval/finreg_bench.py                            # finreg, self-contained
-python eval/compare_synaptic.py --synaptic-graph PATH  # finreg head-to-head
+python eval/compare_synaptic.py --synaptic-repo PATH --synaptic-graph PATH  # unequal index conditions
 python eval/public_bench.py --synaptic-repo PATH       # 8 public datasets
 ```

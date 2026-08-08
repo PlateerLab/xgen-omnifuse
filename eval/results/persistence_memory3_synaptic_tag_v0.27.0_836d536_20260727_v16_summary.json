@@ -1,0 +1,405 @@
+{
+    "schema":  "omnifuse.eval.persistence_cohort_summary",
+    "schema_version":  1,
+    "status":  "ok",
+    "compiled_at":  "2026-07-27T04:20:09.0970823+00:00",
+    "evidence_set":  "20260727-v16-raw-scorer-v1",
+    "scope":  {
+                  "datasets":  3,
+                  "competitor":  "PlateerLab/synaptic-memory",
+                  "competitor_tag":  "v0.27.0",
+                  "competitor_sha":  "836d53640e520c88910dd57e098167a4defe50d2",
+                  "description":  "Native SQLite persistence cohort using identical frozen inputs, the byte-identical six-metric scorer, four counterbalanced fresh workers per system and strict write-once provenance."
+              },
+    "contract":  {
+                     "k":  10,
+                     "candidate_limit":  20,
+                     "warmup_rounds":  1,
+                     "measurement_rounds":  3,
+                     "fresh_trials_per_system":  4,
+                     "trial_order":  [
+                                         [
+                                             "omnifuse",
+                                             "synaptic"
+                                         ],
+                                         [
+                                             "synaptic",
+                                             "omnifuse"
+                                         ],
+                                         [
+                                             "omnifuse",
+                                             "synaptic"
+                                         ],
+                                         [
+                                             "synaptic",
+                                             "omnifuse"
+                                         ]
+                                     ],
+                     "synaptic_ingest":  "SqliteGraphBackend.save_nodes_batch",
+                     "artifact_scope":  "native SQLite files after clean close",
+                     "memory":  "current RSS, whole-process lifetime peak and 10 ms workload peak after system import",
+                     "worker_input_validation":  "streaming file fingerprint plus incremental canonical JSON hash; no full-payload duplicate in the measured process"
+                 },
+    "source_freeze":  {
+                          "omnifuse_head":  "cd355ddb5c59f5f8bb20c694a4fba8419567310a",
+                          "omnifuse_dirty_content_sha256":  "c26f3e081796e425e0ecde24fce2c682322730da0f6d1a87147f3f30b1622388",
+                          "synaptic_dirty":  false,
+                          "synaptic_dirty_content_sha256":  "69e715af7a4cf9e0cd73dc83d0d99c1663a016e3ac0ee9ca180a11c50630e55b",
+                          "performance_runner_sha256":  "17fe1e1a19181313e9b568bcd975001d146ae0124c12fbcdfb572d1860b40855",
+                          "persistence_runner_sha256":  "18926e7dd879b0460cf4fa532e10bf118731302173804f772dcd1caeb30b4a90",
+                          "provenance_helper_sha256":  "bf00d00710d9776ab65914444b47fdccb74b428cb992f6e8958209352e3c3c94",
+                          "scorer_sha256":  "3634fe7d237c14d7975ed370dc7e328386c58ff43d04a917d88dced86f4ef978",
+                          "sqlite_snapshot_sha256":  "a4afbaf43ec4f65cf308bbbff24e9bd3e7438a14f0252498a9c640e408945bf5",
+                          "doctor":  {
+                                         "external_file":  "D:/_tmp_bench/evidence/omnifuse-vs-synaptic/20260727-v16-raw-scorer-v1/doctor_allow_dirty.json",
+                                         "bytes":  19348,
+                                         "sha256":  "00df95fe76b8da07917ae61b114a073b65e5b9ba2867ffef2dd0f9da12605b39",
+                                         "canonical_sha256":  "d52d07ec523908753a7b9e7bf9bc3307fb4d0156a5dca475ba27029147e508f2",
+                                         "strict_public_ready":  "19/19"
+                                     }
+                      },
+    "verdict":  {
+                    "strict_efficiency_wins":  30,
+                    "strict_accuracy_wins":  18,
+                    "total_strict_wins":  48,
+                    "ties":  0,
+                    "losses":  0
+                },
+    "cases":  [
+                  {
+                      "case_id":  "allganize_rag_ko",
+                      "name":  "Allganize RAG-ko",
+                      "dataset":  {
+                                      "path":  "tests/benchmark/data/allganize_rag_ko.json",
+                                      "sha256":  "b439b4b6c2495b90f1bf506cceb0cc0125f46c9b8cf6597655b77b03ab736537",
+                                      "bytes":  218748,
+                                      "doctor_target_id":  "allganize_rag_ko",
+                                      "documents":  200,
+                                      "scored_queries":  200,
+                                      "relevance_judgments":  200,
+                                      "official_external_selection":  {
+                                                                          "seed":  42,
+                                                                          "original_corpus_count":  200,
+                                                                          "selected_corpus_count":  200,
+                                                                          "original_query_count":  200,
+                                                                          "eligible_query_count_before_max_queries":  200,
+                                                                          "max_queries":  0,
+                                                                          "klue_corpus_sample":  0,
+                                                                          "selected_corpus_ids_ordered_sha256":  "244f7691e0b4eaf6b22e0abce32b2e0e8744c95e1e269b76f715d8b81904fcb4",
+                                                                          "eligible_query_ids_ordered_sha256":  "2aa32db424c8ba5a830daa70185646efc05694111b0987830224168897056e61",
+                                                                          "case_id":  "allganize_rag_ko",
+                                                                          "case_name":  "Allganize-rag-ko",
+                                                                          "driver":  "D:\\_tmp_bench\\synaptic-memory-v0.27.0-tag-836d536-clean4\\tests\\benchmark\\test_external_datasets.py",
+                                                                          "scorer":  "D:\\_tmp_bench\\synaptic-memory-v0.27.0-tag-836d536-clean4\\tests\\benchmark\\metrics.py",
+                                                                          "indexed_corpus":  {
+                                                                                                 "text_character_limit":  2000,
+                                                                                                 "input_documents":  200,
+                                                                                                 "indexed_documents":  200,
+                                                                                                 "skipped_empty_text_documents":  0,
+                                                                                                 "truncated_documents":  0,
+                                                                                                 "title_fallback_documents":  0,
+                                                                                                 "original_text_characters":  77355,
+                                                                                                 "indexed_text_characters":  77355,
+                                                                                                 "indexed_document_ids_ordered_sha256":  "244f7691e0b4eaf6b22e0abce32b2e0e8744c95e1e269b76f715d8b81904fcb4"
+                                                                                             },
+                                                                          "scored_query_count":  200,
+                                                                          "scored_query_ids_ordered_sha256":  "2aa32db424c8ba5a830daa70185646efc05694111b0987830224168897056e61"
+                                                                      }
+                                  },
+                      "idf_pow":  1.0,
+                      "worker_input":  {
+                                           "sha256":  "628a80363a7aa5b25ec137c9d7f305ec6387bfabb2dcddcbe36310210025cb4c",
+                                           "bytes":  219985
+                                       },
+                      "evidence":  {
+                                       "external_file":  "D:/_tmp_bench/evidence/omnifuse-vs-synaptic/20260727-v16-raw-scorer-v1/persistence_allganize_v16.json",
+                                       "bytes":  103878,
+                                       "sha256":  "fb4e0112d48b7f58c362845e73e6b24d6906731a5d01ad9644171d9ffc97841f",
+                                       "completed_workers":  8,
+                                       "postflight_checks_passed":  true
+                                   },
+                      "omnifuse":  {
+                                       "accuracy":  {
+                                                        "mrr_at_20":  0.9733333333333333,
+                                                        "mrr_at_10":  0.9733333333333333,
+                                                        "precision_at_10":  0.12271230158730159,
+                                                        "recall_at_10":  1.0,
+                                                        "f1_at_10":  0.20884090909090908,
+                                                        "ndcg_at_10":  0.9802371901428583
+                                                    },
+                                       "rankings_sha256":  "64f153d585035f38ae7517fd84c5941dc248fb37111d407ad859181c7639da0c",
+                                       "durable_create_p50_s":  0.0885397,
+                                       "clean_open_p50_ms":  0.9098999999999999,
+                                       "first_query_p50_ms":  1.1045,
+                                       "steady_query_p50_ms":  0.906525,
+                                       "steady_query_p95_ms":  1.4677074999999995,
+                                       "query_round_p50_s":  0.18217424999999998,
+                                       "artifact_bytes":  499712,
+                                       "current_rss_p50_mb":  34.889728,
+                                       "lifetime_peak_rss_p50_mb":  38.813696,
+                                       "workload_peak_rss_p50_mb":  35.465216
+                                   },
+                      "synaptic":  {
+                                       "accuracy":  {
+                                                        "mrr_at_20":  0.9585198412698412,
+                                                        "mrr_at_10":  0.9585198412698412,
+                                                        "precision_at_10":  0.10583333333333333,
+                                                        "recall_at_10":  0.995,
+                                                        "f1_at_10":  0.1877012987012987,
+                                                        "ndcg_at_10":  0.9673137432463528
+                                                    },
+                                       "rankings_sha256":  "3749b7455a84716974d469b082ec65061d22ad89b9b852f4bd36bca6af9981b5",
+                                       "durable_create_p50_s":  3.6155646499999996,
+                                       "clean_open_p50_ms":  2.57905,
+                                       "first_query_p50_ms":  133.74315,
+                                       "steady_query_p50_ms":  134.63465,
+                                       "steady_query_p95_ms":  147.95892749999996,
+                                       "query_round_p50_s":  24.173521483333335,
+                                       "artifact_bytes":  524288,
+                                       "current_rss_p50_mb":  521.85088,
+                                       "lifetime_peak_rss_p50_mb":  599.390208,
+                                       "workload_peak_rss_p50_mb":  538.5646079999999
+                                   },
+                      "ratios_synaptic_over_omnifuse":  {
+                                                            "durable_create":  40.835519546598865819513732258,
+                                                            "clean_open":  2.8344323552038688684945988794,
+                                                            "first_query":  121.08931643277501131733816206,
+                                                            "steady_query_p50":  148.5173050936267615344309313,
+                                                            "steady_query_p95":  100.80954652067936588507809651,
+                                                            "query_round":  132.69450256187873782321075145,
+                                                            "artifact_bytes":  1.0491803278688524590163934426,
+                                                            "current_rss":  14.957149565625733740314627847,
+                                                            "lifetime_peak_rss":  15.442750105529759392148585901,
+                                                            "workload_peak_rss":  15.185713460761098987808223133
+                                                        },
+                      "strict_wins":  16,
+                      "ties":  0,
+                      "losses":  0
+                  },
+                  {
+                      "case_id":  "autorag_retrieval",
+                      "name":  "AutoRAG",
+                      "dataset":  {
+                                      "path":  "tests/benchmark/data/autorag_retrieval.json",
+                                      "sha256":  "715b8e8db5af290b5476d534797d05fbdf3d85f302f8ca273b6d04373efe3a01",
+                                      "bytes":  1409438,
+                                      "doctor_target_id":  "autorag_retrieval",
+                                      "documents":  720,
+                                      "scored_queries":  114,
+                                      "relevance_judgments":  114,
+                                      "official_external_selection":  {
+                                                                          "seed":  42,
+                                                                          "original_corpus_count":  720,
+                                                                          "selected_corpus_count":  720,
+                                                                          "original_query_count":  114,
+                                                                          "eligible_query_count_before_max_queries":  114,
+                                                                          "max_queries":  0,
+                                                                          "klue_corpus_sample":  0,
+                                                                          "selected_corpus_ids_ordered_sha256":  "ccbad666913aaf2d063a8f7984662c0fccd4ca74f8a8e858730936c6e52437ce",
+                                                                          "eligible_query_ids_ordered_sha256":  "ede3296d9ef1bdb818de1b876548e584f97280071bff2ac17df46860473505b9",
+                                                                          "case_id":  "autorag_retrieval",
+                                                                          "case_name":  "AutoRAGRetrieval",
+                                                                          "driver":  "D:\\_tmp_bench\\synaptic-memory-v0.27.0-tag-836d536-clean4\\tests\\benchmark\\test_external_datasets.py",
+                                                                          "scorer":  "D:\\_tmp_bench\\synaptic-memory-v0.27.0-tag-836d536-clean4\\tests\\benchmark\\metrics.py",
+                                                                          "indexed_corpus":  {
+                                                                                                 "text_character_limit":  2000,
+                                                                                                 "input_documents":  720,
+                                                                                                 "indexed_documents":  720,
+                                                                                                 "skipped_empty_text_documents":  0,
+                                                                                                 "truncated_documents":  4,
+                                                                                                 "title_fallback_documents":  720,
+                                                                                                 "original_text_characters":  592994,
+                                                                                                 "indexed_text_characters":  591786,
+                                                                                                 "indexed_document_ids_ordered_sha256":  "ccbad666913aaf2d063a8f7984662c0fccd4ca74f8a8e858730936c6e52437ce"
+                                                                                             },
+                                                                          "scored_query_count":  114,
+                                                                          "scored_query_ids_ordered_sha256":  "ede3296d9ef1bdb818de1b876548e584f97280071bff2ac17df46860473505b9"
+                                                                      }
+                                  },
+                      "idf_pow":  1.0,
+                      "worker_input":  {
+                                           "sha256":  "137c2906b968bc52e723d4713d32448c15ceb4722e293aed8373f2ca9e4e0334",
+                                           "bytes":  1533164
+                                       },
+                      "evidence":  {
+                                       "external_file":  "D:/_tmp_bench/evidence/omnifuse-vs-synaptic/20260727-v16-raw-scorer-v1/persistence_autorag_v16.json",
+                                       "bytes":  103754,
+                                       "sha256":  "c0e91e63b8e631799dc8227b632973858dec7910d9f25951229b0c9e9fb5b3ab",
+                                       "completed_workers":  8,
+                                       "postflight_checks_passed":  true
+                                   },
+                      "omnifuse":  {
+                                       "accuracy":  {
+                                                        "mrr_at_20":  0.8976608187134503,
+                                                        "mrr_at_10":  0.8976608187134503,
+                                                        "precision_at_10":  0.1,
+                                                        "recall_at_10":  1.0,
+                                                        "f1_at_10":  0.18181818181818182,
+                                                        "ndcg_at_10":  0.9236980737318669
+                                                    },
+                                       "rankings_sha256":  "1021b44834fe177f401b79d8549b9fdcb64afd72c255d1e6a58c1b45c135bda6",
+                                       "durable_create_p50_s":  0.645678,
+                                       "clean_open_p50_ms":  1.01515,
+                                       "first_query_p50_ms":  3.65885,
+                                       "steady_query_p50_ms":  3.976225,
+                                       "steady_query_p95_ms":  6.276475,
+                                       "query_round_p50_s":  0.4730575,
+                                       "artifact_bytes":  2686976,
+                                       "current_rss_p50_mb":  38.77068800000001,
+                                       "lifetime_peak_rss_p50_mb":  45.006848000000005,
+                                       "workload_peak_rss_p50_mb":  44.867583999999994
+                                   },
+                      "synaptic":  {
+                                       "accuracy":  {
+                                                        "mrr_at_20":  0.8911236424394319,
+                                                        "mrr_at_10":  0.8904970760233918,
+                                                        "precision_at_10":  0.09912280701754386,
+                                                        "recall_at_10":  0.9912280701754386,
+                                                        "f1_at_10":  0.1802232854864434,
+                                                        "ndcg_at_10":  0.9155183892186317
+                                                    },
+                                       "rankings_sha256":  "3a060e76e685732bac3ebc1cba3396c4dde105b004ea8958e7e532285e687846",
+                                       "durable_create_p50_s":  12.66761745,
+                                       "clean_open_p50_ms":  2.4889,
+                                       "first_query_p50_ms":  266.2486,
+                                       "steady_query_p50_ms":  255.19377500000002,
+                                       "steady_query_p95_ms":  308.32906749999995,
+                                       "query_round_p50_s":  29.348342783333333,
+                                       "artifact_bytes":  4526080,
+                                       "current_rss_p50_mb":  529.389568,
+                                       "lifetime_peak_rss_p50_mb":  601.26208,
+                                       "workload_peak_rss_p50_mb":  547.825664
+                                   },
+                      "ratios_synaptic_over_omnifuse":  {
+                                                            "durable_create":  19.619094115023277856764517298,
+                                                            "clean_open":  2.4517558981431315569127715116,
+                                                            "first_query":  72.768383508479440261284283313,
+                                                            "steady_query_p50":  64.179913108538882985746530943,
+                                                            "steady_query_p95":  49.124559167367025280910064965,
+                                                            "query_round":  62.039694505072497529370108285,
+                                                            "artifact_bytes":  1.6844512195121951219512195122,
+                                                            "current_rss":  13.654376419629176130592157759,
+                                                            "lifetime_peak_rss":  13.359346559883507798708036621,
+                                                            "workload_peak_rss":  12.209832024831113555367548852
+                                                        },
+                      "strict_wins":  16,
+                      "ties":  0,
+                      "losses":  0
+                  },
+                  {
+                      "case_id":  "nfcorpus",
+                      "name":  "NFCorpus",
+                      "dataset":  {
+                                      "path":  "tests/benchmark/data/nfcorpus.json",
+                                      "sha256":  "7232e143da668a135e5b294b12e10b84cb2e1cc2865d509cf65b423ad7ee49e3",
+                                      "bytes":  6244913,
+                                      "doctor_target_id":  "nfcorpus",
+                                      "documents":  3633,
+                                      "scored_queries":  100,
+                                      "relevance_judgments":  3098,
+                                      "official_external_selection":  {
+                                                                          "seed":  42,
+                                                                          "original_corpus_count":  3633,
+                                                                          "selected_corpus_count":  3633,
+                                                                          "original_query_count":  3237,
+                                                                          "eligible_query_count_before_max_queries":  323,
+                                                                          "max_queries":  100,
+                                                                          "klue_corpus_sample":  0,
+                                                                          "selected_corpus_ids_ordered_sha256":  "abf1045d1c1f2704cf94c129883c915db4f36138e6629ad7163d8a38f624c7a3",
+                                                                          "eligible_query_ids_ordered_sha256":  "d5cd1ea1a863c72c8a61adec6dbee8de07160527d62fabcec21f8e386d0ba21a",
+                                                                          "case_id":  "nfcorpus",
+                                                                          "case_name":  "NFCorpus",
+                                                                          "driver":  "D:\\_tmp_bench\\synaptic-memory-v0.27.0-tag-836d536-clean4\\tests\\benchmark\\test_external_datasets.py",
+                                                                          "scorer":  "D:\\_tmp_bench\\synaptic-memory-v0.27.0-tag-836d536-clean4\\tests\\benchmark\\metrics.py",
+                                                                          "indexed_corpus":  {
+                                                                                                 "text_character_limit":  2000,
+                                                                                                 "input_documents":  3633,
+                                                                                                 "indexed_documents":  3633,
+                                                                                                 "skipped_empty_text_documents":  0,
+                                                                                                 "truncated_documents":  396,
+                                                                                                 "title_fallback_documents":  0,
+                                                                                                 "original_text_characters":  5438322,
+                                                                                                 "indexed_text_characters":  5276033,
+                                                                                                 "indexed_document_ids_ordered_sha256":  "abf1045d1c1f2704cf94c129883c915db4f36138e6629ad7163d8a38f624c7a3"
+                                                                                             },
+                                                                          "scored_query_count":  100,
+                                                                          "scored_query_ids_ordered_sha256":  "048f03ae12fe23b56ff78a6917e326edc7a66ccb5d8d3c9504164a8a9eec8a0d"
+                                                                      }
+                                  },
+                      "idf_pow":  1.0,
+                      "worker_input":  {
+                                           "sha256":  "1f08261e50a6604654ba2951728c49b2c98c756869f2686051682d20a66f0ba5",
+                                           "bytes":  5804102
+                                       },
+                      "evidence":  {
+                                       "external_file":  "D:/_tmp_bench/evidence/omnifuse-vs-synaptic/20260727-v16-raw-scorer-v1/persistence_nfcorpus_v16.json",
+                                       "bytes":  98982,
+                                       "sha256":  "fa20c863c6542155bc4336d39a887b76c4b2b6c8c3ff07edda2d46cef848dd2e",
+                                       "completed_workers":  8,
+                                       "postflight_checks_passed":  true
+                                   },
+                      "omnifuse":  {
+                                       "accuracy":  {
+                                                        "mrr_at_20":  0.5172707749766573,
+                                                        "mrr_at_10":  0.514718253968254,
+                                                        "precision_at_10":  0.301,
+                                                        "recall_at_10":  0.15211743746688083,
+                                                        "f1_at_10":  0.14119901502659574,
+                                                        "ndcg_at_10":  0.2980309526199708
+                                                    },
+                                       "rankings_sha256":  "92977462f2c6b9176c077174303162543e2d6abc1033e6b84bca5bc6dbbefb5c",
+                                       "durable_create_p50_s":  1.06531295,
+                                       "clean_open_p50_ms":  0.9610000000000001,
+                                       "first_query_p50_ms":  0.6376,
+                                       "steady_query_p50_ms":  1.5331000000000001,
+                                       "steady_query_p95_ms":  12.761415,
+                                       "query_round_p50_s":  0.39172623333333334,
+                                       "artifact_bytes":  5627904,
+                                       "current_rss_p50_mb":  45.858816000000004,
+                                       "lifetime_peak_rss_p50_mb":  50.003968,
+                                       "workload_peak_rss_p50_mb":  49.999871999999996
+                                   },
+                      "synaptic":  {
+                                       "accuracy":  {
+                                                        "mrr_at_20":  0.5087539682539682,
+                                                        "mrr_at_10":  0.5080396825396826,
+                                                        "precision_at_10":  0.28435714285714286,
+                                                        "recall_at_10":  0.14482871475280842,
+                                                        "f1_at_10":  0.13294847837598295,
+                                                        "ndcg_at_10":  0.28073482318571946
+                                                    },
+                                       "rankings_sha256":  "cf439d118841e31bdbc5f07d9e70420d45fdca092ca88e4b25262920f901a833",
+                                       "durable_create_p50_s":  1.1332312,
+                                       "clean_open_p50_ms":  2.5326500000000003,
+                                       "first_query_p50_ms":  70.0795,
+                                       "steady_query_p50_ms":  254.920875,
+                                       "steady_query_p95_ms":  301.9184725,
+                                       "query_round_p50_s":  19.61602095,
+                                       "artifact_bytes":  18132992,
+                                       "current_rss_p50_mb":  50.253823999999994,
+                                       "lifetime_peak_rss_p50_mb":  55.863296,
+                                       "workload_peak_rss_p50_mb":  55.863296
+                                   },
+                      "ratios_synaptic_over_omnifuse":  {
+                                                            "durable_create":  1.0637542705174099310442063058,
+                                                            "clean_open":  2.6354318418314256362714004338,
+                                                            "first_query":  109.91138644918444165621079046,
+                                                            "steady_query_p50":  166.27804774639617987880453027,
+                                                            "steady_query_p95":  23.658698702299078903084023206,
+                                                            "query_round":  50.07584195492991746572939154,
+                                                            "artifact_bytes":  3.2219796215429403202328966521,
+                                                            "current_rss":  1.0958377992140047753663941769,
+                                                            "lifetime_peak_rss":  1.117177260812581913499344692,
+                                                            "workload_peak_rss":  1.1172687802080774220597028895
+                                                        },
+                      "strict_wins":  16,
+                      "ties":  0,
+                      "losses":  0
+                  }
+              ],
+    "limitations":  [
+                        "Current-host, no-embedding native SQLite cohort; values are not cross-machine constants.",
+                        "Scorer-only changes do not affect durable creation or artifact layout; small create/open/RSS deltas between v15 and v16 are run noise, not implementation claims.",
+                        "The cohort covers lexical persistence, retrieval accuracy and process efficiency, not embedding, reranking, PostgreSQL or unrelated agent-memory features."
+                    ]
+}

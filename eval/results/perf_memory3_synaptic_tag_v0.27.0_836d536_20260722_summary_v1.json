@@ -1,0 +1,204 @@
+{
+  "schema": "omnifuse.eval.performance_summary",
+  "schema_version": 1,
+  "status": "ok",
+  "evidence_set": "20260722-claimgrade-v1",
+  "compiled_at": "2026-07-22T03:30:22.0065054Z",
+  "latest_evidence_generated_at": "2026-07-22T03:15:35.884295+00:00",
+  "scope": {
+    "competitor": "PlateerLab/synaptic-memory",
+    "competitor_tag": "v0.27.0",
+    "competitor_sha": "836d53640e520c88910dd57e098167a4defe50d2",
+    "protocol": "official-external-memory",
+    "datasets": 3,
+    "description": "Claim-grade host measurements for three declared official external cases using synaptic-memory's native no-embedding MemoryBackend path."
+  },
+  "source_freeze": {
+    "omnifuse_head": "cd355ddb5c59f5f8bb20c694a4fba8419567310a",
+    "omnifuse_dirty_content_sha256": "f97041f81fd3a961b6e151612fbe3a4e85bbfa72bdb14b4c3d63bb0d359cc0b4",
+    "omnifuse_text_sha256": "f80ab0e2907ff906418e9b502e11201d05524168a86bf20f42e18764f22a0a6c",
+    "performance_runner_sha256": "f7b4f5634864a1810520a8ae80a18bcd76483954a1fef7016e3484234f4baade",
+    "performance_test_sha256": "a93f2bab3b27faa90ce1cb825eb554ee813386e340c69c4bab0e45201d51b676",
+    "official_adapter_sha256": "6d573cd9bb0133ae3d6f28e54d6c2d0a0cae0eefe6897a5101bc5f2ba464d98e",
+    "provenance_helper_sha256": "4000323a16144aa426e7973b11015bc1265127412a1311c861f0795d1f053e81",
+    "active_scorer_sha256": "3634fe7d237c14d7975ed370dc7e328386c58ff43d04a917d88dced86f4ef978",
+    "official_scorer_sha256": "3634fe7d237c14d7975ed370dc7e328386c58ff43d04a917d88dced86f4ef978",
+    "official_driver_sha256": "8709d34c6c98436b0bd7bc7a2ab11efa47dd714d6b0129d83e59511adbbfa686",
+    "official_uv_lock_sha256": "1f3f3b2f9a625997ec5168e22e879e47b68f3045de50aa75748de832b0c41792",
+    "installed_distribution_manifest_sha256": "a558133bdcc2a8164757eda3fd5989ff4a07ab9d3f1cd41968a329df88e308eb",
+    "doctor": {
+      "external_file": "D:/_tmp_bench/evidence/omnifuse-vs-synaptic/20260722-claimgrade-v1/doctor.json",
+      "bytes": 19348,
+      "sha256": "9e9b58f04085c5520861b1adab20436ca988597be0d7536726472fd89f002d8f",
+      "strict_public_ready": "19/19"
+    },
+    "direct_accuracy_reference": {
+      "file": "direct_external14_fts_synaptic_tag_v0.27.0_836d536_20260722_speed1_v3.json",
+      "bytes": 8735117,
+      "sha256": "f6a6f2ed7398c0d174e27d5444e9236b5e143194c7e30a8664603f0720820877"
+    }
+  },
+  "protocol": {
+    "k": 10,
+    "candidate_limit": 20,
+    "document_text_limit": 2000,
+    "selection_seed": 42,
+    "warmup_rounds": 1,
+    "measurement_rounds": 5,
+    "fresh_trials_per_system": 2,
+    "trial_order": [
+      ["omnifuse", "synaptic"],
+      ["synaptic", "omnifuse"]
+    ],
+    "timer": "time.perf_counter_ns",
+    "timed_retrieval": "fully materialized raw top-20",
+    "memory_scope": "whole fresh worker process",
+    "environment": "Python 3.12.10, isolated UTF-8 mode, official uv.lock, uv sync --check 25 packages/no changes",
+    "accuracy": "official BenchmarkResult-compatible MRR@10 plus canonical top-20 ranking SHA-256",
+    "publication": "strict preflight/postflight, fresh workers, atomic write-once external evidence"
+  },
+  "cases": [
+    {
+      "case_id": "autorag_retrieval",
+      "dataset_sha256": "715b8e8db5af290b5476d534797d05fbdf3d85f302f8ca273b6d04373efe3a01",
+      "query_ids_ordered_sha256": "ede3296d9ef1bdb818de1b876548e584f97280071bff2ac17df46860473505b9",
+      "documents": 720,
+      "queries": 114,
+      "evidence": {
+        "external_file": "D:/_tmp_bench/evidence/omnifuse-vs-synaptic/20260722-claimgrade-v1/autorag_retrieval.json",
+        "bytes": 217389,
+        "sha256": "d8b81ea2599ba1cb01928499973623004114bc4173ac9ca7b9bd21210c714212"
+      },
+      "systems": {
+        "omnifuse": {
+          "mrr_at_10": 0.8918964076858813,
+          "canonical_top20_sha256": "df6fddf29e420d6865e8b8f1720089f4a2cf2488f45e48642ab3959c63ba1b15",
+          "ingest_mean_s": 0.59400465,
+          "query_latency_p50_mean_ms": 0.413875,
+          "query_latency_p95_mean_ms": 0.7323124999999995,
+          "query_latency_mean_ms": 0.44146587719298247,
+          "end_to_end_mean_round_s": 0.64433176,
+          "peak_rss_mean_mb": 61.863936
+        },
+        "synaptic": {
+          "mrr_at_10": 0.8310045948203842,
+          "canonical_top20_sha256": "8a95935454e9f38efc03611490281d429f609bae84ef2633aa5c84453ec5eef4",
+          "ingest_mean_s": 0.0084332,
+          "query_latency_p50_mean_ms": 214.051175,
+          "query_latency_p95_mean_ms": 271.89225999999996,
+          "query_latency_mean_ms": 215.90314175438596,
+          "end_to_end_mean_round_s": 24.621391359999997,
+          "peak_rss_mean_mb": 613.033984
+        }
+      },
+      "comparisons": {
+        "mrr_at_10_omnifuse_minus_synaptic": 0.0608918128654971,
+        "query_p50_synaptic_over_omnifuse": 517.1879794623981,
+        "query_p95_synaptic_over_omnifuse": 371.27900998549137,
+        "query_mean_synaptic_over_omnifuse": 489.0596372412403,
+        "end_to_end_synaptic_over_omnifuse": 38.2122888991224,
+        "peak_rss_synaptic_over_omnifuse": 9.909391862813255,
+        "ingest_omnifuse_over_synaptic": 70.43644761181996
+      }
+    },
+    {
+      "case_id": "allganize_rag_ko",
+      "dataset_sha256": "b439b4b6c2495b90f1bf506cceb0cc0125f46c9b8cf6597655b77b03ab736537",
+      "query_ids_ordered_sha256": "2aa32db424c8ba5a830daa70185646efc05694111b0987830224168897056e61",
+      "documents": 200,
+      "queries": 200,
+      "evidence": {
+        "external_file": "D:/_tmp_bench/evidence/omnifuse-vs-synaptic/20260722-claimgrade-v1/allganize_rag_ko.json",
+        "bytes": 217328,
+        "sha256": "b920e7807ee4de48dc94af87ccbd7e5be889c158779ebf0942148375a7dee36a"
+      },
+      "systems": {
+        "omnifuse": {
+          "mrr_at_10": 0.9683333333333333,
+          "canonical_top20_sha256": "89c74351b48aa50ed6e67ef5b740e46ba0cfc2cb1179db5665752147c84cca34",
+          "ingest_mean_s": 0.0794611,
+          "query_latency_p50_mean_ms": 0.09495,
+          "query_latency_p95_mean_ms": 0.14480749999999998,
+          "query_latency_mean_ms": 0.09709000000000001,
+          "end_to_end_mean_round_s": 0.0988791,
+          "peak_rss_mean_mb": 41.51296
+        },
+        "synaptic": {
+          "mrr_at_10": 0.9468392857142857,
+          "canonical_top20_sha256": "dfca51be7b43088d6105a9e6bf84ee5798af5eb1a0fc28e4d1a2d527cfa5c457",
+          "ingest_mean_s": 0.0013985,
+          "query_latency_p50_mean_ms": 73.5503,
+          "query_latency_p95_mean_ms": 90.3404825,
+          "query_latency_mean_ms": 67.14868215,
+          "end_to_end_mean_round_s": 13.431134930000002,
+          "peak_rss_mean_mb": 609.6424959999999
+        }
+      },
+      "comparisons": {
+        "mrr_at_10_omnifuse_minus_synaptic": 0.02149404761904767,
+        "query_p50_synaptic_over_omnifuse": 774.6213796735123,
+        "query_p95_synaptic_over_omnifuse": 623.8660463028504,
+        "query_mean_synaptic_over_omnifuse": 691.6127526006798,
+        "end_to_end_synaptic_over_omnifuse": 135.83391161529588,
+        "peak_rss_synaptic_over_omnifuse": 14.685594474592992,
+        "ingest_omnifuse_over_synaptic": 56.818805863425105
+      }
+    },
+    {
+      "case_id": "nfcorpus",
+      "dataset_sha256": "7232e143da668a135e5b294b12e10b84cb2e1cc2865d509cf65b423ad7ee49e3",
+      "query_ids_ordered_sha256": "048f03ae12fe23b56ff78a6917e326edc7a66ccb5d8d3c9504164a8a9eec8a0d",
+      "documents": 3633,
+      "queries": 100,
+      "evidence": {
+        "external_file": "D:/_tmp_bench/evidence/omnifuse-vs-synaptic/20260722-claimgrade-v1/nfcorpus.json",
+        "bytes": 214751,
+        "sha256": "acf2c1f8be577821a0e886be5f33931da4db2d25ed30bcd6668ac7a3d091c557"
+      },
+      "systems": {
+        "omnifuse": {
+          "mrr_at_10": 0.5057738095238095,
+          "canonical_top20_sha256": "8ed194b80f37de9e3eda240ca22b1f5d3293fec6b26c35916519068692587ee7",
+          "ingest_mean_s": 1.3317673,
+          "query_latency_p50_mean_ms": 0.16007500000000002,
+          "query_latency_p95_mean_ms": 1.4774199999999995,
+          "query_latency_mean_ms": 0.46811020000000003,
+          "end_to_end_mean_round_s": 1.37857832,
+          "peak_rss_mean_mb": 72.53401600000001
+        },
+        "synaptic": {
+          "mrr_at_10": 0.4771111111111111,
+          "canonical_top20_sha256": "7d9ec5a4d1851cee1b4b94d40decb53ee8dba7e2a3ff309ee210e61e051ca8ba",
+          "ingest_mean_s": 0.0353542,
+          "query_latency_p50_mean_ms": 284.65632500000004,
+          "query_latency_p95_mean_ms": 380.4661,
+          "query_latency_mean_ms": 243.8808253,
+          "end_to_end_mean_round_s": 24.42343673,
+          "peak_rss_mean_mb": 73.023488
+        }
+      },
+      "comparisons": {
+        "mrr_at_10_omnifuse_minus_synaptic": 0.028662698412698418,
+        "query_p50_synaptic_over_omnifuse": 1778.2684679056692,
+        "query_p95_synaptic_over_omnifuse": 257.52061025300867,
+        "query_mean_synaptic_over_omnifuse": 520.9901969664407,
+        "end_to_end_synaptic_over_omnifuse": 17.716394038461303,
+        "peak_rss_synaptic_over_omnifuse": 1.0067481717819124,
+        "ingest_omnifuse_over_synaptic": 37.66928116037133
+      }
+    }
+  ],
+  "interpretation": {
+    "accuracy": "OmniFuse preserves the direct14 reference rankings exactly and has higher MRR@10 in all three measured cases.",
+    "query_latency": "OmniFuse has lower p50, p95 and mean query latency in all three measured cases on this host.",
+    "end_to_end": "OmniFuse has lower ingest-plus-mean-query-set-round time in all three measured cases on this host.",
+    "peak_rss": "OmniFuse uses less whole-worker peak RSS in all three measured cases; NFCorpus is near parity.",
+    "ingest": "Synaptic is faster to ingest in all three cases because official MemoryBackend stores nodes cheaply and defers corpus statistics and sorting to query time."
+  },
+  "limitations": [
+    "These are current-host observations, not cross-machine universal constants.",
+    "The three performance cases are selected official fixtures, not all 14 accuracy cases.",
+    "MemoryBackend ingest and OmniFuse eager index construction are native but not capability-equivalent; ingest, query and end-to-end remain separate.",
+    "This lexical no-embedding comparison does not establish superiority over Synaptic's persistent backends, embedding pipelines, rerankers or agent-memory features."
+  ]
+}

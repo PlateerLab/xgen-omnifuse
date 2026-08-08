@@ -8,7 +8,7 @@ from __future__ import annotations
 
 from typing import Optional, Protocol, runtime_checkable
 
-from .models import Chunk, Node
+from .models import Chunk, ChunkMutationResult, Node
 
 
 @runtime_checkable
@@ -47,6 +47,17 @@ class VectorStore(Protocol):
 
     def fetch(self, ids: list[str]) -> list[Chunk]:
         ...
+
+
+@runtime_checkable
+class MutableVectorStore(VectorStore, Protocol):
+    """Optional passage-store contract for exact incremental corpus changes."""
+
+    def upsert_chunks(self, chunks: list[Chunk]) -> ChunkMutationResult:
+        """Insert new ids and replace existing ids atomically."""
+
+    def delete_chunks(self, ids: list[str]) -> ChunkMutationResult:
+        """Delete existing ids; unknown ids are idempotent no-ops."""
 
 
 @runtime_checkable

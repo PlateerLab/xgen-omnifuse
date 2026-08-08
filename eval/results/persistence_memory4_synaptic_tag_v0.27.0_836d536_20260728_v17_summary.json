@@ -1,0 +1,824 @@
+{
+    "schema":  "omnifuse.eval.sqlite_persistence_compact_summary",
+    "schema_version":  1,
+    "generated_at":  "2026-07-28T02:12:50.340553+00:00",
+    "status":  "ok",
+    "qualification":  [
+                          "All four cases compare closed durable native SQLite artifacts and clean reopen/query paths.",
+                          "Allganize, AutoRAG and NFCorpus use four AB/BA workers per system; TREC-COVID uses two AB/BA workers per system.",
+                          "Phase RSS releases ingestion-only staging before clean open and records post-create, clean-open and post-query RSS identically for both systems.",
+                          "Lifetime peak RSS includes frozen JSON parsing; the 0.41 MB TREC median margin is arithmetic but not operationally meaningful."
+                      ],
+    "binding":  {
+                    "omnifuse_repository":  {
+                                                "path":  "D:\\xgen-omnifuse",
+                                                "git_root":  "D:\\xgen-omnifuse",
+                                                "sha":  "cd355ddb5c59f5f8bb20c694a4fba8419567310a",
+                                                "origin_fetch_url":  "https://github.com/PlateerLab/xgen-omnifuse.git",
+                                                "exact_tags":  [
+
+                                                               ],
+                                                "dirty":  true,
+                                                "status_sha256":  "1db2388169ebff0ddbbd388eb5e95b0a44f43d1f120f5be2cce15ab633178252",
+                                                "tracked_diff_sha256":  "d5b2b9cf45a79793d0e7fa7e0b4e9d45e4f19d4a3df6b2e718026f8c4722d140",
+                                                "untracked_manifest_sha256":  "9eec0835f2de2447a00ada8ef85278ee5914640aa2f740e8d2a503d9e248386e",
+                                                "untracked_files":  65,
+                                                "untracked_bytes":  27941165,
+                                                "dirty_content_sha256":  "6542f151feb95ede97ba7d023ed08f4e611c306975901ccbd8191edee38a7f99"
+                                            },
+                    "synaptic_repository":  {
+                                                "path":  "D:\\_tmp_bench\\synaptic-memory-v0.27.0-tag-836d536-clean4",
+                                                "git_root":  "D:\\_tmp_bench\\synaptic-memory-v0.27.0-tag-836d536-clean4",
+                                                "sha":  "836d53640e520c88910dd57e098167a4defe50d2",
+                                                "origin_fetch_url":  "https://github.com/PlateerLab/synaptic-memory.git",
+                                                "exact_tags":  [
+                                                                   "v0.27.0"
+                                                               ],
+                                                "dirty":  false,
+                                                "status_sha256":  "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+                                                "tracked_diff_sha256":  "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+                                                "untracked_manifest_sha256":  "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+                                                "untracked_files":  0,
+                                                "untracked_bytes":  0,
+                                                "dirty_content_sha256":  "69e715af7a4cf9e0cd73dc83d0d99c1663a016e3ac0ee9ca180a11c50630e55b"
+                                            },
+                    "doctor":  {
+                                   "sha256":  "f50aa90f4d02d0cd6875c9799da4fa944dd309c55077afacec09e7401558f758",
+                                   "bytes":  19348,
+                                   "strict_public_passed":  true
+                               },
+                    "sources":  {
+                                    "persistence_harness":  {
+                                                                "path":  "eval/persistence_bench.py",
+                                                                "sha256":  "20e883b3ae044460725f612d108b8cd6e25cef38b55abd2cf3c2b00faa375761",
+                                                                "bytes":  36803
+                                                            },
+                                    "performance_harness":  {
+                                                                "path":  "eval/perf_bench.py",
+                                                                "sha256":  "17fe1e1a19181313e9b568bcd975001d146ae0124c12fbcdfb572d1860b40855",
+                                                                "bytes":  111415
+                                                            },
+                                    "provenance_helper":  {
+                                                              "path":  "eval/provenance.py",
+                                                              "sha256":  "bf00d00710d9776ab65914444b47fdccb74b428cb992f6e8958209352e3c3c94",
+                                                              "bytes":  37084
+                                                          },
+                                    "scorer":  {
+                                                   "active":  {
+                                                                  "path":  "eval/metrics.py",
+                                                                  "sha256":  "3634fe7d237c14d7975ed370dc7e328386c58ff43d04a917d88dced86f4ef978",
+                                                                  "bytes":  5252
+                                                              },
+                                                   "synaptic_checkout_copy":  {
+                                                                                  "path":  "tests/benchmark/metrics.py",
+                                                                                  "sha256":  "3634fe7d237c14d7975ed370dc7e328386c58ff43d04a917d88dced86f4ef978",
+                                                                                  "bytes":  5252
+                                                                              },
+                                                   "byte_identical":  true
+                                               },
+                                    "omnifuse_sqlite_snapshot":  {
+                                                                     "path":  "src/omnifuse/backends/sqlite_snapshot.py",
+                                                                     "sha256":  "a4afbaf43ec4f65cf308bbbff24e9bd3e7438a14f0252498a9c640e408945bf5",
+                                                                     "bytes":  47795,
+                                                                     "resolved_path":  "D:\\xgen-omnifuse\\src\\omnifuse\\backends\\sqlite_snapshot.py"
+                                                                 },
+                                    "synaptic_sqlite_backend":  {
+                                                                    "path":  "src/synaptic/backends/sqlite_graph.py",
+                                                                    "sha256":  "37cc40cea1e1eb1aec543740ffebbb077d7eb7c9739cc8d5500be193b7710895",
+                                                                    "bytes":  5737,
+                                                                    "resolved_path":  "D:\\_tmp_bench\\synaptic-memory-v0.27.0-tag-836d536-clean4\\src\\synaptic\\backends\\sqlite_graph.py"
+                                                                }
+                                }
+                },
+    "metric_contract":  {
+                            "lower_is_better":  [
+                                                    "durable_create_seconds",
+                                                    "clean_open_ms",
+                                                    "first_query_ms",
+                                                    "steady_p50_ms",
+                                                    "steady_p95_ms",
+                                                    "query_round_seconds",
+                                                    "artifact_bytes",
+                                                    "current_rss_mb",
+                                                    "post_create_rss_mb",
+                                                    "clean_open_rss_mb",
+                                                    "post_query_rss_mb",
+                                                    "peak_rss_mb",
+                                                    "workload_peak_rss_mb"
+                                                ],
+                            "higher_is_better":  [
+                                                     "mrr_at_20",
+                                                     "mrr_at_10",
+                                                     "precision_at_10",
+                                                     "recall_at_10",
+                                                     "f1_at_10",
+                                                     "ndcg_at_10"
+                                                 ],
+                            "shared_accuracy_scorer":  "byte-identical eval/metrics.py and synaptic tests/benchmark/metrics.py"
+                        },
+    "cases":  [
+                  {
+                      "id":  "allganize_rag_ko",
+                      "name":  "Allganize RAG-ko",
+                      "documents":  200,
+                      "scored_queries":  200,
+                      "input":  {
+                                    "path":  "tests/benchmark/data/allganize_rag_ko.json",
+                                    "bytes":  218748,
+                                    "sha256":  "b439b4b6c2495b90f1bf506cceb0cc0125f46c9b8cf6597655b77b03ab736537",
+                                    "preflight_protocol":  "official-external-memory"
+                                },
+                      "contract":  {
+                                       "trials_per_system":  4,
+                                       "trial_order":  [
+                                                           [
+                                                               "omnifuse",
+                                                               "synaptic"
+                                                           ],
+                                                           [
+                                                               "synaptic",
+                                                               "omnifuse"
+                                                           ],
+                                                           [
+                                                               "omnifuse",
+                                                               "synaptic"
+                                                           ],
+                                                           [
+                                                               "synaptic",
+                                                               "omnifuse"
+                                                           ]
+                                                       ],
+                                       "warmup_rounds":  1,
+                                       "measurement_rounds":  3,
+                                       "k":  10,
+                                       "candidate_limit":  20,
+                                       "omnifuse_idf_pow":  1.0
+                                   },
+                      "efficiency":  {
+                                         "durable_create_seconds":  {
+                                                                        "omnifuse":  0.08973500000000001,
+                                                                        "synaptic":  3.6957996,
+                                                                        "outcome":  "win"
+                                                                    },
+                                         "clean_open_ms":  {
+                                                               "omnifuse":  1.04375,
+                                                               "synaptic":  2.5157499999999997,
+                                                               "outcome":  "win"
+                                                           },
+                                         "first_query_ms":  {
+                                                                "omnifuse":  1.1160999999999999,
+                                                                "synaptic":  143.28405,
+                                                                "outcome":  "win"
+                                                            },
+                                         "steady_p50_ms":  {
+                                                               "omnifuse":  0.9335,
+                                                               "synaptic":  137.266875,
+                                                               "outcome":  "win"
+                                                           },
+                                         "steady_p95_ms":  {
+                                                               "omnifuse":  1.5236349999999992,
+                                                               "synaptic":  153.527805,
+                                                               "outcome":  "win"
+                                                           },
+                                         "query_round_seconds":  {
+                                                                     "omnifuse":  0.19100784999999998,
+                                                                     "synaptic":  24.763146383333336,
+                                                                     "outcome":  "win"
+                                                                 },
+                                         "artifact_bytes":  {
+                                                                "omnifuse":  499712.0,
+                                                                "synaptic":  524288.0,
+                                                                "outcome":  "win"
+                                                            },
+                                         "current_rss_mb":  {
+                                                                "omnifuse":  34.920448,
+                                                                "synaptic":  521.447424,
+                                                                "outcome":  "win"
+                                                            },
+                                         "post_create_rss_mb":  {
+                                                                    "omnifuse":  34.666496,
+                                                                    "synaptic":  537.2579840000001,
+                                                                    "outcome":  "win"
+                                                                },
+                                         "clean_open_rss_mb":  {
+                                                                   "omnifuse":  34.779136,
+                                                                   "synaptic":  537.290752,
+                                                                   "outcome":  "win"
+                                                               },
+                                         "post_query_rss_mb":  {
+                                                                   "omnifuse":  35.50208,
+                                                                   "synaptic":  521.480192,
+                                                                   "outcome":  "win"
+                                                               },
+                                         "peak_rss_mb":  {
+                                                             "omnifuse":  38.645759999999996,
+                                                             "synaptic":  599.629824,
+                                                             "outcome":  "win"
+                                                         },
+                                         "workload_peak_rss_mb":  {
+                                                                      "omnifuse":  35.581952,
+                                                                      "synaptic":  538.738688,
+                                                                      "outcome":  "win"
+                                                                  }
+                                     },
+                      "accuracy":  {
+                                       "mrr_at_20":  {
+                                                         "omnifuse":  0.9733333333333333,
+                                                         "synaptic":  0.9585198412698412,
+                                                         "outcome":  "win"
+                                                     },
+                                       "mrr_at_10":  {
+                                                         "omnifuse":  0.9733333333333333,
+                                                         "synaptic":  0.9585198412698412,
+                                                         "outcome":  "win"
+                                                     },
+                                       "precision_at_10":  {
+                                                               "omnifuse":  0.12271230158730159,
+                                                               "synaptic":  0.10583333333333333,
+                                                               "outcome":  "win"
+                                                           },
+                                       "recall_at_10":  {
+                                                            "omnifuse":  1.0,
+                                                            "synaptic":  0.995,
+                                                            "outcome":  "win"
+                                                        },
+                                       "f1_at_10":  {
+                                                        "omnifuse":  0.20884090909090908,
+                                                        "synaptic":  0.1877012987012987,
+                                                        "outcome":  "win"
+                                                    },
+                                       "ndcg_at_10":  {
+                                                          "omnifuse":  0.9802371901428583,
+                                                          "synaptic":  0.9673137432463528,
+                                                          "outcome":  "win"
+                                                      }
+                                   },
+                      "rankings_sha256":  {
+                                              "omnifuse":  "64f153d585035f38ae7517fd84c5941dc248fb37111d407ad859181c7639da0c",
+                                              "synaptic":  "3749b7455a84716974d469b082ec65061d22ad89b9b852f4bd36bca6af9981b5"
+                                          },
+                      "workers":  {
+                                      "expected_workers":  8,
+                                      "completed_workers":  8,
+                                      "distinct_worker_run_ids":  8,
+                                      "worker_run_ids_unique":  true,
+                                      "distinct_launcher_pids":  8,
+                                      "distinct_worker_pids":  8,
+                                      "launcher_pid_reuse_observed":  false,
+                                      "worker_pid_reuse_observed":  false,
+                                      "launcher_worker_pid_match_count":  0,
+                                      "launcher_worker_pid_mismatch_count":  8
+                                  },
+                      "postflight":  {
+                                         "preflight_completed_before_workers":  true,
+                                         "repository_states_unchanged":  true,
+                                         "benchmark_sources_unchanged":  true,
+                                         "dataset_unchanged":  true,
+                                         "runtime_environment_unchanged":  true,
+                                         "doctor_manifest_unchanged":  true,
+                                         "doctor_environment_unchanged":  true,
+                                         "doctor_runtime_binding_reverified":  true,
+                                         "postflight_verified_before_publish":  true,
+                                         "official_environment_lock_unchanged":  true
+                                     },
+                      "stderr_bytes":  0,
+                      "source_artifact":  {
+                                              "path":  "D:\\_tmp_bench\\evidence\\omnifuse-vs-synaptic\\20260728-v17-phase-rss-memory3-v1\\persistence_allganize_v17.json",
+                                              "bytes":  106140,
+                                              "sha256":  "7cb696c39c848ebc1de2fb7199d154046b80dbe1aa00c9cacfab3ed358ad02bb"
+                                          },
+                      "verdict":  {
+                                      "wins":  19,
+                                      "losses":  0,
+                                      "ties":  0
+                                  }
+                  },
+                  {
+                      "id":  "autorag_retrieval",
+                      "name":  "AutoRAG",
+                      "documents":  720,
+                      "scored_queries":  114,
+                      "input":  {
+                                    "path":  "tests/benchmark/data/autorag_retrieval.json",
+                                    "bytes":  1409438,
+                                    "sha256":  "715b8e8db5af290b5476d534797d05fbdf3d85f302f8ca273b6d04373efe3a01",
+                                    "preflight_protocol":  "official-external-memory"
+                                },
+                      "contract":  {
+                                       "trials_per_system":  4,
+                                       "trial_order":  [
+                                                           [
+                                                               "omnifuse",
+                                                               "synaptic"
+                                                           ],
+                                                           [
+                                                               "synaptic",
+                                                               "omnifuse"
+                                                           ],
+                                                           [
+                                                               "omnifuse",
+                                                               "synaptic"
+                                                           ],
+                                                           [
+                                                               "synaptic",
+                                                               "omnifuse"
+                                                           ]
+                                                       ],
+                                       "warmup_rounds":  1,
+                                       "measurement_rounds":  3,
+                                       "k":  10,
+                                       "candidate_limit":  20,
+                                       "omnifuse_idf_pow":  1.0
+                                   },
+                      "efficiency":  {
+                                         "durable_create_seconds":  {
+                                                                        "omnifuse":  0.66455115,
+                                                                        "synaptic":  13.3143187,
+                                                                        "outcome":  "win"
+                                                                    },
+                                         "clean_open_ms":  {
+                                                               "omnifuse":  0.9809,
+                                                               "synaptic":  2.5457,
+                                                               "outcome":  "win"
+                                                           },
+                                         "first_query_ms":  {
+                                                                "omnifuse":  4.8718,
+                                                                "synaptic":  264.87289999999996,
+                                                                "outcome":  "win"
+                                                            },
+                                         "steady_p50_ms":  {
+                                                               "omnifuse":  3.9968500000000002,
+                                                               "synaptic":  262.83162500000003,
+                                                               "outcome":  "win"
+                                                           },
+                                         "steady_p95_ms":  {
+                                                               "omnifuse":  6.2967699999999995,
+                                                               "synaptic":  324.3645275,
+                                                               "outcome":  "win"
+                                                           },
+                                         "query_round_seconds":  {
+                                                                     "omnifuse":  0.47713966666666663,
+                                                                     "synaptic":  30.42652166666667,
+                                                                     "outcome":  "win"
+                                                                 },
+                                         "artifact_bytes":  {
+                                                                "omnifuse":  2686976.0,
+                                                                "synaptic":  4526080.0,
+                                                                "outcome":  "win"
+                                                            },
+                                         "current_rss_mb":  {
+                                                                "omnifuse":  38.696960000000004,
+                                                                "synaptic":  529.0373119999999,
+                                                                "outcome":  "win"
+                                                            },
+                                         "post_create_rss_mb":  {
+                                                                    "omnifuse":  38.914048,
+                                                                    "synaptic":  543.297536,
+                                                                    "outcome":  "win"
+                                                                },
+                                         "clean_open_rss_mb":  {
+                                                                   "omnifuse":  39.000064,
+                                                                   "synaptic":  543.330304,
+                                                                   "outcome":  "win"
+                                                               },
+                                         "post_query_rss_mb":  {
+                                                                   "omnifuse":  39.847936000000004,
+                                                                   "synaptic":  533.315584,
+                                                                   "outcome":  "win"
+                                                               },
+                                         "peak_rss_mb":  {
+                                                             "omnifuse":  44.849152000000004,
+                                                             "synaptic":  601.372672,
+                                                             "outcome":  "win"
+                                                         },
+                                         "workload_peak_rss_mb":  {
+                                                                      "omnifuse":  44.57472,
+                                                                      "synaptic":  547.6024319999999,
+                                                                      "outcome":  "win"
+                                                                  }
+                                     },
+                      "accuracy":  {
+                                       "mrr_at_20":  {
+                                                         "omnifuse":  0.8976608187134503,
+                                                         "synaptic":  0.8911236424394319,
+                                                         "outcome":  "win"
+                                                     },
+                                       "mrr_at_10":  {
+                                                         "omnifuse":  0.8976608187134503,
+                                                         "synaptic":  0.8904970760233918,
+                                                         "outcome":  "win"
+                                                     },
+                                       "precision_at_10":  {
+                                                               "omnifuse":  0.1,
+                                                               "synaptic":  0.09912280701754386,
+                                                               "outcome":  "win"
+                                                           },
+                                       "recall_at_10":  {
+                                                            "omnifuse":  1.0,
+                                                            "synaptic":  0.9912280701754386,
+                                                            "outcome":  "win"
+                                                        },
+                                       "f1_at_10":  {
+                                                        "omnifuse":  0.18181818181818182,
+                                                        "synaptic":  0.1802232854864434,
+                                                        "outcome":  "win"
+                                                    },
+                                       "ndcg_at_10":  {
+                                                          "omnifuse":  0.9236980737318669,
+                                                          "synaptic":  0.9155183892186317,
+                                                          "outcome":  "win"
+                                                      }
+                                   },
+                      "rankings_sha256":  {
+                                              "omnifuse":  "1021b44834fe177f401b79d8549b9fdcb64afd72c255d1e6a58c1b45c135bda6",
+                                              "synaptic":  "3a060e76e685732bac3ebc1cba3396c4dde105b004ea8958e7e532285e687846"
+                                          },
+                      "workers":  {
+                                      "expected_workers":  8,
+                                      "completed_workers":  8,
+                                      "distinct_worker_run_ids":  8,
+                                      "worker_run_ids_unique":  true,
+                                      "distinct_launcher_pids":  8,
+                                      "distinct_worker_pids":  8,
+                                      "launcher_pid_reuse_observed":  false,
+                                      "worker_pid_reuse_observed":  false,
+                                      "launcher_worker_pid_match_count":  0,
+                                      "launcher_worker_pid_mismatch_count":  8
+                                  },
+                      "postflight":  {
+                                         "preflight_completed_before_workers":  true,
+                                         "repository_states_unchanged":  true,
+                                         "benchmark_sources_unchanged":  true,
+                                         "dataset_unchanged":  true,
+                                         "runtime_environment_unchanged":  true,
+                                         "doctor_manifest_unchanged":  true,
+                                         "doctor_environment_unchanged":  true,
+                                         "doctor_runtime_binding_reverified":  true,
+                                         "postflight_verified_before_publish":  true,
+                                         "official_environment_lock_unchanged":  true
+                                     },
+                      "stderr_bytes":  0,
+                      "source_artifact":  {
+                                              "path":  "D:\\_tmp_bench\\evidence\\omnifuse-vs-synaptic\\20260728-v17-phase-rss-memory3-v1\\persistence_autorag_v17.json",
+                                              "bytes":  106207,
+                                              "sha256":  "f364adbd2068e78f6e555e6599800da9f8711e31f2b4d238dd6dce971737c5f5"
+                                          },
+                      "verdict":  {
+                                      "wins":  19,
+                                      "losses":  0,
+                                      "ties":  0
+                                  }
+                  },
+                  {
+                      "id":  "nfcorpus",
+                      "name":  "NFCorpus",
+                      "documents":  3633,
+                      "scored_queries":  100,
+                      "input":  {
+                                    "path":  "tests/benchmark/data/nfcorpus.json",
+                                    "bytes":  6244913,
+                                    "sha256":  "7232e143da668a135e5b294b12e10b84cb2e1cc2865d509cf65b423ad7ee49e3",
+                                    "preflight_protocol":  "official-external-memory"
+                                },
+                      "contract":  {
+                                       "trials_per_system":  4,
+                                       "trial_order":  [
+                                                           [
+                                                               "omnifuse",
+                                                               "synaptic"
+                                                           ],
+                                                           [
+                                                               "synaptic",
+                                                               "omnifuse"
+                                                           ],
+                                                           [
+                                                               "omnifuse",
+                                                               "synaptic"
+                                                           ],
+                                                           [
+                                                               "synaptic",
+                                                               "omnifuse"
+                                                           ]
+                                                       ],
+                                       "warmup_rounds":  1,
+                                       "measurement_rounds":  3,
+                                       "k":  10,
+                                       "candidate_limit":  20,
+                                       "omnifuse_idf_pow":  1.0
+                                   },
+                      "efficiency":  {
+                                         "durable_create_seconds":  {
+                                                                        "omnifuse":  1.0521037999999998,
+                                                                        "synaptic":  1.1533297,
+                                                                        "outcome":  "win"
+                                                                    },
+                                         "clean_open_ms":  {
+                                                               "omnifuse":  1.0310000000000001,
+                                                               "synaptic":  2.4883,
+                                                               "outcome":  "win"
+                                                           },
+                                         "first_query_ms":  {
+                                                                "omnifuse":  0.73005,
+                                                                "synaptic":  81.74785,
+                                                                "outcome":  "win"
+                                                            },
+                                         "steady_p50_ms":  {
+                                                               "omnifuse":  1.53325,
+                                                               "synaptic":  271.5704,
+                                                               "outcome":  "win"
+                                                           },
+                                         "steady_p95_ms":  {
+                                                               "omnifuse":  13.1849725,
+                                                               "synaptic":  315.8520050000001,
+                                                               "outcome":  "win"
+                                                           },
+                                         "query_round_seconds":  {
+                                                                     "omnifuse":  0.4027715833333333,
+                                                                     "synaptic":  21.273924766666667,
+                                                                     "outcome":  "win"
+                                                                 },
+                                         "artifact_bytes":  {
+                                                                "omnifuse":  5627904.0,
+                                                                "synaptic":  18132992.0,
+                                                                "outcome":  "win"
+                                                            },
+                                         "current_rss_mb":  {
+                                                                "omnifuse":  45.514752,
+                                                                "synaptic":  50.024448,
+                                                                "outcome":  "win"
+                                                            },
+                                         "post_create_rss_mb":  {
+                                                                    "omnifuse":  45.666304,
+                                                                    "synaptic":  48.64,
+                                                                    "outcome":  "win"
+                                                                },
+                                         "clean_open_rss_mb":  {
+                                                                   "omnifuse":  45.740032,
+                                                                   "synaptic":  48.816128,
+                                                                   "outcome":  "win"
+                                                               },
+                                         "post_query_rss_mb":  {
+                                                                   "omnifuse":  46.211072,
+                                                                   "synaptic":  55.222272000000004,
+                                                                   "outcome":  "win"
+                                                               },
+                                         "peak_rss_mb":  {
+                                                             "omnifuse":  49.876992,
+                                                             "synaptic":  55.580672,
+                                                             "outcome":  "win"
+                                                         },
+                                         "workload_peak_rss_mb":  {
+                                                                      "omnifuse":  49.840128,
+                                                                      "synaptic":  55.580672,
+                                                                      "outcome":  "win"
+                                                                  }
+                                     },
+                      "accuracy":  {
+                                       "mrr_at_20":  {
+                                                         "omnifuse":  0.5172707749766573,
+                                                         "synaptic":  0.5087539682539682,
+                                                         "outcome":  "win"
+                                                     },
+                                       "mrr_at_10":  {
+                                                         "omnifuse":  0.514718253968254,
+                                                         "synaptic":  0.5080396825396826,
+                                                         "outcome":  "win"
+                                                     },
+                                       "precision_at_10":  {
+                                                               "omnifuse":  0.301,
+                                                               "synaptic":  0.28435714285714286,
+                                                               "outcome":  "win"
+                                                           },
+                                       "recall_at_10":  {
+                                                            "omnifuse":  0.15211743746688083,
+                                                            "synaptic":  0.14482871475280842,
+                                                            "outcome":  "win"
+                                                        },
+                                       "f1_at_10":  {
+                                                        "omnifuse":  0.14119901502659574,
+                                                        "synaptic":  0.13294847837598295,
+                                                        "outcome":  "win"
+                                                    },
+                                       "ndcg_at_10":  {
+                                                          "omnifuse":  0.2980309526199708,
+                                                          "synaptic":  0.28073482318571946,
+                                                          "outcome":  "win"
+                                                      }
+                                   },
+                      "rankings_sha256":  {
+                                              "omnifuse":  "92977462f2c6b9176c077174303162543e2d6abc1033e6b84bca5bc6dbbefb5c",
+                                              "synaptic":  "cf439d118841e31bdbc5f07d9e70420d45fdca092ca88e4b25262920f901a833"
+                                          },
+                      "workers":  {
+                                      "expected_workers":  8,
+                                      "completed_workers":  8,
+                                      "distinct_worker_run_ids":  8,
+                                      "worker_run_ids_unique":  true,
+                                      "distinct_launcher_pids":  8,
+                                      "distinct_worker_pids":  8,
+                                      "launcher_pid_reuse_observed":  false,
+                                      "worker_pid_reuse_observed":  false,
+                                      "launcher_worker_pid_match_count":  0,
+                                      "launcher_worker_pid_mismatch_count":  8
+                                  },
+                      "postflight":  {
+                                         "preflight_completed_before_workers":  true,
+                                         "repository_states_unchanged":  true,
+                                         "benchmark_sources_unchanged":  true,
+                                         "dataset_unchanged":  true,
+                                         "runtime_environment_unchanged":  true,
+                                         "doctor_manifest_unchanged":  true,
+                                         "doctor_environment_unchanged":  true,
+                                         "doctor_runtime_binding_reverified":  true,
+                                         "postflight_verified_before_publish":  true,
+                                         "official_environment_lock_unchanged":  true
+                                     },
+                      "stderr_bytes":  0,
+                      "source_artifact":  {
+                                              "path":  "D:\\_tmp_bench\\evidence\\omnifuse-vs-synaptic\\20260728-v17-phase-rss-memory3-v1\\persistence_nfcorpus_v17.json",
+                                              "bytes":  101276,
+                                              "sha256":  "169fa5e9bb051e1fbb31682aaeb9eb998fed7bb6dbf8cc72bc9018b51664c482"
+                                          },
+                      "verdict":  {
+                                      "wins":  19,
+                                      "losses":  0,
+                                      "ties":  0
+                                  }
+                  },
+                  {
+                      "id":  "trec_covid",
+                      "name":  "TREC-COVID",
+                      "documents":  171332,
+                      "scored_queries":  50,
+                      "input":  {
+                                    "path":  "tests/benchmark/data/trec_covid.json",
+                                    "bytes":  197927756,
+                                    "sha256":  "5ea8e6bb8f0851a9bfa7532c93efa7f89f5045ec830fca1e5587f9f4330f370b",
+                                    "preflight_protocol":  "sqlite-native"
+                                },
+                      "contract":  {
+                                       "trials_per_system":  2,
+                                       "trial_order":  [
+                                                           [
+                                                               "omnifuse",
+                                                               "synaptic"
+                                                           ],
+                                                           [
+                                                               "synaptic",
+                                                               "omnifuse"
+                                                           ]
+                                                       ],
+                                       "warmup_rounds":  1,
+                                       "measurement_rounds":  2,
+                                       "k":  10,
+                                       "candidate_limit":  20,
+                                       "omnifuse_idf_pow":  1.0
+                                   },
+                      "efficiency":  {
+                                         "durable_create_seconds":  {
+                                                                        "omnifuse":  38.6158602,
+                                                                        "synaptic":  42.83830005,
+                                                                        "outcome":  "win"
+                                                                    },
+                                         "clean_open_ms":  {
+                                                               "omnifuse":  1.9351500000000001,
+                                                               "synaptic":  2.5216,
+                                                               "outcome":  "win"
+                                                           },
+                                         "first_query_ms":  {
+                                                                "omnifuse":  864.7728500000001,
+                                                                "synaptic":  1577.66375,
+                                                                "outcome":  "win"
+                                                            },
+                                         "steady_p50_ms":  {
+                                                               "omnifuse":  895.13765,
+                                                               "synaptic":  1466.22665,
+                                                               "outcome":  "win"
+                                                           },
+                                         "steady_p95_ms":  {
+                                                               "omnifuse":  1252.1812049999999,
+                                                               "synaptic":  1727.1441725,
+                                                               "outcome":  "win"
+                                                           },
+                                         "query_round_seconds":  {
+                                                                     "omnifuse":  43.840495000000004,
+                                                                     "synaptic":  74.22875267500001,
+                                                                     "outcome":  "win"
+                                                                 },
+                                         "artifact_bytes":  {
+                                                                "omnifuse":  183779328.0,
+                                                                "synaptic":  630202368.0,
+                                                                "outcome":  "win"
+                                                            },
+                                         "current_rss_mb":  {
+                                                                "omnifuse":  407.1936,
+                                                                "synaptic":  454.44710399999997,
+                                                                "outcome":  "win"
+                                                            },
+                                         "post_create_rss_mb":  {
+                                                                    "omnifuse":  375.60115199999996,
+                                                                    "synaptic":  453.34528,
+                                                                    "outcome":  "win"
+                                                                },
+                                         "clean_open_rss_mb":  {
+                                                                   "omnifuse":  375.94112,
+                                                                   "synaptic":  453.378048,
+                                                                   "outcome":  "win"
+                                                               },
+                                         "post_query_rss_mb":  {
+                                                                   "omnifuse":  407.197696,
+                                                                   "synaptic":  454.483968,
+                                                                   "outcome":  "win"
+                                                               },
+                                         "peak_rss_mb":  {
+                                                             "omnifuse":  1813.8050560000001,
+                                                             "synaptic":  1814.21056,
+                                                             "outcome":  "win"
+                                                         },
+                                         "workload_peak_rss_mb":  {
+                                                                      "omnifuse":  463.53408,
+                                                                      "synaptic":  595.187712,
+                                                                      "outcome":  "win"
+                                                                  }
+                                     },
+                      "accuracy":  {
+                                       "mrr_at_20":  {
+                                                         "omnifuse":  0.9029166666666667,
+                                                         "synaptic":  0.721,
+                                                         "outcome":  "win"
+                                                     },
+                                       "mrr_at_10":  {
+                                                         "omnifuse":  0.9016666666666667,
+                                                         "synaptic":  0.721,
+                                                         "outcome":  "win"
+                                                     },
+                                       "precision_at_10":  {
+                                                               "omnifuse":  0.68,
+                                                               "synaptic":  0.542,
+                                                               "outcome":  "win"
+                                                           },
+                                       "recall_at_10":  {
+                                                            "omnifuse":  0.017304120881710995,
+                                                            "synaptic":  0.013192413714847468,
+                                                            "outcome":  "win"
+                                                        },
+                                       "f1_at_10":  {
+                                                        "omnifuse":  0.033419778665571304,
+                                                        "synaptic":  0.025544138812914577,
+                                                        "outcome":  "win"
+                                                    },
+                                       "ndcg_at_10":  {
+                                                          "omnifuse":  0.7134857043422742,
+                                                          "synaptic":  0.5510164895850034,
+                                                          "outcome":  "win"
+                                                      }
+                                   },
+                      "rankings_sha256":  {
+                                              "omnifuse":  "0ad60c5db3eccc7008ea4145da671c83cfadd64c3b0c79bc30a6de190f16c041",
+                                              "synaptic":  "b71bc190eb8468da03a4bb63c35ada9edad8a1cbdf790bb1fd531e06976592fe"
+                                          },
+                      "workers":  {
+                                      "expected_workers":  4,
+                                      "completed_workers":  4,
+                                      "distinct_worker_run_ids":  4,
+                                      "worker_run_ids_unique":  true,
+                                      "distinct_launcher_pids":  4,
+                                      "distinct_worker_pids":  4,
+                                      "launcher_pid_reuse_observed":  false,
+                                      "worker_pid_reuse_observed":  false,
+                                      "launcher_worker_pid_match_count":  0,
+                                      "launcher_worker_pid_mismatch_count":  4
+                                  },
+                      "postflight":  {
+                                         "preflight_completed_before_workers":  true,
+                                         "repository_states_unchanged":  true,
+                                         "benchmark_sources_unchanged":  true,
+                                         "dataset_unchanged":  true,
+                                         "runtime_environment_unchanged":  true,
+                                         "doctor_manifest_unchanged":  true,
+                                         "doctor_environment_unchanged":  true,
+                                         "doctor_runtime_binding_reverified":  true,
+                                         "postflight_verified_before_publish":  true
+                                     },
+                      "stderr_bytes":  0,
+                      "source_artifact":  {
+                                              "path":  "D:\\_tmp_bench\\evidence\\omnifuse-vs-synaptic\\20260727-v17-phase-rss-trec-sqlite-v2\\trec_sqlite_trials2.json",
+                                              "bytes":  59456,
+                                              "sha256":  "7646abbe8fde87a4ef8f788f6bd3976f880c927c959d3197329995321e7305f1"
+                                          },
+                      "verdict":  {
+                                      "wins":  19,
+                                      "losses":  0,
+                                      "ties":  0
+                                  }
+                  }
+              ],
+    "verdict":  {
+                    "datasets":  4,
+                    "efficiency_metrics_per_dataset":  13,
+                    "accuracy_metrics_per_dataset":  6,
+                    "wins":  76,
+                    "losses":  0,
+                    "ties":  0
+                }
+}

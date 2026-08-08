@@ -6,7 +6,7 @@ crowd out the decisive minority (warnings, exceptions, reversals); MMR keeps bot
 """
 from __future__ import annotations
 
-from .text import tokenize
+from .text import tokenize, tokenize_query
 
 
 def _toks(s: str) -> set[str]:
@@ -63,7 +63,7 @@ def mmr(candidates: list[tuple], *, lam: float = 0.72, k: int = 16) -> list:
 
 def rank_relations(triples: list[str], question: str, *, limit: int = 40) -> list[str]:
     """Dedup relation strings and rank by how many query terms they hit."""
-    q = set(tokenize(question))
+    q = set(tokenize_query(question))
     seen: set[str] = set()
     uniq: list[str] = []
     for t in triples:

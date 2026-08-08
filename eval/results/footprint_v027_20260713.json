@@ -1,0 +1,91 @@
+{
+  "schema": "omnifuse.eval.native_artifact_footprint",
+  "schema_version": 2,
+  "generated_at": "2026-07-13T04:22:26.295482+00:00",
+  "measurement": "native_persistence_artifact_bytes_after_clean_close",
+  "input_contract": "Each system receives the same ordered normalized id/title/text document list.",
+  "datasets_selected": [
+    "nfcorpus",
+    "allganize_rag_ko"
+  ],
+  "dataset_selection_caveat": "The default NFCorpus and Allganize RAG-ko inputs are explicitly named regression fixtures, not a statistically representative sample. Results apply only to the datasets listed in this report.",
+  "capability_caveat": "The artifacts are not capability-equivalent: OmniFuse stores a compressed retrieval index that is loaded into RAM for querying; synaptic-memory stores a disk-queryable SQLite graph with additional graph metadata. This benchmark measures artifact bytes after native persistence and clean close, not total system capability or runtime memory.",
+  "environment": {
+    "python_version": "3.12.10",
+    "python_executable": "D:\\_tmp_bench\\synaptic-memory-20260713\\.venv\\Scripts\\python.exe",
+    "platform": "Windows-11-10.0.22631-SP0",
+    "dont_write_bytecode": true
+  },
+  "harness": {
+    "path": "D:\\xgen-omnifuse\\eval\\footprint_bench.py",
+    "sha256": "cf09e694222e865166be7ce4e014cbd2a952cfac151aedb812b6996c3bcd4a7b"
+  },
+  "repositories": {
+    "omnifuse": {
+      "path": "D:\\xgen-omnifuse",
+      "head": "cd355ddb5c59f5f8bb20c694a4fba8419567310a",
+      "dirty": true,
+      "module_path": "D:\\xgen-omnifuse\\src\\omnifuse\\__init__.py"
+    },
+    "synaptic": {
+      "path": "D:\\_tmp_bench\\synaptic-memory-v027-clean",
+      "head": "7470e728a7d728dedea5363aabbb73adf6ac666f",
+      "dirty": false,
+      "module_path": "D:\\_tmp_bench\\synaptic-memory-v027-clean\\src\\synaptic\\__init__.py"
+    }
+  },
+  "datasets": {
+    "nfcorpus": {
+      "label": "NFCorpus",
+      "source_path": "D:\\_tmp_bench\\synaptic-memory-v027-clean\\tests\\benchmark\\data\\nfcorpus.json",
+      "input": {
+        "documents": 3633,
+        "source_json_bytes": 6244913,
+        "source_json_sha256": "7232e143da668a135e5b294b12e10b84cb2e1cc2865d509cf65b423ad7ee49e3",
+        "normalized_document_payload_utf8_bytes": 5926427,
+        "normalized_document_payload_sha256": "dafd6a5baf45f3a7a27ca8b2d783a3171734d8efd820bf8f702e96f630568aa5"
+      },
+      "artifacts": {
+        "omnifuse": {
+          "bytes": 5904947,
+          "files": {
+            "index.pkl.gz": 5904947
+          }
+        },
+        "synaptic": {
+          "bytes": 20758528,
+          "files": {
+            "graph.sqlite": 20758528
+          }
+        }
+      },
+      "ratio_synaptic_over_omnifuse": 3.5154469633681726
+    },
+    "allganize_rag_ko": {
+      "label": "Allganize RAG-ko",
+      "source_path": "D:\\_tmp_bench\\synaptic-memory-v027-clean\\tests\\benchmark\\data\\allganize_rag_ko.json",
+      "input": {
+        "documents": 200,
+        "source_json_bytes": 218748,
+        "source_json_sha256": "b439b4b6c2495b90f1bf506cceb0cc0125f46c9b8cf6597655b77b03ab736537",
+        "normalized_document_payload_utf8_bytes": 190405,
+        "normalized_document_payload_sha256": "3cc11945c934603e3e703e9e01504f1add053ee48723e718b5eac912e68670e9"
+      },
+      "artifacts": {
+        "omnifuse": {
+          "bytes": 309713,
+          "files": {
+            "index.pkl.gz": 309713
+          }
+        },
+        "synaptic": {
+          "bytes": 757760,
+          "files": {
+            "graph.sqlite": 757760
+          }
+        }
+      },
+      "ratio_synaptic_over_omnifuse": 2.4466522231872734
+    }
+  }
+}

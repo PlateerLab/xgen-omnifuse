@@ -1,0 +1,186 @@
+{
+  "schema": "omnifuse.eval.finreg_comparison",
+  "schema_version": 1,
+  "generated_at": "2026-07-13T04:27:26.147454+00:00",
+  "environment": {
+    "python_version": "3.12.10",
+    "python_executable": "D:\\_tmp_bench\\synaptic-memory-20260713\\.venv\\Scripts\\python.exe",
+    "platform": "Windows-11-10.0.22631-SP0",
+    "dont_write_bytecode": true
+  },
+  "repositories": {
+    "omnifuse": {
+      "path": "D:\\xgen-omnifuse",
+      "sha": "cd355ddb5c59f5f8bb20c694a4fba8419567310a",
+      "dirty": true
+    },
+    "synaptic_memory": {
+      "path": "D:\\_tmp_bench\\synaptic-memory-v027-clean",
+      "sha": "7470e728a7d728dedea5363aabbb73adf6ac666f",
+      "dirty": false
+    }
+  },
+  "inputs": {
+    "corpus": {
+      "path": "D:\\xgen-omnifuse\\eval\\data\\finreg\\raw.jsonl",
+      "bytes": 6955149,
+      "sha256": "bc502934d8b56c8272964a9f09a017cf6db9bd479095598d7a88ec2edab5daf9"
+    },
+    "single_hop_queries": {
+      "path": "D:\\xgen-omnifuse\\eval\\data\\queries\\finreg.json",
+      "bytes": 308541,
+      "sha256": "94ce4881bf2b612464490fc7d47e6c8c7d7cbaef86b48ce1f4d51347b5b500ab"
+    },
+    "multi_hop_queries": {
+      "path": "D:\\xgen-omnifuse\\eval\\data\\queries\\finreg_multihop.json",
+      "bytes": 744540,
+      "sha256": "915af3a609d4dc6da335de43c77db76e45b043ae27f5904ff52eba85447245a4"
+    },
+    "synaptic_prebuilt_sqlite_before": {
+      "database_path": "D:\\_tmp_bench\\synaptic-memory-v027-clean\\eval\\data\\finreg_graph.sqlite",
+      "files": [
+        {
+          "path": "D:\\_tmp_bench\\synaptic-memory-v027-clean\\eval\\data\\finreg_graph.sqlite",
+          "bytes": 25067520,
+          "sha256": "669331262885f765293ca938ff8b5642f76bafc1a12c50d20e042851f0bd61da"
+        }
+      ],
+      "artifact_manifest_sha256": "5894be2f9fa1af54b9395344a7640836b15041e78fc0079af086030ba379911a"
+    },
+    "synaptic_prebuilt_sqlite_after": {
+      "database_path": "D:\\_tmp_bench\\synaptic-memory-v027-clean\\eval\\data\\finreg_graph.sqlite",
+      "files": [
+        {
+          "path": "D:\\_tmp_bench\\synaptic-memory-v027-clean\\eval\\data\\finreg_graph.sqlite",
+          "bytes": 25067520,
+          "sha256": "669331262885f765293ca938ff8b5642f76bafc1a12c50d20e042851f0bd61da"
+        }
+      ],
+      "artifact_manifest_sha256": "5894be2f9fa1af54b9395344a7640836b15041e78fc0079af086030ba379911a"
+    }
+  },
+  "scorer": {
+    "active": {
+      "path": "D:\\xgen-omnifuse\\eval\\metrics.py",
+      "bytes": 5252,
+      "sha256": "3634fe7d237c14d7975ed370dc7e328386c58ff43d04a917d88dced86f4ef978"
+    },
+    "synaptic_checkout_copy": {
+      "path": "D:\\_tmp_bench\\synaptic-memory-v027-clean\\tests\\benchmark\\metrics.py",
+      "bytes": 5252,
+      "sha256": "3634fe7d237c14d7975ed370dc7e328386c58ff43d04a917d88dced86f4ef978"
+    },
+    "byte_identical": true
+  },
+  "harness": {
+    "entrypoint": {
+      "path": "D:\\xgen-omnifuse\\eval\\compare_synaptic.py",
+      "bytes": 16511,
+      "sha256": "4722865b331bdfabe0100c9ebca8a3fc2a1627b12c3e78cfdb915283eee63bd8"
+    },
+    "finreg_support": {
+      "path": "D:\\xgen-omnifuse\\eval\\finreg_bench.py",
+      "bytes": 8327,
+      "sha256": "533a5fb815b3b45760add5f09b82cbb8a5c652d1750897133e990591b6e529f4"
+    },
+    "shared_finreg_logic": {
+      "path": "D:\\xgen-omnifuse\\eval\\_common.py",
+      "bytes": 3816,
+      "sha256": "cab8d59c7dd21fbe200fc37bdadedb5448662b838059efa5ccf71ea45dbc257d"
+    }
+  },
+  "evaluation_contract": {
+    "k": 10,
+    "candidate_limit": 20,
+    "same_k_for_both_systems": true,
+    "same_candidate_limit_for_both_systems": true,
+    "dedupe": "first occurrence of each non-empty document id, preserving rank order",
+    "score_after_dedupe": true,
+    "retrieval": "single-shot; no LLM, embedder, or reranker",
+    "synaptic_fts_seed_limit": 30
+  },
+  "index_conditions": {
+    "omnifuse": {
+      "state": "rebuilt_in_process_from_tracked_corpus",
+      "rebuild_included_in_total_timing": true,
+      "backend": "zero-infrastructure in-memory"
+    },
+    "synaptic_memory": {
+      "state": "caller_supplied_prebuilt_sqlite",
+      "rebuild_performed_by_harness": false,
+      "ingestion_provenance_verified_against_corpus": false,
+      "backend_closed_in_finally": true
+    },
+    "caveat": "OmniFuse is rebuilt in-process from the tracked corpus, while synaptic-memory queries the supplied prebuilt SQLite graph. This harness fingerprints that artifact but cannot infer or verify its ingestion provenance against the corpus. Treat the scores as an accuracy comparison under stated index conditions and do not compare the elapsed times as build or query-speed equivalents.",
+    "timings_directly_comparable": false
+  },
+  "systems": {
+    "omnifuse": {
+      "scores": {
+        "single_hop": {
+          "mean_precision@k": 0.09583333333333334,
+          "mean_recall@k": 0.9583333333333334,
+          "mean_f1@k": 0.17424242424242425,
+          "mrr": 0.8470568783068783,
+          "mean_ndcg@k": 0.8737660484795847,
+          "mean_search_time_ms": 0.0,
+          "total_queries": 120,
+          "hits": 115,
+          "n": 120
+        },
+        "multi_hop": {
+          "mean_precision@k": 0.18583333333333335,
+          "mean_recall@k": 0.9291666666666667,
+          "mean_f1@k": 0.3097222222222223,
+          "mrr": 0.8196031746031747,
+          "mean_ndcg@k": 0.8088220330160599,
+          "mean_search_time_ms": 0.0,
+          "total_queries": 120,
+          "strict": 108,
+          "n": 120
+        }
+      },
+      "timing_seconds": {
+        "rebuild": 7.669620300002862,
+        "query_and_score": 1.410973600053694,
+        "total": 9.080597799969837
+      }
+    },
+    "synaptic_memory": {
+      "scores": {
+        "single_hop": {
+          "mean_precision@k": 0.08583333333333334,
+          "mean_recall@k": 0.8583333333333333,
+          "mean_f1@k": 0.15606060606060607,
+          "mrr": 0.7038690476190476,
+          "mean_ndcg@k": 0.7409782905589313,
+          "mean_search_time_ms": 0.0,
+          "total_queries": 120,
+          "hits": 103,
+          "n": 120
+        },
+        "multi_hop": {
+          "mean_precision@k": 0.13333333333333333,
+          "mean_recall@k": 0.6666666666666666,
+          "mean_f1@k": 0.22222222222222227,
+          "mrr": 0.6291137566137566,
+          "mean_ndcg@k": 0.5668408427910239,
+          "mean_search_time_ms": 0.0,
+          "total_queries": 120,
+          "strict": 56,
+          "n": 120
+        }
+      },
+      "timing_seconds": {
+        "connect_query_and_score": 11.98114709998481,
+        "query_only": 11.971039599971846,
+        "prebuilt_index_rebuild": null
+      },
+      "module_paths": {
+        "package": "D:\\_tmp_bench\\synaptic-memory-v027-clean\\src\\synaptic\\__init__.py",
+        "sqlite_backend": "D:\\_tmp_bench\\synaptic-memory-v027-clean\\src\\synaptic\\backends\\sqlite_graph.py",
+        "evidence_search": "D:\\_tmp_bench\\synaptic-memory-v027-clean\\src\\synaptic\\extensions\\evidence_search.py"
+      }
+    }
+  }
+}

@@ -2,6 +2,227 @@
 
 ## Unreleased
 
+- **v22 completes Synaptic's official HotPotQA E2E path and wins every common aggregate
+  metric without query-specific logic.** Static text corpora can opt into deterministic
+  title-reference graph construction with `build_inmemory(..., auto_link_titles=True)`.
+  A token trie creates only unambiguous multi-token links, supports conservative qualified
+  and parenthetical aliases, and refuses mutable indexes whose derived edges could become
+  stale. On the tagged 24-question/226-document cohort, four isolated AB/BA retrieval trials
+  record OmniFuse/Synaptic Recall **0.9792/0.7292**, all-gold rate **0.9583/0.5000**,
+  answer-presence **0.9583/0.5833**, mean retrieval **2.39/65.73 ms** and p95
+  **2.54/82.71 ms**, for **11/11** wins. The exact upstream prompt, payload and correctness
+  function then run through the same local Ollama 0.32.6 `qwen3.5:4b` digest in per-question
+  AB/BA order: zero-inclusive correctness is **0.7542/0.5040**, generation mean
+  **37.57/42.24 s**, p95 **55.40/65.62 s**, and prompt mean **1,134.96/1,243.54** tokens,
+  for **10/10** wins. All 48 completions are immutable checkpoints and both final artifacts
+  pass data, source, repository and model postflight verification. The complete suite passes
+  **650 tests**.
+
+- **v20 reproduces the official LongMemEval-S retrieval path and wins all eight common
+  aggregate metrics.** `longmemeval_retrieval_bench.py` uses the tagged test's seed-42
+  balanced sample, exact turn-pair records, fresh index per question, `limit=20` and mean
+  gold-session recall while excluding external-LLM answer generation. The nominal 50-question
+  run yields 48 questions, 2,296 sessions and 11,935 turn pairs. Two fresh AB/BA workers per
+  system record OmniFuse/Synaptic session recall **0.9705/0.8413**, MRR **0.8936/0.6990**,
+  nDCG **0.8937/0.6898**, mean retrieval **51.63/235.11 ms**, p95 **58.45/252.83 ms** and
+  maximum per-question RSS delta **1.006/2.177 MB**. An immutable selected-sample artifact
+  prevents the 277 MB source JSON parser from polluting worker RSS. Recall has 10 question
+  wins, 38 ties and no losses; MRR and nDCG each retain two local losses rather than being
+  overstated as per-question sweeps. The complete suite passes **633 tests**.
+
+- **v19 audits Synaptic's S0-S8 ablation instead of treating skips and evaluation labels as
+  cold retrieval.** The exact tagged suite ran 59,198.80 seconds and ended with all 13 tests
+  skipped at the unavailable S8 external-LLM stage. Controlled AutoRAG and NFCorpus runs
+  separate unlabeled S0/S1/S2/S6 from qrels-supervised S3/S4/S5. OmniFuse beats the best
+  comparable stage on AutoRAG cold MRR/nDCG (**0.8908/0.9187 vs 0.8173/0.8591**), NFCorpus
+  cold (**0.5486/0.3334 vs 0.5116/0.2959**) and NFCorpus supervised
+  (**0.6276/0.5121 vs 0.2908/0.1832**) with lower build and query time. AutoRAG's supervised
+  lane is ineligible, S7's empty-vector Ollama fallback failure is excluded, and S8 is not
+  presented as a retrieval capability.
+
+- **v18 reproduces Synaptic's official QA performance contract and removes OmniFuse's cold-start variance structurally.** The new isolated AB/BA harness uses the tag's exact 150-document combined fixture, 16 queries and cold `p95 < 100 ms` / `average < 50 ms` gates. Across four fresh workers per system, OmniFuse passes both gates 4/4 while Synaptic passes each 0/4; median cold p95 is **49.25 vs 3,079.71 ms**, steady p95 **0.052 vs 21.447 ms**, post-query RSS **35.43 vs 534.99 MB**, and lifetime peak **45.30 vs 598.32 MB**. OmniFuse wins all **10/10 common efficiency metrics**. The immutable non-evidence fast path now covers one- and two-field indexes and packs vocabulary once after ingestion, with no corpus threshold, query exception, cache or score change. Its own median cold p95 falls **33.1%** from the pre-change cohort, while the exact QA ranking hash and all 2,269 direct14 top-20 rankings remain unchanged. The official-tag five-run enterprise `full_native` track also reproduces OmniFuse leads in MRR, nDCG@5, Recall@5 and latency; Synaptic retains the tiny-fixture build win, and asymmetric `docs_only` MRR is disclosed rather than tuned away. Doctor coverage is now 22 declared targets. The complete suite passes **627 tests**.
+
+- **v17 closes the measured large-corpus SQLite gap under a same-backend protocol.**
+  Persistence workers now release ingestion-only staging before clean open, record
+  post-create, clean-open and post-query RSS symmetrically, and route doctor-registered
+  non-direct datasets through canonical snapshot preflight. Across 28 fresh workers on
+  Allganize RAG-ko, AutoRAG, NFCorpus and 171,332-document TREC-COVID, OmniFuse records
+  **76 strict wins, 0 ties and 0 losses** over thirteen efficiency and six official
+  accuracy metrics per dataset. On TREC, create is **38.62 vs 42.84 s**, p50 is
+  **895.14 vs 1,466.23 ms**, artifact size is **183.8 vs 630.2 MB**, post-query RSS is
+  **407.20 vs 454.48 MB** and MRR@10 is **0.9017 vs 0.7210**. The 0.41 MB
+
+
+- **v16 accelerates native SQLite queries without changing the index contract.** The raw
+  forward-only reader now uses a canonical posting decoder with a one-byte fast path,
+  precomputes field averages once, specializes exact single-field BM25 and accumulates BM25F
+  frequencies without allocating one list per posting. A seven-run frozen NFCorpus diagnostic
+  preserves every ranking, score and artifact byte while reducing query p50 **29.6%**, p95
+  **36.3%** and complete-round time **36.8%**. A weighted-forward alternative was rejected
+  because its faster queries cost **2.03x** build time and **1.594x** artifact bytes. The
+  claim-grade Allganize, AutoRAG and NFCorpus persistence cohort records **48/48 strict wins**
+  against synaptic-memory `v0.27.0`; the complete suite passes **622 tests**.
+
+- **v15 immutable lexical stores are forward-only and provenance-preserving.** Static
+  `InMemoryGraph` labels and non-feedback `InMemoryVector` text now use
+  `CompactPostingsSnapshot` without reverse/update postings. Validated packed-forward pickle
+  state and raw SQLite writers preserve exact scores, accept legacy BM25/BM25F state and
+  reject corrupt envelopes. The 30,000-document diagnostic preserves every top-10 id and
+  `float.hex` score while reducing median measured index RSS **28.47 to 7.42 MB**, serialized
+  state **4,408,135 to 1,382,373 bytes** and serialization **72.16 to 4.05 ms**. The tradeoff
+  is explicit: build rises **490.04 to 565.10 ms** and a cold unseen-term p50 rises **0.020
+  to 0.134 ms**; repeated-query p50 is **0.019 versus 0.020 ms**.
+
+- **The current official-tag direct cohort has no dataset loss on any shared metric.** The
+  v15 frozen run completes all 14 upstream external cases and 2,269 queries per system.
+  OmniFuse records **14/0/0** dataset wins/losses/ties for MRR@20, MRR@10, Precision@10,
+  F1@10 and nDCG@10, and **13/0/1** for Recall@10. Dataset macros are MRR@20 **0.7038 vs
+  0.6553**, MRR@10 **0.7022 vs 0.6537**, Precision@10 **0.1776 vs 0.1505**, Recall@10
+  **0.7178 vs 0.6606**, F1@10 **0.2206 vs 0.1919** and nDCG@10 **0.6747 vs 0.6100**.
+  v14 and v15 rankings and scores are identical under the canonical comparison hash
+  `1dfeb042926f6dab80080fef639b613224caa70d49053f786675df001b512805`.
+
+- **The large TREC-COVID run is complete and records both the win and the remaining memory
+  gap.** On 171,332 documents, v15 preserves MRR@10 **0.9083** and records p50 **109.49 ms**
+  versus canonical Synaptic **2,937.81 ms**. Its current RSS falls from the v14 OmniFuse
+  **1,078.30 to 786.08 MB**, but Synaptic remains lower at **412.88 MB**. This is a
+  capability-qualified RAM-index-versus-durable-SQLite observation; lazy materialization
+  excludes ingest comparison, and the v15 OmniFuse-only follow-up is not a new counterbalanced
+  two-system cohort. The complete suite passes **621 tests**.
+
+- **The historical v10 native SQLite cohort was 48/48 strict wins against
+  synaptic-memory `v0.27.0`.**
+  Allganize RAG-ko, AutoRAG and NFCorpus each run four fresh counterbalanced workers per
+  system with identical frozen input, K=10, candidate limit 20 and the byte-identical six-
+  metric scorer. OmniFuse wins ten efficiency and six accuracy metrics on every dataset with
+  **0 ties and 0 losses**. Median durable create is **0.1243 vs 3.4995 s**, **0.6177 vs
+  12.2348 s** and **1.0164 vs 1.1430 s** respectively; steady p50 is **1.2023 vs 130.8702
+  ms**, **6.1607 vs 248.0345 ms** and **1.7996 vs 244.5423 ms**. Artifacts are **499,712 vs
+  524,288 B**, **2,686,976 vs 4,526,080 B** and **5,627,904 vs 18,132,992 B**. Lifetime
+  peak RSS is also lower in every case: **35.82 vs 599.44 MB**, **44.73 vs 601.25 MB** and
+  **49.88 vs 55.68 MB**.
+
+- **Snapshot creation is now lossless, blocked and forward-only.** Schema v3 stores title and
+  text as raw UTF-8 or `zlib.Z_BEST_SPEED`, whichever is smaller, on standard 4 KiB pages.
+  The direct builder keeps exact frequencies, field lengths and scoring parameters but no
+  reverse/update state, and streams postings into bounded 64 KiB SQLite blocks instead of
+  copying them into one large BLOB. This removes transient posting duplication, bounds first-
+  query reads and preserves fsync + atomic replace. ASCII token splitting keeps the exact
+  `[a-z0-9]+` contract through a faster C path. The full suite passes **618 tests**.
+
+- **Korean query coordination fixes candidate admission without deleting scoring terms.**
+  Closed-class question operators can still improve a passage that matches the subject, but
+  cannot admit an unrelated passage alone; definition copulas add their normalized subject
+  form. Request-form detection is narrow enough to preserve content such as `설명회`, and
+  historical content forms such as `임진왜란` remain unchanged. There is no benchmark ID,
+  per-query cutoff or dataset-specific configuration.
+
+- **Persistence memory provenance no longer measures a duplicate input payload.** Workers
+  fingerprint the input file and verify canonical JSON incrementally rather than holding the
+  raw bytes, decoded JSON and a second canonical serialization together. The rule is applied
+  identically to both systems and removes the shared parser high-water mark from lifetime peak
+  RSS. Compact immutable provenance is in
+  `persistence_memory3_synaptic_tag_v0.27.0_836d536_20260723_v10_summary.json` (SHA-256
+  `3ab84d3dda2467f31ef710189029d80600f7d68ab191e920a51eae766d408542`).
+
+- **The official synaptic-memory `v0.27.0` direct cohort is complete.** A frozen checkout
+  at tag/SHA `v0.27.0` / `836d536` ran the 14 upstream external cases with the tag's native
+  no-embedding path, inputs, sampling and metrics. Across 2,269 queries per system,
+  OmniFuse wins MRR@20, MRR@10 and nDCG@10 on **14/14 datasets**; the six-metric dataset
+  macros are MRR@20 **0.7045 vs 0.6553**, MRR@10 **0.7028 vs 0.6537**, Precision@10
+  **0.1715 vs 0.1505**, Recall@10 **0.7249 vs 0.6606**, F1@10 **0.2154 vs 0.1919** and
+  nDCG@10 **0.6772 vs 0.6100**. Precision wins 12/14 rather than every dataset because the
+  official scorer rewards shorter-than-K result lists; tested result-cutting either regressed
+  Recall or compensated on unrelated queries and was rejected. The write-once result
+  `direct_external14_fts_synaptic_tag_v0.27.0_836d536_20260722_speed1_v3.json` has SHA-256
+  `f6a6f2ed7398c0d174e27d5444e9236b5e143194c7e30a8664603f0720820877` and complete
+  pre/post provenance.
+
+- **Plain static indexes now materialize lexical state lazily without changing retrieval.**
+  `InMemoryVector` snapshots scalar title/text inputs at construction and builds its immutable
+  BM25/BM25F index once, under a lock, on the first lexical query. Mutable and feedback-backed
+  stores remain eager so mutation, evidence and snapshot semantics stay unchanged. Pickling,
+  concurrent first use, dense-only/hybrid operation and old materialized state are covered.
+  The production suite passes **586 tests** and every official v8 top-20 ranking is identical
+  to the 2026-07-22 canonical reference.
+
+- **Official-tag v8 wins every measured row in the selected no-embedding in-memory scope.**
+  AutoRAG, Allganize RAG-ko and NFCorpus each ran in two fresh counterbalanced AB/BA workers
+  with one warm-up, five measured rounds and `time.perf_counter_ns`. Synaptic/OmniFuse ratios
+  are **7.46×/5.86×/8.49×** for ingest, **513.25×/892.09×/1,546.95×** for p50 query latency
+  and **492.05×/739.50×/433.65×** for ingest-plus-mean-query-set-round. OmniFuse also has
+  higher MRR@10 and lower observed peak RSS on all three cases; the NFCorpus RSS difference
+  is only 0.014 MB and is not presented as a portable margin.
+
+- **The official NFCorpus CDC gate now covers exact mutation semantics and cold first use.**
+  Two fresh workers per system apply 36 inserts, updates, deletes and no-ops, and both systems
+  match their own full rebuild at every checkpoint. OmniFuse wins all six shared metrics:
+  MRR@20 **0.5080 vs 0.4799**, MRR@10 **0.5056 vs 0.4771**, Precision@10
+  **0.2960 vs 0.2507**, Recall@10 **0.1514 vs 0.1323**, F1@10 **0.1401 vs 0.1206** and
+  nDCG@10 **0.2927 vs 0.2481**. Synaptic/OmniFuse p50 ratios are **4.82×** initial ingest,
+  **6.86×** mutation, **14.49×** cold first round, **461.72×** steady round and **14.49×**
+  incremental end-to-end. The cold round includes deferred lexical materialization. Compact
+  immutable provenance is in
+  `perf_cdc_synaptic_tag_v0.27.0_836d536_20260723_v8_summary.json`.
+
+- **Korean normalization and exact top-K selection are faster without changing retrieval.**
+  Korean suffix matching now dispatches to an immutable last-character bucket that preserves
+  the original longest-first order. BM25 and BM25F now retain a bounded heap ordered by
+  `(score, -doc_id)` instead of sorting every positive candidate. The implementation preserves
+  positive-score filtering, ties, zero/negative limits and NaN behavior. The optimized
+  official-tag run reproduced every baseline top-10/top-20 ranking, relevance set, reciprocal
+  rank and aggregate metric exactly across all 2,269 queries; the full suite passed 244 tests.
+  Direct-run time values remain observational because the upstream-compatible Windows clock
+  is too coarse for sub-millisecond queries, so precise latency requires a separate protocol.
+  After integrating and hardening that protocol, 44 focused performance tests and the current
+  262-test repository suite pass.
+
+- **The synaptic-memory upstream-main revalidation now has explicit, machine-readable
+  provenance.** The selected competitor is `main` at `7470e72` (package metadata 0.27.0),
+  not the official `v0.27.0` tag at `836d536`. OmniFuse is identified by HEAD `cd355dd`
+  plus its content-fingerprinted benchmark worktree, not falsely described as a clean fixed
+  commit. The canonical tracked-public invocation gives OmniFuse **8/8 MRR@10 wins** and
+  macro **0.8408 vs 0.8221**; Recall@10 and nDCG@10 win 8/8, while Precision@10 wins 5/8.
+  A separate completed extended9 invocation gives **9/9 MRR@10 wins** and macro **0.6717
+  vs 0.6253**. Combining those two independent artifacts gives 17/17 MRR wins, not one
+  17-dataset same-pass run. The selected-main enterprise fixture's `full_native` mode,
+  scored at its own K=5, also
+  favors OmniFuse on MRR (**0.7689 vs 0.7467**), nDCG@5 (**0.7637 vs 0.6649**), and
+  Recall@5 (**0.8167 vs 0.7333**). The old `0.7889 vs 0.7689` enterprise aggregate
+  does not reproduce against the current fixture. Its `docs_only` mode is retained
+  as an ablation, not counted as a head-to-head win, because synaptic receives
+  dataset-provided intent labels while OmniFuse receives the raw query.
+
+- **Benchmark coverage and efficiency contracts are now auditable.** `eval/bench.py
+  doctor` distinguishes the real matrix — finreg 2, eight Git-tracked public files,
+  nine upstream-declared/downloader-generated public files, one enterprise fixture,
+  and one private KRA target — instead of calling all 21 “shipped datasets.” It fingerprints inputs,
+  repository state, and the byte-identical scorer files, and fails strict public runs
+  when any of the 19 strict inputs (17 public IR plus two finreg inputs) is unavailable.
+  The loader now binds every strict target to its declared repository/role/path and
+  re-hashes all 19 actual files, including inputs not selected by the immediate run; it
+  also revalidates them after the run. The performance runner now uses
+  the same K/candidate limit, deterministic order, warm-up plus repeated measurements,
+  fresh worker processes, p50/p95/mean latency, whole-worker RSS, write-once JSON, complete
+  before/after fingerprints, a strict-doctor runtime binding, and a separate shared accuracy
+  scorer. The old 2026-07-13 schema-v1 efficiency files remain selected measurements rather
+  than official-tag canonical artifacts. `eval/enterprise_bench.py` records per-query ranks,
+  native routing, memory-semantics caveats, and scorer provenance.
+
+  A follow-up audit found and fixed two false-green paths in the first doctor revision:
+  synaptic v0.27's 2Wiki-dev, MuSiQue-dev, and TREC-COVID declarations were missing, and
+  existence-only checks accepted `{}` as a ready dataset. The matrix is now 21 targets / 19
+  public, public JSON is validated for parser-compatible non-empty corpus, queries, and
+  relevance labels, JSONL is streamed and validated, and strict mode blocks dirty/non-Git
+  sources unless `--allow-dirty` is explicit. Benchmark imports now suppress bytecode writes
+  and verify that synaptic was loaded from the requested checkout.
+
+### Historical 2026-07-10 checkpoint
+
+The entries below preserve the investigation chronology. Their old coverage totals,
+`idf_pow=1.5` default, and cross-protocol headline comparisons are superseded by the current
+README and the 2026-07-14 canonical upstream-main artifacts.
+
 - **Index persistence is now gzip-compressed — 2.4–4.3× smaller files, lossless.** A new
   storage-footprint head-to-head (the one efficiency axis not yet measured) found the plain
   pickle LOST to synaptic's SQLite store on tiny corpora (Allganize-ko: 1.34 vs 0.76 MB) while

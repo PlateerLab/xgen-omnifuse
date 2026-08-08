@@ -1,0 +1,35 @@
+{
+  "schema": "omnifuse.eval.same_pass_accuracy",
+  "schema_version": 1,
+  "date": "2026-07-13",
+  "systems": {
+    "omnifuse": "cd355ddb5c59f5f8bb20c694a4fba8419567310a",
+    "synaptic_memory": "7470e728a7d728dedea5363aabbb73adf6ac666f"
+  },
+  "contract": {
+    "track": "tracked public FTS-only",
+    "k": 10,
+    "metric": "MRR from byte-identical eval/metrics.py and synaptic tests/benchmark/metrics.py",
+    "synaptic_driver": "eval.run_all.run_public_dataset(embedder=None, reranker=None)",
+    "command": "python -u eval/public_bench.py --synaptic-repo D:\\_tmp_bench\\synaptic-memory-20260713",
+    "data_manifest": "doctor_v027_20260713.json",
+    "raw_log": "worklogs/2026-07-13-public-v027.stdout.log"
+  },
+  "results": {
+    "HotPotQA-24": {"synaptic": 0.8879, "omnifuse": 0.9077},
+    "HotPotQA-200": {"synaptic": 0.8775, "omnifuse": 0.8958},
+    "Allganize RAG-ko": {"synaptic": 0.9595, "omnifuse": 0.9683},
+    "Allganize RAG-Eval": {"synaptic": 0.9303, "omnifuse": 0.9371},
+    "PublicHealthQA": {"synaptic": 0.6065, "omnifuse": 0.6133},
+    "AutoRAG": {"synaptic": 0.8994, "omnifuse": 0.9282},
+    "KLUE-MRC": {"synaptic": 0.7718, "omnifuse": 0.8293},
+    "Ko-StrategyQA": {"synaptic": 0.6440, "omnifuse": 0.6466}
+  },
+  "summary": {
+    "wins": 8,
+    "ties": 0,
+    "losses": 0,
+    "synaptic_mean_mrr": 0.8221125,
+    "omnifuse_mean_mrr": 0.8407875
+  }
+}

@@ -1,0 +1,177 @@
+{
+  "schema": "omnifuse.eval.static-index-micro",
+  "schema_version": 1,
+  "generated_at": "2026-07-24T04:50:08.252712+00:00",
+  "scope": "deterministic 30,000-document fielded synthetic structural diagnostic; not a Synaptic capability comparison",
+  "environment": {
+    "python": "3.14.6",
+    "executable": "D:\\xgen-omnifuse\\.venv\\Scripts\\python.exe",
+    "platform": "Windows-11-10.0.22631-SP0"
+  },
+  "contract": {
+    "repeats_per_kind": 3,
+    "documents": 30000,
+    "queries": 30,
+    "limit": 10,
+    "legacy": "BM25F precomputed Python postings",
+    "compact": "forward-only CompactPostingsSnapshot with packed persistence state"
+  },
+  "source_files": {
+    "src/omnifuse/_compact_postings.py": {
+      "sha256": "e7a3f9c5ee9f2aff19127d4a0a7b25bb81e6459817c8f3ab613851195b508a44",
+      "bytes": 91497
+    },
+    "src/omnifuse/backends/memory.py": {
+      "sha256": "b7fde742190eaf38ccbf72e1daeb1739495d5ccd7b4ecb7cb4938b09cd26d46e",
+      "bytes": 77373
+    },
+    "src/omnifuse/backends/sqlite_snapshot.py": {
+      "sha256": "59626c2901f3e22e2de750835298cc482ed1493c6c0bdaf0b39339c9b634b637",
+      "bytes": 46256
+    }
+  },
+  "rankings_sha256": "7d670dcb1e24581e1c05c4c913a88c37c0f76f76ec29f52ef059946e513532ab",
+  "rankings_equal": true,
+  "trials": [
+    {
+      "kind": "legacy",
+      "documents": 30000,
+      "index_type": "BM25F",
+      "retains_reverse": null,
+      "build_ms": 473.35619997465983,
+      "index_rss_delta_mb": 28.758016,
+      "cold_diverse_p50_ms": 0.020099978428333998,
+      "cold_diverse_p95_ms": 0.025399960577487946,
+      "warm_repeat_p50_ms": 0.018849968910217285,
+      "warm_repeat_p95_ms": 0.019799976143985987,
+      "state_bytes": 4408135,
+      "state_kind": "pickle-index-v5",
+      "serialize_ms": 72.16059998609126,
+      "rankings_sha256": "7d670dcb1e24581e1c05c4c913a88c37c0f76f76ec29f52ef059946e513532ab",
+      "repeat": 1
+    },
+    {
+      "kind": "legacy",
+      "documents": 30000,
+      "index_type": "BM25F",
+      "retains_reverse": null,
+      "build_ms": 497.6746999891475,
+      "index_rss_delta_mb": 28.471296,
+      "cold_diverse_p50_ms": 0.02020000829361379,
+      "cold_diverse_p95_ms": 0.026399968191981316,
+      "warm_repeat_p50_ms": 0.019199971575289965,
+      "warm_repeat_p95_ms": 0.019900035113096237,
+      "state_bytes": 4408135,
+      "state_kind": "pickle-index-v5",
+      "serialize_ms": 71.28000003285706,
+      "rankings_sha256": "7d670dcb1e24581e1c05c4c913a88c37c0f76f76ec29f52ef059946e513532ab",
+      "repeat": 2
+    },
+    {
+      "kind": "legacy",
+      "documents": 30000,
+      "index_type": "BM25F",
+      "retains_reverse": null,
+      "build_ms": 490.0432999711484,
+      "index_rss_delta_mb": 28.454912,
+      "cold_diverse_p50_ms": 0.0219999928958714,
+      "cold_diverse_p95_ms": 0.03589998232200742,
+      "warm_repeat_p50_ms": 0.020150007912889123,
+      "warm_repeat_p95_ms": 0.028999987989664078,
+      "state_bytes": 4408135,
+      "state_kind": "pickle-index-v5",
+      "serialize_ms": 82.99399999668822,
+      "rankings_sha256": "7d670dcb1e24581e1c05c4c913a88c37c0f76f76ec29f52ef059946e513532ab",
+      "repeat": 3
+    },
+    {
+      "kind": "compact",
+      "documents": 30000,
+      "index_type": "CompactPostingsSnapshot",
+      "retains_reverse": false,
+      "build_ms": 668.0401999619789,
+      "index_rss_delta_mb": 7.421952,
+      "cold_diverse_p50_ms": 0.13380000018514693,
+      "cold_diverse_p95_ms": 0.15259999781847,
+      "warm_repeat_p50_ms": 0.01920000067912042,
+      "warm_repeat_p95_ms": 0.0241999514400959,
+      "state_bytes": 1382373,
+      "state_kind": "pickle-packed-forward-state-v5",
+      "serialize_ms": 4.049500043038279,
+      "rankings_sha256": "7d670dcb1e24581e1c05c4c913a88c37c0f76f76ec29f52ef059946e513532ab",
+      "repeat": 1
+    },
+    {
+      "kind": "compact",
+      "documents": 30000,
+      "index_type": "CompactPostingsSnapshot",
+      "retains_reverse": false,
+      "build_ms": 549.1499000345357,
+      "index_rss_delta_mb": 7.712768,
+      "cold_diverse_p50_ms": 0.11790002463385463,
+      "cold_diverse_p95_ms": 0.14099996769800782,
+      "warm_repeat_p50_ms": 0.020100007532164454,
+      "warm_repeat_p95_ms": 0.029999995604157448,
+      "state_bytes": 1382373,
+      "state_kind": "pickle-packed-forward-state-v5",
+      "serialize_ms": 4.030300013255328,
+      "rankings_sha256": "7d670dcb1e24581e1c05c4c913a88c37c0f76f76ec29f52ef059946e513532ab",
+      "repeat": 2
+    },
+    {
+      "kind": "compact",
+      "documents": 30000,
+      "index_type": "CompactPostingsSnapshot",
+      "retains_reverse": false,
+      "build_ms": 565.1017000200227,
+      "index_rss_delta_mb": 7.315456,
+      "cold_diverse_p50_ms": 0.1686000032350421,
+      "cold_diverse_p95_ms": 0.18140004249289632,
+      "warm_repeat_p50_ms": 0.029550021281465888,
+      "warm_repeat_p95_ms": 0.031599949579685926,
+      "state_bytes": 1382373,
+      "state_kind": "pickle-packed-forward-state-v5",
+      "serialize_ms": 5.2918000146746635,
+      "rankings_sha256": "7d670dcb1e24581e1c05c4c913a88c37c0f76f76ec29f52ef059946e513532ab",
+      "repeat": 3
+    }
+  ],
+  "summary_median": {
+    "legacy": {
+      "build_ms": 490.0432999711484,
+      "index_rss_delta_mb": 28.471296,
+      "cold_diverse_p50_ms": 0.02020000829361379,
+      "cold_diverse_p95_ms": 0.026399968191981316,
+      "warm_repeat_p50_ms": 0.019199971575289965,
+      "warm_repeat_p95_ms": 0.019900035113096237,
+      "state_bytes": 4408135,
+      "serialize_ms": 72.16059998609126,
+      "index_type": "BM25F",
+      "retains_reverse": null,
+      "state_kind": "pickle-index-v5"
+    },
+    "compact": {
+      "build_ms": 565.1017000200227,
+      "index_rss_delta_mb": 7.421952,
+      "cold_diverse_p50_ms": 0.13380000018514693,
+      "cold_diverse_p95_ms": 0.15259999781847,
+      "warm_repeat_p50_ms": 0.020100007532164454,
+      "warm_repeat_p95_ms": 0.029999995604157448,
+      "state_bytes": 1382373,
+      "serialize_ms": 4.049500043038279,
+      "index_type": "CompactPostingsSnapshot",
+      "retains_reverse": false,
+      "state_kind": "pickle-packed-forward-state-v5"
+    },
+    "ratios_compact_over_legacy": {
+      "build_ms": 1.153166873321793,
+      "index_rss_delta_mb": 0.26068191627104015,
+      "cold_diverse_p50_ms": 6.623759665853584,
+      "cold_diverse_p95_ms": 5.780309912071049,
+      "warm_repeat_p50_ms": 1.0468769421530197,
+      "warm_repeat_p95_ms": 1.5075348075348076,
+      "state_bytes": 0.31359588578843434,
+      "serialize_ms": 0.056117882110442656
+    }
+  }
+}

@@ -1,0 +1,117 @@
+{
+  "schema": "omnifuse.eval.persistence_summary",
+  "schema_version": 1,
+  "status": "ok",
+  "compiled_at": "2026-07-23T06:20:18.702613+00:00",
+  "evidence_set": "20260723-v9-persistence-standard-v1",
+  "scope": {
+    "dataset": "NFCorpus",
+    "documents": 3633,
+    "scored_queries": 100,
+    "competitor": "PlateerLab/synaptic-memory",
+    "competitor_tag": "v0.27.0",
+    "competitor_sha": "836d53640e520c88910dd57e098167a4defe50d2",
+    "description": "Current-host native SQLite persistence comparison with identical frozen input, shared six-metric scoring, four counterbalanced fresh workers per system, durable create, clean open, repeated queries and write-once provenance."
+  },
+  "contract": {
+    "k": 10,
+    "candidate_limit": 20,
+    "omnifuse_idf_pow": 1.0,
+    "warmup_rounds": 1,
+    "measurement_rounds": 3,
+    "fresh_trials_per_system": 4,
+    "trial_order": [
+      ["omnifuse", "synaptic"],
+      ["synaptic", "omnifuse"],
+      ["omnifuse", "synaptic"],
+      ["synaptic", "omnifuse"]
+    ],
+    "synaptic_ingest": "SqliteGraphBackend.save_nodes_batch",
+    "memory": "whole-process lifetime peak plus 10 ms workload RSS sampling after system import",
+    "publication": "strict preflight/postflight, isolated fresh workers, frozen input and atomic write-once external evidence"
+  },
+  "source_freeze": {
+    "omnifuse_head": "cd355ddb5c59f5f8bb20c694a4fba8419567310a",
+    "omnifuse_dirty_content_sha256": "ab7f0de86bc1d593181f57fb084cce265568e56c799515447097527f15aa2b86",
+    "synaptic_dirty_content_sha256": "69e715af7a4cf9e0cd73dc83d0d99c1663a016e3ac0ee9ca180a11c50630e55b",
+    "performance_runner_sha256": "95a2bb9a723184508d6b6d729687a00c9f3b6043ac259570ebb77131908dad19",
+    "persistence_runner_sha256": "f473f6b0289537aceab4521b2cb5044881cfe413e148e59633453cc74675d54e",
+    "scorer_sha256": "3634fe7d237c14d7975ed370dc7e328386c58ff43d04a917d88dced86f4ef978",
+    "dataset_sha256": "7232e143da668a135e5b294b12e10b84cb2e1cc2865d509cf65b423ad7ee49e3",
+    "doctor": {
+      "external_file": "D:/_tmp_bench/evidence/omnifuse-vs-synaptic/20260723-v9-persistence-standard-v1/doctor_v7.json",
+      "bytes": 19348,
+      "sha256": "da954156530a61a44dd5acac58cb25ba1931969296107dab10e3007986a510fa",
+      "canonical_sha256": "ae206cd7af18422f451bee36475812b762062b8f228e18d6e2f6880400afa392",
+      "strict_public_ready": "19/19"
+    }
+  },
+  "evidence": {
+    "external_file": "D:/_tmp_bench/evidence/omnifuse-vs-synaptic/20260723-v9-persistence-standard-v1/persistence_nfcorpus_idf1_v7.json",
+    "bytes": 99024,
+    "sha256": "a4ff8db8e77213beec62857a4ec11bb775a1495c48d2f63dae1989d8f7b259b0",
+    "completed_workers": 8,
+    "distinct_worker_run_ids": 8,
+    "distinct_launcher_pids": 8,
+    "distinct_worker_pids": 8
+  },
+  "omnifuse": {
+    "accuracy": {
+      "mrr_at_20": 0.5172707749766573,
+      "mrr_at_10": 0.514718253968254,
+      "precision_at_10": 0.301,
+      "recall_at_10": 0.15211743746688083,
+      "f1_at_10": 0.14119901502659574,
+      "ndcg_at_10": 0.2980309526199708
+    },
+    "rankings_sha256": "92977462f2c6b9176c077174303162543e2d6abc1033e6b84bca5bc6dbbefb5c",
+    "durable_create_p50_s": 1.1668341500000001,
+    "clean_open_p50_ms": 1.0787,
+    "first_query_p50_ms": 0.79495,
+    "steady_query_p50_ms": 1.80685,
+    "steady_query_p95_ms": 19.232705000000003,
+    "query_round_p50_s": 0.5835912,
+    "artifact_bytes": 8355840,
+    "current_rss_p50_mb": 52.158463999999995,
+    "workload_peak_rss_p50_mb": 58.984448,
+    "lifetime_peak_rss_p50_mb": 66.11968
+  },
+  "synaptic": {
+    "accuracy": {
+      "mrr_at_20": 0.5087539682539682,
+      "mrr_at_10": 0.5080396825396826,
+      "precision_at_10": 0.28435714285714286,
+      "recall_at_10": 0.14482871475280842,
+      "f1_at_10": 0.13294847837598295,
+      "ndcg_at_10": 0.28073482318571946
+    },
+    "rankings_sha256": "cf439d118841e31bdbc5f07d9e70420d45fdca092ca88e4b25262920f901a833",
+    "durable_create_p50_s": 1.24025675,
+    "clean_open_p50_ms": 2.5509000000000004,
+    "first_query_p50_ms": 84.93025,
+    "steady_query_p50_ms": 268.8143,
+    "steady_query_p95_ms": 313.5989575,
+    "query_round_p50_s": 21.013724333333332,
+    "artifact_bytes": 18132992,
+    "current_rss_p50_mb": 55.783424,
+    "workload_peak_rss_p50_mb": 61.509631999999996,
+    "lifetime_peak_rss_p50_mb": 66.12377599999999
+  },
+  "ratios_synaptic_over_omnifuse": {
+    "durable_create": 1.062925,
+    "clean_open": 2.364791,
+    "first_query": 106.837222,
+    "steady_query_p50": 148.775106,
+    "steady_query_p95": 16.305504,
+    "query_round": 36.00761,
+    "artifact_bytes": 2.170098,
+    "current_rss": 1.069499,
+    "workload_peak_rss": 1.042811,
+    "lifetime_peak_rss": 1.000062
+  },
+  "limitations": [
+    "This is one current-host NFCorpus no-embedding native SQLite persistence cohort, not a cross-machine constant.",
+    "The lifetime peak is dominated by the shared frozen-input parse and differs by one 4 KiB page; workload peak and post-run current RSS are the meaningful index-memory comparisons.",
+    "Embedding, reranking, PostgreSQL and unrelated agent-memory capabilities are outside this cohort."
+  ]
+}

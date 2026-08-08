@@ -14,6 +14,7 @@ import pytest
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1] / "src"))
 
 from omnifuse import Chunk, OmniFuse, build_inmemory  # noqa: E402
+from omnifuse._compact_postings import CompactPostingsSnapshot  # noqa: E402
 from omnifuse.backends.memory import InMemoryGraph, InMemoryVector  # noqa: E402
 from omnifuse.text import BM25F, tokenize  # noqa: E402
 
@@ -34,9 +35,10 @@ def test_title_field_used_by_vector_store():
         Chunk("b", text="완전히 다른 내용의 긴 본문 " * 30, title="목적"),
     ]
     v = InMemoryVector(chunks)
-    from omnifuse.text import BM25F
-    assert isinstance(v._bm25, BM25F)  # titles present -> field-weighted index active
+    assert v._bm25 is None
     hits = v.search("과태료", limit=2)
+    assert isinstance(v._bm25, CompactPostingsSnapshot)
+    assert v._bm25.mode == "bm25f"
     assert hits[0][0].id == "a"
 
 
@@ -50,11 +52,13 @@ def test_graph_companion_fusion_surfaces_cited_passage():
     nodes = [("A", "위반 신고"), ("B", "벌칙"), ("C", "기타")]
     triples = [("A", "references", "B")]
     of = build_inmemory(nodes, triples, chunks)  # graph_fusion on by default
+    assert isinstance(of.graph._bm25, CompactPostingsSnapshot)
+    assert of.graph._bm25._retains_reverse is False
 
     ids_fused = [c.id for c, _ in of.retrieve("신고 의무 위반")]
     assert "A" in ids_fused and "B" in ids_fused  # B pulled in via A's reference
 
-    of_off = OmniFuse(InMemoryGraph([__import__("omnifuse").Node(n, l) for n, l in nodes],
+    of_off = OmniFuse(InMemoryGraph([__import__("omnifuse").Node(n, label) for n, label in nodes],
                                     [__import__("omnifuse").Triple(*t) for t in triples]),
                       InMemoryVector(chunks), graph_fusion=False)
     ids_off = [c.id for c, _ in of_off.retrieve("신고 의무 위반")]

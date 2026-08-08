@@ -44,9 +44,28 @@ def test_loaded_index_keeps_graph_and_chunks(tmp_path):
     p = tmp_path / "idx.pkl"
     save_index(of, p)
     loaded = load_index(p)
+    assert loaded.graph._bm25._retains_reverse is False
+    assert loaded.vector._bm25._retains_reverse is False
 
     assert loaded.graph.neighbor_ids("담보") == of.graph.neighbor_ids("담보")
     assert [c.id for c in loaded.vector.fetch(["c1", "c2"])] == ["c1", "c2"]
+
+
+@pytest.mark.parametrize("mutable", [False, True])
+def test_save_materializes_unqueried_lexical_index_for_warm_load(tmp_path, mutable):
+    of = build_inmemory([], TRIPLES, CHUNKS, mutable=mutable)
+    assert of.vector._bm25 is None
+
+    path = tmp_path / "warm.pkl.gz"
+    save_index(of, path)
+    loaded = load_index(path)
+
+    assert of.vector._bm25 is not None
+    assert loaded.vector._bm25 is not None
+    assert getattr(loaded.vector, "_lexical_source", None) is None
+    assert [chunk.id for chunk, _score in loaded.retrieve("담보 한도", limit=5)] == [
+        chunk.id for chunk, _score in of.retrieve("담보 한도", limit=5)
+    ]
 
 
 def test_embedder_not_persisted_and_reattachable(tmp_path):

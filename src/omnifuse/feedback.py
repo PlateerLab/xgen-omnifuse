@@ -64,6 +64,29 @@ class Feedback:
                 if not seen:
                     del self._mem[doc_id]
 
+    def drop(self, doc_ids: Iterable[str]) -> int:
+        """Remove every remembered query for deleted documents."""
+        removed = 0
+        for doc_id in doc_ids:
+            if self._mem.pop(doc_id, None) is not None:
+                removed += 1
+        return removed
+
+    def copy(self) -> "Feedback":
+        """Return a detached snapshot suitable for one index owner."""
+        duplicate = Feedback()
+        duplicate._mem = {
+            doc_id: list(queries) for doc_id, queries in self._mem.items()
+        }
+        return duplicate
+
+    def _replace_queries(self, doc_id: str, queries: Iterable[str]) -> None:
+        values = list(queries)
+        if values:
+            self._mem[doc_id] = values
+        else:
+            self._mem.pop(doc_id, None)
+
     def observe_ranked(self, retrieved: Iterable[str], relevant: Iterable[str], query: str) -> None:
         """Record a judged result list: only the confirmed-relevant chunks remember it."""
         rel = set(relevant)
@@ -71,7 +94,7 @@ class Feedback:
 
     def queries(self, doc_id: str) -> list[str]:
         """Queries this chunk is known to answer (empty if never confirmed)."""
-        return self._mem.get(doc_id, [])
+        return list(self._mem.get(doc_id, ()))
 
     def text(self, doc_id: str) -> str:
         return " ".join(self._mem.get(doc_id, ()))

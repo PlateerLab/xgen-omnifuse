@@ -1,0 +1,1596 @@
+{
+  "schema": "omnifuse.eval.performance",
+  "schema_version": 5,
+  "provenance_level": "strict-preflight-postflight-isolated-write-once-v4",
+  "generated_at": "2026-07-24T01:06:47.241273+00:00",
+  "status": "ok",
+  "dataset": {
+    "path": "tests/benchmark/data/trec_covid.json",
+    "sha256": "5ea8e6bb8f0851a9bfa7532c93efa7f89f5045ec830fca1e5587f9f4330f370b",
+    "bytes": 197927756,
+    "doctor_target_id": "trec_covid",
+    "documents": 171332,
+    "scored_queries": 50,
+    "relevance_judgments": 24673,
+    "doctor": {
+      "target_id": "trec_covid",
+      "target_name": "TREC-COVID",
+      "target_status": "ok",
+      "role": "dataset",
+      "input_sha256": "5ea8e6bb8f0851a9bfa7532c93efa7f89f5045ec830fca1e5587f9f4330f370b",
+      "input_bytes": 197927756,
+      "dataset_sha256": "5ea8e6bb8f0851a9bfa7532c93efa7f89f5045ec830fca1e5587f9f4330f370b"
+    }
+  },
+  "environment": {
+    "python": "3.12.10",
+    "python_implementation": "CPython",
+    "python_executable": "D:\\_tmp_bench\\venvs\\synaptic-v0.27.0-836d536-frozen1\\Scripts\\python.exe",
+    "platform": "Windows-11-10.0.22631-SP0",
+    "utf8_mode": true,
+    "sqlite": "3.49.1",
+    "dont_write_bytecode": true,
+    "packages": {
+      "omnifuse": null,
+      "synaptic_memory": null,
+      "kiwipiepy": "0.23.1",
+      "kiwipiepy_model": "0.23.0"
+    }
+  },
+  "repositories": {
+    "omnifuse": {
+      "path": "D:\\xgen-omnifuse",
+      "git_root": "D:\\xgen-omnifuse",
+      "sha": "cd355ddb5c59f5f8bb20c694a4fba8419567310a",
+      "origin_fetch_url": "https://github.com/PlateerLab/xgen-omnifuse.git",
+      "exact_tags": [],
+      "dirty": true,
+      "status_sha256": "8bc20048869f21a2eef54da607be544173011810e9333cad266bb25169f7569e",
+      "tracked_diff_sha256": "065b0762a44c18078b877e798fbaf5997e6836b16f0688fa778f54ad54c69089",
+      "untracked_manifest_sha256": "3b0426a482eda1f4c5bacb37aad3b833fc9bd37d4e4886c9e971bfaecbc5d831",
+      "untracked_files": 59,
+      "untracked_bytes": 19190773,
+      "dirty_content_sha256": "730bbce7910b517b9a96681435da79be00cae2737b8a82f4abc7b6e55857ced4"
+    },
+    "synaptic_memory": {
+      "path": "D:\\_tmp_bench\\synaptic-memory-v0.27.0-tag-836d536-clean4",
+      "git_root": "D:\\_tmp_bench\\synaptic-memory-v0.27.0-tag-836d536-clean4",
+      "sha": "836d53640e520c88910dd57e098167a4defe50d2",
+      "origin_fetch_url": "https://github.com/PlateerLab/synaptic-memory.git",
+      "exact_tags": [
+        "v0.27.0"
+      ],
+      "dirty": false,
+      "status_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "tracked_diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "untracked_manifest_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "untracked_files": 0,
+      "untracked_bytes": 0,
+      "dirty_content_sha256": "69e715af7a4cf9e0cd73dc83d0d99c1663a016e3ac0ee9ca180a11c50630e55b"
+    }
+  },
+  "provenance": {
+    "level": "strict-preflight-postflight-isolated-write-once-v4",
+    "before": {
+      "repositories": {
+        "omnifuse": {
+          "path": "D:\\xgen-omnifuse",
+          "git_root": "D:\\xgen-omnifuse",
+          "sha": "cd355ddb5c59f5f8bb20c694a4fba8419567310a",
+          "origin_fetch_url": "https://github.com/PlateerLab/xgen-omnifuse.git",
+          "exact_tags": [],
+          "dirty": true,
+          "status_sha256": "8bc20048869f21a2eef54da607be544173011810e9333cad266bb25169f7569e",
+          "tracked_diff_sha256": "065b0762a44c18078b877e798fbaf5997e6836b16f0688fa778f54ad54c69089",
+          "untracked_manifest_sha256": "3b0426a482eda1f4c5bacb37aad3b833fc9bd37d4e4886c9e971bfaecbc5d831",
+          "untracked_files": 59,
+          "untracked_bytes": 19190773,
+          "dirty_content_sha256": "730bbce7910b517b9a96681435da79be00cae2737b8a82f4abc7b6e55857ced4"
+        },
+        "synaptic_memory": {
+          "path": "D:\\_tmp_bench\\synaptic-memory-v0.27.0-tag-836d536-clean4",
+          "git_root": "D:\\_tmp_bench\\synaptic-memory-v0.27.0-tag-836d536-clean4",
+          "sha": "836d53640e520c88910dd57e098167a4defe50d2",
+          "origin_fetch_url": "https://github.com/PlateerLab/synaptic-memory.git",
+          "exact_tags": [
+            "v0.27.0"
+          ],
+          "dirty": false,
+          "status_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "tracked_diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "untracked_manifest_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+          "untracked_files": 0,
+          "untracked_bytes": 0,
+          "dirty_content_sha256": "69e715af7a4cf9e0cd73dc83d0d99c1663a016e3ac0ee9ca180a11c50630e55b"
+        }
+      },
+      "benchmark_sources": {
+        "harness": {
+          "path": "eval/perf_bench.py",
+          "sha256": "17fe1e1a19181313e9b568bcd975001d146ae0124c12fbcdfb572d1860b40855",
+          "bytes": 111415
+        },
+        "provenance_helper": {
+          "path": "eval/provenance.py",
+          "sha256": "bf00d00710d9776ab65914444b47fdccb74b428cb992f6e8958209352e3c3c94",
+          "bytes": 37084
+        },
+        "scorer": {
+          "active": {
+            "path": "eval/metrics.py",
+            "sha256": "3634fe7d237c14d7975ed370dc7e328386c58ff43d04a917d88dced86f4ef978",
+            "bytes": 5252
+          },
+          "synaptic_checkout_copy": {
+            "path": "tests/benchmark/metrics.py",
+            "sha256": "3634fe7d237c14d7975ed370dc7e328386c58ff43d04a917d88dced86f4ef978",
+            "bytes": 5252
+          },
+          "byte_identical": true
+        },
+        "synaptic_native_driver": {
+          "path": "eval/run_all.py",
+          "sha256": "8fd3c8dd3fb08205e4bf983f5287bd3f49795f146688061977ab0f3c1b55a1f5",
+          "bytes": 90130
+        }
+      },
+      "dataset_input": {
+        "path": "tests/benchmark/data/trec_covid.json",
+        "sha256": "5ea8e6bb8f0851a9bfa7532c93efa7f89f5045ec830fca1e5587f9f4330f370b",
+        "bytes": 197927756
+      },
+      "runtime_environment": {
+        "python": "3.12.10",
+        "python_implementation": "CPython",
+        "python_executable": "D:\\_tmp_bench\\venvs\\synaptic-v0.27.0-836d536-frozen1\\Scripts\\python.exe",
+        "platform": "Windows-11-10.0.22631-SP0",
+        "utf8_mode": true,
+        "sqlite": "3.49.1",
+        "dont_write_bytecode": true,
+        "packages": {
+          "omnifuse": null,
+          "synaptic_memory": null,
+          "kiwipiepy": "0.23.1",
+          "kiwipiepy_model": "0.23.0"
+        }
+      },
+      "doctor_environment": {
+        "python": "3.12.10",
+        "python_implementation": "CPython",
+        "python_executable": "D:\\_tmp_bench\\venvs\\synaptic-v0.27.0-836d536-frozen1\\Scripts\\python.exe",
+        "platform": "Windows-11-10.0.22631-SP0"
+      }
+    },
+    "after": {
+      "repositories": {
+        "omnifuse": {
+          "path": "D:\\xgen-omnifuse",
+          "git_root": "D:\\xgen-omnifuse",
+          "sha": "cd355ddb5c59f5f8bb20c694a4fba8419567310a",
+          "origin_fetch_url": "https://github.com/PlateerLab/xgen-omnifuse.git",
+          "exact_tags": [],
+          "dirty": true,
+          "status_sha256": "8bc20048869f21a2eef54da607be544173011810e9333cad266bb25169f7569e",
+          "tracked_diff_sha256": "065b0762a44c18078b877e798fbaf5997e6836b16f0688fa778f54ad54c69089",
+          "untracked_manifest_sha256": "3b0426a482eda1f4c5bacb37aad3b833fc9bd37d4e4886c9e971bfaecbc5d831",
+          "untracked_files": 59,
+          "untracked_bytes": 19190773,
+          "dirty_content_sha256": "730bbce7910b517b9a96681435da79be00cae2737b8a82f4abc7b6e55857ced4"
+        },
+        "synaptic_memory": {
+          "path": "D:\\_tmp_bench\\synaptic-memory-v0.27.0-tag-836d536-clean4",
+          "git_root": "D:\\_tmp_bench\\synaptic-memory-v0.27.0-tag-836d536-clean4",
+          "sha": "836d53640e520c88910dd57e098167a4defe50d2",
+          "origin_fetch_url": "https://github.com/PlateerLab/synaptic-memory.git",
+          "exact_tags": [
+            "v0.27.0"
+          ],
+          "dirty": false,
+          "status_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "tracked_diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "untracked_manifest_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+          "untracked_files": 0,
+          "untracked_bytes": 0,
+          "dirty_content_sha256": "69e715af7a4cf9e0cd73dc83d0d99c1663a016e3ac0ee9ca180a11c50630e55b"
+        }
+      },
+      "benchmark_sources": {
+        "harness": {
+          "path": "eval/perf_bench.py",
+          "sha256": "17fe1e1a19181313e9b568bcd975001d146ae0124c12fbcdfb572d1860b40855",
+          "bytes": 111415
+        },
+        "provenance_helper": {
+          "path": "eval/provenance.py",
+          "sha256": "bf00d00710d9776ab65914444b47fdccb74b428cb992f6e8958209352e3c3c94",
+          "bytes": 37084
+        },
+        "scorer": {
+          "active": {
+            "path": "eval/metrics.py",
+            "sha256": "3634fe7d237c14d7975ed370dc7e328386c58ff43d04a917d88dced86f4ef978",
+            "bytes": 5252
+          },
+          "synaptic_checkout_copy": {
+            "path": "tests/benchmark/metrics.py",
+            "sha256": "3634fe7d237c14d7975ed370dc7e328386c58ff43d04a917d88dced86f4ef978",
+            "bytes": 5252
+          },
+          "byte_identical": true
+        },
+        "synaptic_native_driver": {
+          "path": "eval/run_all.py",
+          "sha256": "8fd3c8dd3fb08205e4bf983f5287bd3f49795f146688061977ab0f3c1b55a1f5",
+          "bytes": 90130
+        }
+      },
+      "dataset_input": {
+        "path": "tests/benchmark/data/trec_covid.json",
+        "sha256": "5ea8e6bb8f0851a9bfa7532c93efa7f89f5045ec830fca1e5587f9f4330f370b",
+        "bytes": 197927756
+      },
+      "runtime_environment": {
+        "python": "3.12.10",
+        "python_implementation": "CPython",
+        "python_executable": "D:\\_tmp_bench\\venvs\\synaptic-v0.27.0-836d536-frozen1\\Scripts\\python.exe",
+        "platform": "Windows-11-10.0.22631-SP0",
+        "utf8_mode": true,
+        "sqlite": "3.49.1",
+        "dont_write_bytecode": true,
+        "packages": {
+          "omnifuse": null,
+          "synaptic_memory": null,
+          "kiwipiepy": "0.23.1",
+          "kiwipiepy_model": "0.23.0"
+        }
+      },
+      "doctor_environment": {
+        "python": "3.12.10",
+        "python_implementation": "CPython",
+        "python_executable": "D:\\_tmp_bench\\venvs\\synaptic-v0.27.0-836d536-frozen1\\Scripts\\python.exe",
+        "platform": "Windows-11-10.0.22631-SP0"
+      }
+    },
+    "benchmark_sources": {
+      "harness": {
+        "path": "eval/perf_bench.py",
+        "sha256": "17fe1e1a19181313e9b568bcd975001d146ae0124c12fbcdfb572d1860b40855",
+        "bytes": 111415
+      },
+      "provenance_helper": {
+        "path": "eval/provenance.py",
+        "sha256": "bf00d00710d9776ab65914444b47fdccb74b428cb992f6e8958209352e3c3c94",
+        "bytes": 37084
+      },
+      "scorer": {
+        "active": {
+          "path": "eval/metrics.py",
+          "sha256": "3634fe7d237c14d7975ed370dc7e328386c58ff43d04a917d88dced86f4ef978",
+          "bytes": 5252
+        },
+        "synaptic_checkout_copy": {
+          "path": "tests/benchmark/metrics.py",
+          "sha256": "3634fe7d237c14d7975ed370dc7e328386c58ff43d04a917d88dced86f4ef978",
+          "bytes": 5252
+        },
+        "byte_identical": true
+      },
+      "synaptic_native_driver": {
+        "path": "eval/run_all.py",
+        "sha256": "8fd3c8dd3fb08205e4bf983f5287bd3f49795f146688061977ab0f3c1b55a1f5",
+        "bytes": 90130
+      }
+    },
+    "frozen_worker_input": {
+      "path": "worker-input/performance.json",
+      "sha256": "66e2137e0c98c9c908848ac8ea2abc7eba1d7a50b98cc6c93443d1187b475755",
+      "bytes": 198735634,
+      "documents": 171332,
+      "scored_queries": 50,
+      "relevance_judgments": 24673
+    },
+    "frozen_input_artifact": {
+      "path": "D:\\_tmp_bench\\evidence\\omnifuse-vs-synaptic\\20260723-v14-raw-df-v1\\workers_perf_trec_covid_sqlite_native_trials2_v1\\performance-input.json",
+      "sha256": "66e2137e0c98c9c908848ac8ea2abc7eba1d7a50b98cc6c93443d1187b475755",
+      "bytes": 198735634
+    }
+  },
+  "doctor_manifest": {
+    "path": "D:\\_tmp_bench\\evidence\\omnifuse-vs-synaptic\\20260723-v14-raw-df-v1\\doctor_allow_dirty.json",
+    "sha256": "295f4f4216ef12133ef387c396ee077c2573809141234db0a255138b9a151468",
+    "bytes": 19348,
+    "schema": "omnifuse.eval.doctor",
+    "schema_version": 1,
+    "strict_public_passed": true,
+    "canonical_sha256": "d4febe52a78d1e3f53e6d0b4d85ae05fcecd39165783db0f32101b584ab75c82",
+    "snapshot": {
+      "schema": "omnifuse.eval.doctor",
+      "schema_version": 1,
+      "generated_at": "2026-07-23T10:45:26.745100+00:00",
+      "environment": {
+        "python": "3.12.10",
+        "python_implementation": "CPython",
+        "python_executable": "D:\\_tmp_bench\\venvs\\synaptic-v0.27.0-836d536-frozen1\\Scripts\\python.exe",
+        "platform": "Windows-11-10.0.22631-SP0"
+      },
+      "repositories": {
+        "omnifuse": {
+          "path": "D:\\xgen-omnifuse",
+          "status": "ok",
+          "sha": "cd355ddb5c59f5f8bb20c694a4fba8419567310a",
+          "dirty": true,
+          "git_root": "D:\\xgen-omnifuse",
+          "origin_fetch_url": "https://github.com/PlateerLab/xgen-omnifuse.git",
+          "exact_tags": [],
+          "status_sha256": "8bc20048869f21a2eef54da607be544173011810e9333cad266bb25169f7569e",
+          "tracked_diff_sha256": "065b0762a44c18078b877e798fbaf5997e6836b16f0688fa778f54ad54c69089",
+          "untracked_manifest_sha256": "3b0426a482eda1f4c5bacb37aad3b833fc9bd37d4e4886c9e971bfaecbc5d831",
+          "untracked_files": 59,
+          "untracked_bytes": 19190773,
+          "dirty_content_sha256": "730bbce7910b517b9a96681435da79be00cae2737b8a82f4abc7b6e55857ced4"
+        },
+        "synaptic_memory": {
+          "path": "D:\\_tmp_bench\\synaptic-memory-v0.27.0-tag-836d536-clean4",
+          "status": "ok",
+          "sha": "836d53640e520c88910dd57e098167a4defe50d2",
+          "dirty": false,
+          "git_root": "D:\\_tmp_bench\\synaptic-memory-v0.27.0-tag-836d536-clean4",
+          "origin_fetch_url": "https://github.com/PlateerLab/synaptic-memory.git",
+          "exact_tags": [
+            "v0.27.0"
+          ],
+          "status_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "tracked_diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "untracked_manifest_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+          "untracked_files": 0,
+          "untracked_bytes": 0,
+          "dirty_content_sha256": "69e715af7a4cf9e0cd73dc83d0d99c1663a016e3ac0ee9ca180a11c50630e55b"
+        },
+        "captured_before_output_write": true,
+        "allow_dirty": true
+      },
+      "scorer": {
+        "omnifuse": {
+          "path": "eval/metrics.py",
+          "status": "ok",
+          "sha256": "3634fe7d237c14d7975ed370dc7e328386c58ff43d04a917d88dced86f4ef978",
+          "bytes": 5252
+        },
+        "synaptic_memory": {
+          "path": "tests/benchmark/metrics.py",
+          "status": "ok",
+          "sha256": "3634fe7d237c14d7975ed370dc7e328386c58ff43d04a917d88dced86f4ef978",
+          "bytes": 5252
+        },
+        "equal": true
+      },
+      "targets": [
+        {
+          "id": "finreg_single",
+          "name": "finreg single-hop",
+          "group": "finreg",
+          "source": "omnifuse",
+          "strict_public": true,
+          "status": "ok",
+          "sha256": "a9883d41867372bd65f0a1f9d7856b103fc91b8474fc24cceb907341e8876e47",
+          "sha256_kind": "file-manifest-v1",
+          "bytes": 7263690,
+          "files": [
+            {
+              "path": "eval/data/finreg/raw.jsonl",
+              "status": "ok",
+              "sha256": "bc502934d8b56c8272964a9f09a017cf6db9bd479095598d7a88ec2edab5daf9",
+              "bytes": 6955149,
+              "validation": {
+                "status": "ok",
+                "format": "jsonl",
+                "documents": 4417
+              },
+              "role": "corpus"
+            },
+            {
+              "path": "eval/data/queries/finreg.json",
+              "status": "ok",
+              "sha256": "94ce4881bf2b612464490fc7d47e6c8c7d7cbaef86b48ce1f4d51347b5b500ab",
+              "bytes": 308541,
+              "validation": {
+                "status": "ok",
+                "format": "query-json",
+                "queries": 120
+              },
+              "role": "queries"
+            }
+          ]
+        },
+        {
+          "id": "finreg_multi",
+          "name": "finreg multi-hop",
+          "group": "finreg",
+          "source": "omnifuse",
+          "strict_public": true,
+          "status": "ok",
+          "sha256": "0fb74c38c6be6b8754e704971e134cd8fe6fdd8e6f4fa80a786e2968823fabac",
+          "sha256_kind": "file-manifest-v1",
+          "bytes": 7699689,
+          "files": [
+            {
+              "path": "eval/data/finreg/raw.jsonl",
+              "status": "ok",
+              "sha256": "bc502934d8b56c8272964a9f09a017cf6db9bd479095598d7a88ec2edab5daf9",
+              "bytes": 6955149,
+              "validation": {
+                "status": "ok",
+                "format": "jsonl",
+                "documents": 4417
+              },
+              "role": "corpus"
+            },
+            {
+              "path": "eval/data/queries/finreg_multihop.json",
+              "status": "ok",
+              "sha256": "915af3a609d4dc6da335de43c77db76e45b043ae27f5904ff52eba85447245a4",
+              "bytes": 744540,
+              "validation": {
+                "status": "ok",
+                "format": "query-json",
+                "queries": 120
+              },
+              "role": "queries"
+            }
+          ]
+        },
+        {
+          "id": "hotpotqa_24",
+          "name": "HotPotQA-24",
+          "group": "tracked_public",
+          "source": "synaptic",
+          "strict_public": true,
+          "status": "ok",
+          "sha256": "596958d4dd7c6cedf29d7c8c97dae84fb4017e5e18d2cfe9bf914151feaaaaac",
+          "sha256_kind": "file",
+          "bytes": 147532,
+          "files": [
+            {
+              "path": "tests/benchmark/data/hotpotqa_24.json",
+              "status": "ok",
+              "sha256": "596958d4dd7c6cedf29d7c8c97dae84fb4017e5e18d2cfe9bf914151feaaaaac",
+              "bytes": 147532,
+              "validation": {
+                "status": "ok",
+                "format": "public-ir-json",
+                "documents": 226,
+                "queries": 24
+              },
+              "role": "dataset"
+            }
+          ]
+        },
+        {
+          "id": "hotpotqa_200",
+          "name": "HotPotQA-200",
+          "group": "tracked_public",
+          "source": "synaptic",
+          "strict_public": true,
+          "status": "ok",
+          "sha256": "67fa43e7a76076242e08ba034b6a4b7ec474001fb282260e5c53c851abd10be9",
+          "sha256_kind": "file",
+          "bytes": 1317589,
+          "files": [
+            {
+              "path": "tests/benchmark/data/hotpotqa.json",
+              "status": "ok",
+              "sha256": "67fa43e7a76076242e08ba034b6a4b7ec474001fb282260e5c53c851abd10be9",
+              "bytes": 1317589,
+              "validation": {
+                "status": "ok",
+                "format": "public-ir-json",
+                "documents": 1990,
+                "queries": 200
+              },
+              "role": "dataset"
+            }
+          ]
+        },
+        {
+          "id": "allganize_rag_ko",
+          "name": "Allganize RAG-ko",
+          "group": "tracked_public",
+          "source": "synaptic",
+          "strict_public": true,
+          "status": "ok",
+          "sha256": "b439b4b6c2495b90f1bf506cceb0cc0125f46c9b8cf6597655b77b03ab736537",
+          "sha256_kind": "file",
+          "bytes": 218748,
+          "files": [
+            {
+              "path": "tests/benchmark/data/allganize_rag_ko.json",
+              "status": "ok",
+              "sha256": "b439b4b6c2495b90f1bf506cceb0cc0125f46c9b8cf6597655b77b03ab736537",
+              "bytes": 218748,
+              "validation": {
+                "status": "ok",
+                "format": "public-ir-json",
+                "documents": 200,
+                "queries": 200
+              },
+              "role": "dataset"
+            }
+          ]
+        },
+        {
+          "id": "allganize_rag_eval",
+          "name": "Allganize RAG-Eval",
+          "group": "tracked_public",
+          "source": "synaptic",
+          "strict_public": true,
+          "status": "ok",
+          "sha256": "3c4ee4a484e7023a0d318ea3cc9df6550c80637675c28984e929d9b3e890ee3d",
+          "sha256_kind": "file",
+          "bytes": 215420,
+          "files": [
+            {
+              "path": "tests/benchmark/data/allganize_rag_eval.json",
+              "status": "ok",
+              "sha256": "3c4ee4a484e7023a0d318ea3cc9df6550c80637675c28984e929d9b3e890ee3d",
+              "bytes": 215420,
+              "validation": {
+                "status": "ok",
+                "format": "public-ir-json",
+                "documents": 300,
+                "queries": 300
+              },
+              "role": "dataset"
+            }
+          ]
+        },
+        {
+          "id": "publichealthqa_ko",
+          "name": "PublicHealthQA",
+          "group": "tracked_public",
+          "source": "synaptic",
+          "strict_public": true,
+          "status": "ok",
+          "sha256": "39424575de99a912161b9a315e2046876844e581d5229a66701b5f43a4c548dd",
+          "sha256_kind": "file",
+          "bytes": 72280,
+          "files": [
+            {
+              "path": "tests/benchmark/data/publichealthqa_ko.json",
+              "status": "ok",
+              "sha256": "39424575de99a912161b9a315e2046876844e581d5229a66701b5f43a4c548dd",
+              "bytes": 72280,
+              "validation": {
+                "status": "ok",
+                "format": "public-ir-json",
+                "documents": 77,
+                "queries": 77
+              },
+              "role": "dataset"
+            }
+          ]
+        },
+        {
+          "id": "autorag_retrieval",
+          "name": "AutoRAG",
+          "group": "tracked_public",
+          "source": "synaptic",
+          "strict_public": true,
+          "status": "ok",
+          "sha256": "715b8e8db5af290b5476d534797d05fbdf3d85f302f8ca273b6d04373efe3a01",
+          "sha256_kind": "file",
+          "bytes": 1409438,
+          "files": [
+            {
+              "path": "tests/benchmark/data/autorag_retrieval.json",
+              "status": "ok",
+              "sha256": "715b8e8db5af290b5476d534797d05fbdf3d85f302f8ca273b6d04373efe3a01",
+              "bytes": 1409438,
+              "validation": {
+                "status": "ok",
+                "format": "public-ir-json",
+                "documents": 720,
+                "queries": 114
+              },
+              "role": "dataset"
+            }
+          ]
+        },
+        {
+          "id": "klue_mrc",
+          "name": "KLUE-MRC",
+          "group": "tracked_public",
+          "source": "synaptic",
+          "strict_public": true,
+          "status": "ok",
+          "sha256": "39a1f628b3ec1788a8385b234b0273e9c6926a344bf97ed8f7291ff2aafcd7c8",
+          "sha256_kind": "file",
+          "bytes": 15548965,
+          "files": [
+            {
+              "path": "tests/benchmark/data/klue_mrc.json",
+              "status": "ok",
+              "sha256": "39a1f628b3ec1788a8385b234b0273e9c6926a344bf97ed8f7291ff2aafcd7c8",
+              "bytes": 15548965,
+              "validation": {
+                "status": "ok",
+                "format": "public-ir-json",
+                "documents": 5841,
+                "queries": 5841
+              },
+              "role": "dataset"
+            }
+          ]
+        },
+        {
+          "id": "ko_strategyqa",
+          "name": "Ko-StrategyQA",
+          "group": "tracked_public",
+          "source": "synaptic",
+          "strict_public": true,
+          "status": "ok",
+          "sha256": "dd0ff36612c28d12922b00f3ba3f8369d7ae1fe93bd8a5541002a2b9623ebe5d",
+          "sha256_kind": "file",
+          "bytes": 7299145,
+          "files": [
+            {
+              "path": "tests/benchmark/data/ko_strategyqa.json",
+              "status": "ok",
+              "sha256": "dd0ff36612c28d12922b00f3ba3f8369d7ae1fe93bd8a5541002a2b9623ebe5d",
+              "bytes": 7299145,
+              "validation": {
+                "status": "ok",
+                "format": "public-ir-json",
+                "documents": 9251,
+                "queries": 592
+              },
+              "role": "dataset"
+            }
+          ]
+        },
+        {
+          "id": "2wiki_dev",
+          "name": "2Wiki-dev",
+          "group": "download_only_extended",
+          "source": "synaptic",
+          "strict_public": true,
+          "status": "ok",
+          "sha256": "a386884be7524dba31f98357db8e333a4b69f8bd88b81935c2342792bc74c930",
+          "sha256_kind": "file",
+          "bytes": 32398328,
+          "files": [
+            {
+              "path": "tests/benchmark/data/2wiki_dev.json",
+              "status": "ok",
+              "sha256": "a386884be7524dba31f98357db8e333a4b69f8bd88b81935c2342792bc74c930",
+              "bytes": 32398328,
+              "validation": {
+                "status": "ok",
+                "format": "public-ir-json",
+                "documents": 56709,
+                "queries": 12576
+              },
+              "role": "dataset"
+            }
+          ]
+        },
+        {
+          "id": "musique_dev",
+          "name": "MuSiQue-dev",
+          "group": "download_only_extended",
+          "source": "synaptic",
+          "strict_public": true,
+          "status": "ok",
+          "sha256": "1e60d520645ab39bc876d6477e6c3d82814ba711d9620f1f6e649d5ae217065f",
+          "sha256_kind": "file",
+          "bytes": 11973306,
+          "files": [
+            {
+              "path": "tests/benchmark/data/musique_dev.json",
+              "status": "ok",
+              "sha256": "1e60d520645ab39bc876d6477e6c3d82814ba711d9620f1f6e649d5ae217065f",
+              "bytes": 11973306,
+              "validation": {
+                "status": "ok",
+                "format": "public-ir-json",
+                "documents": 21100,
+                "queries": 2417
+              },
+              "role": "dataset"
+            }
+          ]
+        },
+        {
+          "id": "trec_covid",
+          "name": "TREC-COVID",
+          "group": "download_only_extended",
+          "source": "synaptic",
+          "strict_public": true,
+          "status": "ok",
+          "sha256": "5ea8e6bb8f0851a9bfa7532c93efa7f89f5045ec830fca1e5587f9f4330f370b",
+          "sha256_kind": "file",
+          "bytes": 197927756,
+          "files": [
+            {
+              "path": "tests/benchmark/data/trec_covid.json",
+              "status": "ok",
+              "sha256": "5ea8e6bb8f0851a9bfa7532c93efa7f89f5045ec830fca1e5587f9f4330f370b",
+              "bytes": 197927756,
+              "validation": {
+                "status": "ok",
+                "format": "public-ir-json",
+                "documents": 171332,
+                "queries": 50
+              },
+              "role": "dataset"
+            }
+          ]
+        },
+        {
+          "id": "scifact",
+          "name": "SciFact",
+          "group": "download_only_extended",
+          "source": "synaptic",
+          "strict_public": true,
+          "status": "ok",
+          "sha256": "4ed8de69f7f6e0d5b87aa04e297f3cb4e1462efe0dc1ae17238ed360909c09df",
+          "sha256_kind": "file",
+          "bytes": 8093279,
+          "files": [
+            {
+              "path": "tests/benchmark/data/scifact.json",
+              "status": "ok",
+              "sha256": "4ed8de69f7f6e0d5b87aa04e297f3cb4e1462efe0dc1ae17238ed360909c09df",
+              "bytes": 8093279,
+              "validation": {
+                "status": "ok",
+                "format": "public-ir-json",
+                "documents": 5183,
+                "queries": 300
+              },
+              "role": "dataset"
+            }
+          ]
+        },
+        {
+          "id": "xpqa_ko",
+          "name": "XPQA-ko",
+          "group": "download_only_extended",
+          "source": "synaptic",
+          "strict_public": true,
+          "status": "ok",
+          "sha256": "a9c11fb11ce6cd6d1a49c9cee9956509b070f27597d2fe448000fd11eac7d2e7",
+          "sha256_kind": "file",
+          "bytes": 153112,
+          "files": [
+            {
+              "path": "tests/benchmark/data/xpqa_ko.json",
+              "status": "ok",
+              "sha256": "a9c11fb11ce6cd6d1a49c9cee9956509b070f27597d2fe448000fd11eac7d2e7",
+              "bytes": 153112,
+              "validation": {
+                "status": "ok",
+                "format": "public-ir-json",
+                "documents": 889,
+                "queries": 654
+              },
+              "role": "dataset"
+            }
+          ]
+        },
+        {
+          "id": "nfcorpus",
+          "name": "NFCorpus",
+          "group": "download_only_extended",
+          "source": "synaptic",
+          "strict_public": true,
+          "status": "ok",
+          "sha256": "7232e143da668a135e5b294b12e10b84cb2e1cc2865d509cf65b423ad7ee49e3",
+          "sha256_kind": "file",
+          "bytes": 6244913,
+          "files": [
+            {
+              "path": "tests/benchmark/data/nfcorpus.json",
+              "status": "ok",
+              "sha256": "7232e143da668a135e5b294b12e10b84cb2e1cc2865d509cf65b423ad7ee49e3",
+              "bytes": 6244913,
+              "validation": {
+                "status": "ok",
+                "format": "public-ir-json",
+                "documents": 3633,
+                "queries": 323
+              },
+              "role": "dataset"
+            }
+          ]
+        },
+        {
+          "id": "miracl_retrieval_ko",
+          "name": "MIRACL-retrieval-ko",
+          "group": "download_only_extended",
+          "source": "synaptic",
+          "strict_public": true,
+          "status": "ok",
+          "sha256": "1fceef9746fead4e4415876fd95c8b308d57c60a02c42ec73b22965902a54685",
+          "sha256_kind": "file",
+          "bytes": 5273494,
+          "files": [
+            {
+              "path": "tests/benchmark/data/miracl_retrieval_ko.json",
+              "status": "ok",
+              "sha256": "1fceef9746fead4e4415876fd95c8b308d57c60a02c42ec73b22965902a54685",
+              "bytes": 5273494,
+              "validation": {
+                "status": "ok",
+                "format": "public-ir-json",
+                "documents": 10000,
+                "queries": 213
+              },
+              "role": "dataset"
+            }
+          ]
+        },
+        {
+          "id": "fiqa",
+          "name": "FiQA",
+          "group": "download_only_extended",
+          "source": "synaptic",
+          "strict_public": true,
+          "status": "ok",
+          "sha256": "dd5488a45c8f4dd342ec5eb43b119aac86febf05255fcacc6f53554ad94244dc",
+          "sha256_kind": "file",
+          "bytes": 47053652,
+          "files": [
+            {
+              "path": "tests/benchmark/data/fiqa.json",
+              "status": "ok",
+              "sha256": "dd5488a45c8f4dd342ec5eb43b119aac86febf05255fcacc6f53554ad94244dc",
+              "bytes": 47053652,
+              "validation": {
+                "status": "ok",
+                "format": "public-ir-json",
+                "documents": 57638,
+                "queries": 648
+              },
+              "role": "dataset"
+            }
+          ]
+        },
+        {
+          "id": "multilongdoc_ko",
+          "name": "MultiLongDoc-ko",
+          "group": "download_only_extended",
+          "source": "synaptic",
+          "strict_public": true,
+          "status": "ok",
+          "sha256": "af3e1b20bdb87abb0ebc4e372fe8b36b69e4cd695b48759290d077d1e794f98b",
+          "sha256_kind": "file",
+          "bytes": 193546626,
+          "files": [
+            {
+              "path": "tests/benchmark/data/multilongdoc_ko.json",
+              "status": "ok",
+              "sha256": "af3e1b20bdb87abb0ebc4e372fe8b36b69e4cd695b48759290d077d1e794f98b",
+              "bytes": 193546626,
+              "validation": {
+                "status": "ok",
+                "format": "public-ir-json",
+                "documents": 6176,
+                "queries": 200
+              },
+              "role": "dataset"
+            }
+          ]
+        },
+        {
+          "id": "enterprise_scenario",
+          "name": "enterprise scenario",
+          "group": "enterprise",
+          "source": "synaptic",
+          "strict_public": false,
+          "status": "ok",
+          "sha256": "80070e6cab109702e6527a002dc0d83191f8ad22954443c40f5f5155d6051a3e",
+          "sha256_kind": "file",
+          "bytes": 19435,
+          "files": [
+            {
+              "path": "tests/benchmark/data/enterprise_scenario.json",
+              "status": "ok",
+              "sha256": "80070e6cab109702e6527a002dc0d83191f8ad22954443c40f5f5155d6051a3e",
+              "bytes": 19435,
+              "validation": {
+                "status": "ok",
+                "format": "enterprise-scenario-json",
+                "documents": 12,
+                "queries": 15
+              },
+              "role": "dataset"
+            }
+          ]
+        },
+        {
+          "id": "kra_golden",
+          "name": "KRA private golden",
+          "group": "private",
+          "source": "private",
+          "strict_public": false,
+          "status": "skipped_private",
+          "sha256": null,
+          "sha256_kind": null,
+          "bytes": null,
+          "files": [
+            {
+              "path": null,
+              "status": "missing",
+              "sha256": null,
+              "bytes": null,
+              "role": "dataset"
+            }
+          ]
+        }
+      ],
+      "summary": {
+        "total_targets": 21,
+        "ok_targets": 20,
+        "status_counts": {
+          "ok": 20,
+          "skipped_missing_external": 0,
+          "skipped_private": 1,
+          "error": 0
+        },
+        "incomplete_targets": [
+          "kra_golden"
+        ],
+        "public": {
+          "total_targets": 19,
+          "ok_targets": 19,
+          "incomplete_targets": []
+        }
+      },
+      "strict_public": {
+        "enabled": true,
+        "would_pass": true,
+        "passed": true,
+        "blockers": []
+      }
+    },
+    "targets": {
+      "trec_covid.json": {
+        "target_id": "trec_covid",
+        "target_name": "TREC-COVID",
+        "target_status": "ok",
+        "role": "dataset",
+        "input_sha256": "5ea8e6bb8f0851a9bfa7532c93efa7f89f5045ec830fca1e5587f9f4330f370b",
+        "input_bytes": 197927756,
+        "dataset_sha256": "5ea8e6bb8f0851a9bfa7532c93efa7f89f5045ec830fca1e5587f9f4330f370b"
+      }
+    }
+  },
+  "integrity": {
+    "preflight_completed_before_workers": true,
+    "repository_states_unchanged": true,
+    "benchmark_sources_unchanged": true,
+    "dataset_unchanged": true,
+    "runtime_environment_unchanged": true,
+    "doctor_manifest_unchanged": true,
+    "doctor_environment_unchanged": true,
+    "doctor_runtime_binding_reverified": true,
+    "postflight_verified_before_publish": true,
+    "frozen_input_artifact_unchanged_before_publication": true,
+    "worker_artifacts_unchanged_before_publication": true,
+    "worker_run_ids_unique": true
+  },
+  "workers_directory": "D:\\_tmp_bench\\evidence\\omnifuse-vs-synaptic\\20260723-v14-raw-df-v1\\workers_perf_trec_covid_sqlite_native_trials2_v1",
+  "worker_artifacts": [
+    {
+      "trial_number": 1,
+      "order_position": 1,
+      "system": "omnifuse",
+      "worker_run_id": "b422409e981241f88cb0f717b0196833",
+      "artifact": {
+        "path": "D:\\_tmp_bench\\evidence\\omnifuse-vs-synaptic\\20260723-v14-raw-df-v1\\workers_perf_trec_covid_sqlite_native_trials2_v1\\trial-01-position-1-omnifuse.json",
+        "sha256": "d6c88704e938023fae641d8ef9b78cadf17cc21c34afcbbbb72c2db0d4e0423b",
+        "bytes": 2769
+      }
+    },
+    {
+      "trial_number": 1,
+      "order_position": 2,
+      "system": "synaptic",
+      "worker_run_id": "ca8de7a841b646bb9f37e7e02eb2a4b5",
+      "artifact": {
+        "path": "D:\\_tmp_bench\\evidence\\omnifuse-vs-synaptic\\20260723-v14-raw-df-v1\\workers_perf_trec_covid_sqlite_native_trials2_v1\\trial-01-position-2-synaptic.json",
+        "sha256": "7b22f28633a86bb61fa4de5fd5ac4ad14bd1302a72ab527608f10b57221c4024",
+        "bytes": 3584
+      }
+    },
+    {
+      "trial_number": 2,
+      "order_position": 1,
+      "system": "synaptic",
+      "worker_run_id": "9133a67e1b8c4728bc3e634d16017a8c",
+      "artifact": {
+        "path": "D:\\_tmp_bench\\evidence\\omnifuse-vs-synaptic\\20260723-v14-raw-df-v1\\workers_perf_trec_covid_sqlite_native_trials2_v1\\trial-02-position-1-synaptic.json",
+        "sha256": "19b00c57da0758995355d25acea86375b8a2da2d2c25ab7a7a62f07c39f4fc1d",
+        "bytes": 3584
+      }
+    },
+    {
+      "trial_number": 2,
+      "order_position": 2,
+      "system": "omnifuse",
+      "worker_run_id": "e63d7b49b94c4c289e3956cb254f13a3",
+      "artifact": {
+        "path": "D:\\_tmp_bench\\evidence\\omnifuse-vs-synaptic\\20260723-v14-raw-df-v1\\workers_perf_trec_covid_sqlite_native_trials2_v1\\trial-02-position-2-omnifuse.json",
+        "sha256": "c510e031279ec5911a1874c0823f1beb623f59cf33ebbaba25229c6ff56a0267",
+        "bytes": 2770
+      }
+    }
+  ],
+  "worker_processes": [
+    {
+      "trial_number": 1,
+      "order_position": 1,
+      "system": "omnifuse",
+      "worker_run_id": "b422409e981241f88cb0f717b0196833",
+      "launcher_pid": 15252,
+      "worker_pid": 15196,
+      "same_process_id": false
+    },
+    {
+      "trial_number": 1,
+      "order_position": 2,
+      "system": "synaptic",
+      "worker_run_id": "ca8de7a841b646bb9f37e7e02eb2a4b5",
+      "launcher_pid": 8252,
+      "worker_pid": 1224,
+      "same_process_id": false
+    },
+    {
+      "trial_number": 2,
+      "order_position": 1,
+      "system": "synaptic",
+      "worker_run_id": "9133a67e1b8c4728bc3e634d16017a8c",
+      "launcher_pid": 12152,
+      "worker_pid": 13412,
+      "same_process_id": false
+    },
+    {
+      "trial_number": 2,
+      "order_position": 2,
+      "system": "omnifuse",
+      "worker_run_id": "e63d7b49b94c4c289e3956cb254f13a3",
+      "launcher_pid": 13076,
+      "worker_pid": 13008,
+      "same_process_id": false
+    }
+  ],
+  "worker_process_summary": {
+    "expected_workers": 4,
+    "completed_workers": 4,
+    "distinct_worker_run_ids": 4,
+    "worker_run_ids_unique": true,
+    "distinct_launcher_pids": 4,
+    "distinct_worker_pids": 4,
+    "launcher_pid_reuse_observed": false,
+    "worker_pid_reuse_observed": false,
+    "launcher_worker_pid_match_count": 0,
+    "launcher_worker_pid_mismatch_count": 4
+  },
+  "contract": {
+    "protocol": "sqlite-native",
+    "utf8_mode_contract": {
+      "controller_required": false,
+      "controller_enabled": true,
+      "workers_required": true
+    },
+    "k": 10,
+    "candidate_limit": 20,
+    "warmup_rounds": 1,
+    "measurement_rounds": 5,
+    "independent_trials_per_system": 2,
+    "trial_order": [
+      [
+        "omnifuse",
+        "synaptic"
+      ],
+      [
+        "synaptic",
+        "omnifuse"
+      ]
+    ],
+    "counterbalanced_ab_ba": true,
+    "accuracy_scorer": "eval/metrics.py::BenchmarkResult",
+    "latency_timer": "time.perf_counter in isolated fresh workers",
+    "worker_model": "one fresh process per system and trial; two-system trials alternate AB/BA order",
+    "trial_statistics": "min/p50/p95/mean/max summarize independent worker-level observations; each latency observation first summarizes all measured query calls in that worker",
+    "machine_output_policy": "doctor-bound write-once frozen worker input; strict worker result and runtime-source validation; preflight before workers; postflight before atomic write-once publication",
+    "ingest_capability_caveat": "Both ingest the same raw corpus to a queryable native index, but the artifacts are not capability-equivalent: OmniFuse builds a RAM index; synaptic builds a durable, disk-queryable SQLite graph.",
+    "memory_scope": "whole fresh worker process, including imports, build, warm-up, and queries"
+  },
+  "results": [
+    {
+      "system": "OmniFuse",
+      "trial_count": 2,
+      "order_positions": [
+        1,
+        2
+      ],
+      "accuracy_consistent": true,
+      "distributions": {
+        "ingest_s": {
+          "count": 2,
+          "min": 0.4529246000456624,
+          "p50": 0.45357150002382696,
+          "p95": 0.4541537100041751,
+          "mean": 0.45357150002382696,
+          "max": 0.45421840000199154
+        },
+        "query_latency_p50_ms": {
+          "count": 2,
+          "min": 108.95874997368082,
+          "p50": 109.85067499859724,
+          "p95": 110.65340752102202,
+          "mean": 109.85067499859724,
+          "max": 110.74260002351366
+        },
+        "query_latency_p95_ms": {
+          "count": 2,
+          "min": 158.86834999837438,
+          "p50": 160.54433249955758,
+          "p95": 162.0527167506225,
+          "mean": 160.54433249955758,
+          "max": 162.2203150007408
+        },
+        "query_latency_mean_ms": {
+          "count": 2,
+          "min": 109.8546704009641,
+          "p50": 110.773199800984,
+          "p95": 111.59987626100192,
+          "mean": 110.773199800984,
+          "max": 111.69172920100391
+        },
+        "peak_rss_mb": {
+          "count": 2,
+          "min": 2133.291008,
+          "p50": 2133.874688,
+          "p95": 2134.4,
+          "mean": 2133.874688,
+          "max": 2134.458368,
+          "missing": 0
+        },
+        "current_rss_mb": {
+          "count": 2,
+          "min": 1077.886976,
+          "p50": 1078.3027200000001,
+          "p95": 1078.6768896,
+          "mean": 1078.3027200000001,
+          "max": 1078.718464,
+          "missing": 0
+        },
+        "mrr_at_k": {
+          "count": 2,
+          "min": 0.9083333333333333,
+          "p50": 0.9083333333333333,
+          "p95": 0.9083333333333333,
+          "mean": 0.9083333333333333,
+          "max": 0.9083333333333333
+        }
+      },
+      "trials": [
+        {
+          "system": "OmniFuse",
+          "ingest_s": 0.4529246000456624,
+          "query_latency_p50_ms": 110.74260002351366,
+          "query_latency_p95_ms": 162.2203150007408,
+          "query_latency_mean_ms": 111.69172920100391,
+          "query_latency_samples": 250,
+          "mrr_at_k": 0.9083333333333333,
+          "k": 10,
+          "candidate_limit": 20,
+          "warmup_rounds": 1,
+          "measurement_rounds": 5,
+          "process_memory": {
+            "scope": "entire fresh worker process (imports, build, warmup, measured queries)",
+            "kind": "Windows process working set",
+            "current_rss_mb": 1078.718464,
+            "peak_rss_mb": 2133.291008
+          },
+          "runtime": {
+            "package_path": "D:\\xgen-omnifuse\\src\\omnifuse\\__init__.py",
+            "package_version": "0.5.0",
+            "source_bindings": {
+              "package": {
+                "path": "src/omnifuse/__init__.py",
+                "sha256": "1240a23d41cc464adc72c50719e82e24ae98dd2d86cac22802c3d7b617a4c504",
+                "bytes": 2202,
+                "resolved_path": "D:\\xgen-omnifuse\\src\\omnifuse\\__init__.py"
+              },
+              "build_inmemory": {
+                "path": "src/omnifuse/facade.py",
+                "sha256": "b7297230a733acea18c2dea6e094de0c17c6b98ff3232db7e3549ae3bdbaa7f5",
+                "bytes": 7585,
+                "resolved_path": "D:\\xgen-omnifuse\\src\\omnifuse\\facade.py"
+              },
+              "retrieve": {
+                "path": "src/omnifuse/oneshot.py",
+                "sha256": "9ef7ec0480bcbe13fed8c25d9968b451b1f8725425af28615e94fb5e0018ec75",
+                "bytes": 10895,
+                "resolved_path": "D:\\xgen-omnifuse\\src\\omnifuse\\oneshot.py"
+              }
+            },
+            "tokenizer": null
+          },
+          "trial": {
+            "number": 1,
+            "order_position": 1
+          },
+          "worker_input": {
+            "path": "worker-input/performance.json",
+            "sha256": "66e2137e0c98c9c908848ac8ea2abc7eba1d7a50b98cc6c93443d1187b475755",
+            "bytes": 198735634,
+            "documents": 171332,
+            "scored_queries": 50,
+            "relevance_judgments": 24673
+          },
+          "worker_identity": {
+            "schema": "omnifuse.eval.worker-instance",
+            "schema_version": 1,
+            "worker_run_id": "b422409e981241f88cb0f717b0196833",
+            "worker_pid": 15196,
+            "capture_phase": "post_measurement"
+          },
+          "worker_environment": {
+            "python": "3.12.10",
+            "python_executable": "D:\\_tmp_bench\\venvs\\synaptic-v0.27.0-836d536-frozen1\\Scripts\\python.exe",
+            "isolated": true,
+            "ignore_environment": true,
+            "no_user_site": true,
+            "safe_path": true,
+            "utf8_mode": true,
+            "user_site_enabled": false,
+            "pythonpath": null,
+            "pythonhome": null,
+            "pythonusersite": null,
+            "python_no_user_site_env": "1"
+          }
+        },
+        {
+          "system": "OmniFuse",
+          "ingest_s": 0.45421840000199154,
+          "query_latency_p50_ms": 108.95874997368082,
+          "query_latency_p95_ms": 158.86834999837438,
+          "query_latency_mean_ms": 109.8546704009641,
+          "query_latency_samples": 250,
+          "mrr_at_k": 0.9083333333333333,
+          "k": 10,
+          "candidate_limit": 20,
+          "warmup_rounds": 1,
+          "measurement_rounds": 5,
+          "process_memory": {
+            "scope": "entire fresh worker process (imports, build, warmup, measured queries)",
+            "kind": "Windows process working set",
+            "current_rss_mb": 1077.886976,
+            "peak_rss_mb": 2134.458368
+          },
+          "runtime": {
+            "package_path": "D:\\xgen-omnifuse\\src\\omnifuse\\__init__.py",
+            "package_version": "0.5.0",
+            "source_bindings": {
+              "package": {
+                "path": "src/omnifuse/__init__.py",
+                "sha256": "1240a23d41cc464adc72c50719e82e24ae98dd2d86cac22802c3d7b617a4c504",
+                "bytes": 2202,
+                "resolved_path": "D:\\xgen-omnifuse\\src\\omnifuse\\__init__.py"
+              },
+              "build_inmemory": {
+                "path": "src/omnifuse/facade.py",
+                "sha256": "b7297230a733acea18c2dea6e094de0c17c6b98ff3232db7e3549ae3bdbaa7f5",
+                "bytes": 7585,
+                "resolved_path": "D:\\xgen-omnifuse\\src\\omnifuse\\facade.py"
+              },
+              "retrieve": {
+                "path": "src/omnifuse/oneshot.py",
+                "sha256": "9ef7ec0480bcbe13fed8c25d9968b451b1f8725425af28615e94fb5e0018ec75",
+                "bytes": 10895,
+                "resolved_path": "D:\\xgen-omnifuse\\src\\omnifuse\\oneshot.py"
+              }
+            },
+            "tokenizer": null
+          },
+          "trial": {
+            "number": 2,
+            "order_position": 2
+          },
+          "worker_input": {
+            "path": "worker-input/performance.json",
+            "sha256": "66e2137e0c98c9c908848ac8ea2abc7eba1d7a50b98cc6c93443d1187b475755",
+            "bytes": 198735634,
+            "documents": 171332,
+            "scored_queries": 50,
+            "relevance_judgments": 24673
+          },
+          "worker_identity": {
+            "schema": "omnifuse.eval.worker-instance",
+            "schema_version": 1,
+            "worker_run_id": "e63d7b49b94c4c289e3956cb254f13a3",
+            "worker_pid": 13008,
+            "capture_phase": "post_measurement"
+          },
+          "worker_environment": {
+            "python": "3.12.10",
+            "python_executable": "D:\\_tmp_bench\\venvs\\synaptic-v0.27.0-836d536-frozen1\\Scripts\\python.exe",
+            "isolated": true,
+            "ignore_environment": true,
+            "no_user_site": true,
+            "safe_path": true,
+            "utf8_mode": true,
+            "user_site_enabled": false,
+            "pythonpath": null,
+            "pythonhome": null,
+            "pythonusersite": null,
+            "python_no_user_site_env": "1"
+          }
+        }
+      ]
+    },
+    {
+      "system": "synaptic",
+      "trial_count": 2,
+      "order_positions": [
+        2,
+        1
+      ],
+      "accuracy_consistent": true,
+      "distributions": {
+        "ingest_s": {
+          "count": 2,
+          "min": 23086.159522400005,
+          "p50": 23485.824606499984,
+          "p95": 23845.523182189965,
+          "mean": 23485.824606499984,
+          "max": 23885.489690599963
+        },
+        "query_latency_p50_ms": {
+          "count": 2,
+          "min": 2889.7418999986257,
+          "p50": 2937.8128250100417,
+          "p95": 2981.076657520316,
+          "mean": 2937.8128250100417,
+          "max": 2985.8837500214577
+        },
+        "query_latency_p95_ms": {
+          "count": 2,
+          "min": 3215.428465002333,
+          "p50": 3269.4341450041975,
+          "p95": 3318.0392570058757,
+          "mean": 3269.4341450041975,
+          "max": 3323.439825006062
+        },
+        "query_latency_mean_ms": {
+          "count": 2,
+          "min": 2879.5514307981357,
+          "p50": 2932.6910805986263,
+          "p95": 2980.5167654190677,
+          "mean": 2932.6910805986263,
+          "max": 2985.830730399117
+        },
+        "peak_rss_mb": {
+          "count": 2,
+          "min": 2133.766144,
+          "p50": 2133.987328,
+          "p95": 2134.1863936,
+          "mean": 2133.987328,
+          "max": 2134.208512,
+          "missing": 0
+        },
+        "current_rss_mb": {
+          "count": 2,
+          "min": 177.565696,
+          "p50": 412.884992,
+          "p95": 624.6723584,
+          "mean": 412.884992,
+          "max": 648.204288,
+          "missing": 0
+        },
+        "mrr_at_k": {
+          "count": 2,
+          "min": 0.721,
+          "p50": 0.721,
+          "p95": 0.721,
+          "mean": 0.721,
+          "max": 0.721
+        }
+      },
+      "trials": [
+        {
+          "system": "synaptic",
+          "ingest_s": 23885.489690599963,
+          "query_latency_p50_ms": 2889.7418999986257,
+          "query_latency_p95_ms": 3215.428465002333,
+          "query_latency_mean_ms": 2879.5514307981357,
+          "query_latency_samples": 250,
+          "mrr_at_k": 0.721,
+          "k": 10,
+          "candidate_limit": 20,
+          "warmup_rounds": 1,
+          "measurement_rounds": 5,
+          "process_memory": {
+            "scope": "entire fresh worker process (imports, build, warmup, measured queries)",
+            "kind": "Windows process working set",
+            "current_rss_mb": 177.565696,
+            "peak_rss_mb": 2133.766144
+          },
+          "runtime": {
+            "package_path": "D:\\_tmp_bench\\synaptic-memory-v0.27.0-tag-836d536-clean4\\src\\synaptic\\__init__.py",
+            "package_version": "0.27.0",
+            "source_bindings": {
+              "package": {
+                "path": "src/synaptic/__init__.py",
+                "sha256": "9ad7a2e902686ac0e9509c30949a431121cd4dd847b606f2c6c99f65a0d37cbd",
+                "bytes": 7022,
+                "resolved_path": "D:\\_tmp_bench\\synaptic-memory-v0.27.0-tag-836d536-clean4\\src\\synaptic\\__init__.py"
+              },
+              "sqlite_backend": {
+                "path": "src/synaptic/backends/sqlite_graph.py",
+                "sha256": "37cc40cea1e1eb1aec543740ffebbb077d7eb7c9739cc8d5500be193b7710895",
+                "bytes": 5737,
+                "resolved_path": "D:\\_tmp_bench\\synaptic-memory-v0.27.0-tag-836d536-clean4\\src\\synaptic\\backends\\sqlite_graph.py"
+              },
+              "sqlite_backend_base": {
+                "path": "src/synaptic/backends/sqlite.py",
+                "sha256": "8ae13d0fb779a35f1f0ab64b5b3bc62618c650e8fc775e7bd8216d00751b0a06",
+                "bytes": 42023,
+                "resolved_path": "D:\\_tmp_bench\\synaptic-memory-v0.27.0-tag-836d536-clean4\\src\\synaptic\\backends\\sqlite.py"
+              },
+              "graph": {
+                "path": "src/synaptic/graph.py",
+                "sha256": "3b2be7414d60255d1da5420ceb1a1c440938ced14fb760c687c0e6754b73b4cd",
+                "bytes": 103164,
+                "resolved_path": "D:\\_tmp_bench\\synaptic-memory-v0.27.0-tag-836d536-clean4\\src\\synaptic\\graph.py"
+              }
+            },
+            "tokenizer": {
+              "mode": "unused",
+              "korean_normalization_used": false,
+              "kiwi_available": null,
+              "kiwi_version": "0.23.1",
+              "kiwi_model_version": "0.23.0",
+              "modules": {
+                "kiwipiepy": null,
+                "_kiwipiepy": null,
+                "kiwipiepy_model": null
+              }
+            }
+          },
+          "trial": {
+            "number": 1,
+            "order_position": 2
+          },
+          "worker_input": {
+            "path": "worker-input/performance.json",
+            "sha256": "66e2137e0c98c9c908848ac8ea2abc7eba1d7a50b98cc6c93443d1187b475755",
+            "bytes": 198735634,
+            "documents": 171332,
+            "scored_queries": 50,
+            "relevance_judgments": 24673
+          },
+          "worker_identity": {
+            "schema": "omnifuse.eval.worker-instance",
+            "schema_version": 1,
+            "worker_run_id": "ca8de7a841b646bb9f37e7e02eb2a4b5",
+            "worker_pid": 1224,
+            "capture_phase": "post_measurement"
+          },
+          "worker_environment": {
+            "python": "3.12.10",
+            "python_executable": "D:\\_tmp_bench\\venvs\\synaptic-v0.27.0-836d536-frozen1\\Scripts\\python.exe",
+            "isolated": true,
+            "ignore_environment": true,
+            "no_user_site": true,
+            "safe_path": true,
+            "utf8_mode": true,
+            "user_site_enabled": false,
+            "pythonpath": null,
+            "pythonhome": null,
+            "pythonusersite": null,
+            "python_no_user_site_env": "1"
+          }
+        },
+        {
+          "system": "synaptic",
+          "ingest_s": 23086.159522400005,
+          "query_latency_p50_ms": 2985.8837500214577,
+          "query_latency_p95_ms": 3323.439825006062,
+          "query_latency_mean_ms": 2985.830730399117,
+          "query_latency_samples": 250,
+          "mrr_at_k": 0.721,
+          "k": 10,
+          "candidate_limit": 20,
+          "warmup_rounds": 1,
+          "measurement_rounds": 5,
+          "process_memory": {
+            "scope": "entire fresh worker process (imports, build, warmup, measured queries)",
+            "kind": "Windows process working set",
+            "current_rss_mb": 648.204288,
+            "peak_rss_mb": 2134.208512
+          },
+          "runtime": {
+            "package_path": "D:\\_tmp_bench\\synaptic-memory-v0.27.0-tag-836d536-clean4\\src\\synaptic\\__init__.py",
+            "package_version": "0.27.0",
+            "source_bindings": {
+              "package": {
+                "path": "src/synaptic/__init__.py",
+                "sha256": "9ad7a2e902686ac0e9509c30949a431121cd4dd847b606f2c6c99f65a0d37cbd",
+                "bytes": 7022,
+                "resolved_path": "D:\\_tmp_bench\\synaptic-memory-v0.27.0-tag-836d536-clean4\\src\\synaptic\\__init__.py"
+              },
+              "sqlite_backend": {
+                "path": "src/synaptic/backends/sqlite_graph.py",
+                "sha256": "37cc40cea1e1eb1aec543740ffebbb077d7eb7c9739cc8d5500be193b7710895",
+                "bytes": 5737,
+                "resolved_path": "D:\\_tmp_bench\\synaptic-memory-v0.27.0-tag-836d536-clean4\\src\\synaptic\\backends\\sqlite_graph.py"
+              },
+              "sqlite_backend_base": {
+                "path": "src/synaptic/backends/sqlite.py",
+                "sha256": "8ae13d0fb779a35f1f0ab64b5b3bc62618c650e8fc775e7bd8216d00751b0a06",
+                "bytes": 42023,
+                "resolved_path": "D:\\_tmp_bench\\synaptic-memory-v0.27.0-tag-836d536-clean4\\src\\synaptic\\backends\\sqlite.py"
+              },
+              "graph": {
+                "path": "src/synaptic/graph.py",
+                "sha256": "3b2be7414d60255d1da5420ceb1a1c440938ced14fb760c687c0e6754b73b4cd",
+                "bytes": 103164,
+                "resolved_path": "D:\\_tmp_bench\\synaptic-memory-v0.27.0-tag-836d536-clean4\\src\\synaptic\\graph.py"
+              }
+            },
+            "tokenizer": {
+              "mode": "unused",
+              "korean_normalization_used": false,
+              "kiwi_available": null,
+              "kiwi_version": "0.23.1",
+              "kiwi_model_version": "0.23.0",
+              "modules": {
+                "kiwipiepy": null,
+                "_kiwipiepy": null,
+                "kiwipiepy_model": null
+              }
+            }
+          },
+          "trial": {
+            "number": 2,
+            "order_position": 1
+          },
+          "worker_input": {
+            "path": "worker-input/performance.json",
+            "sha256": "66e2137e0c98c9c908848ac8ea2abc7eba1d7a50b98cc6c93443d1187b475755",
+            "bytes": 198735634,
+            "documents": 171332,
+            "scored_queries": 50,
+            "relevance_judgments": 24673
+          },
+          "worker_identity": {
+            "schema": "omnifuse.eval.worker-instance",
+            "schema_version": 1,
+            "worker_run_id": "9133a67e1b8c4728bc3e634d16017a8c",
+            "worker_pid": 13412,
+            "capture_phase": "post_measurement"
+          },
+          "worker_environment": {
+            "python": "3.12.10",
+            "python_executable": "D:\\_tmp_bench\\venvs\\synaptic-v0.27.0-836d536-frozen1\\Scripts\\python.exe",
+            "isolated": true,
+            "ignore_environment": true,
+            "no_user_site": true,
+            "safe_path": true,
+            "utf8_mode": true,
+            "user_site_enabled": false,
+            "pythonpath": null,
+            "pythonhome": null,
+            "pythonusersite": null,
+            "python_no_user_site_env": "1"
+          }
+        }
+      ]
+    }
+  ]
+}

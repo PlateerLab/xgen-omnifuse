@@ -40,6 +40,32 @@ class Chunk:
     title: str = ""
 
 
+@dataclass(frozen=True)
+class ChunkMutationResult:
+    """Counts from one atomic chunk mutation batch.
+
+    ``unchanged`` counts identical upserts; ``missing`` counts delete ids already absent.
+    """
+
+    revision: int = 0
+    inserted: int = 0
+    updated: int = 0
+    deleted: int = 0
+    unchanged: int = 0
+    missing: int = 0
+    reindexed: int = 0
+    rebuilt: bool = False
+
+    @property
+    def changed(self) -> int:
+        return self.inserted + self.updated + self.deleted
+
+    @property
+    def incremental(self) -> bool:
+        """Whether the batch avoided a corpus-wide lexical reindex."""
+        return not self.rebuilt
+
+
 @dataclass
 class SearchResult:
     """Result of an OmniFuse search."""

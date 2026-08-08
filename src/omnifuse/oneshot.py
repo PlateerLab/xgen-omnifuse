@@ -15,14 +15,14 @@ same algorithm runs on the in-memory default (zero infra) or on Fuseki/Qdrant.
 """
 from __future__ import annotations
 
+from contextlib import nullcontext
 import re
 from typing import Optional
 
 from .fusion import dynamic_cut, mmr, rank_relations
 from .llm import EchoLLM
-from .models import SearchResult
+from .models import Chunk, ChunkMutationResult, SearchResult
 from .protocols import LLM, GraphStore, VectorStore
-from .text import tokenize
 
 # Language-neutral default — pass system_prompt=... for any language/domain.
 SYSTEM = (
@@ -86,6 +86,41 @@ class OmniFuse:
         """Withdraw a remembered pair — the inverse of ``remember``, same in-place cost."""
         self.vector.forget(query, doc_ids)
 
+    def upsert_chunks(self, chunks: list[Chunk]) -> ChunkMutationResult:
+        """Atomically insert or replace passages in a mutable vector store."""
+        mutate = getattr(self.vector, "upsert_chunks", None)
+        if mutate is None:
+            raise TypeError(
+                f"{type(self.vector).__name__} does not support chunk upserts"
+            )
+        return mutate(chunks)
+
+    def delete_chunks(self, ids: list[str]) -> ChunkMutationResult:
+        """Atomically delete passages from a mutable vector store."""
+        mutate = getattr(self.vector, "delete_chunks", None)
+        if mutate is None:
+            raise TypeError(
+                f"{type(self.vector).__name__} does not support chunk deletes"
+            )
+        return mutate(ids)
+
+    def close(self) -> None:
+        """Close shared backend resources; in-memory backends are a no-op."""
+        closed: set[int] = set()
+        for backend in (self.vector, self.graph):
+            if id(backend) in closed:
+                continue
+            close = getattr(backend, "close", None)
+            if callable(close):
+                close()
+            closed.add(id(backend))
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc, traceback) -> None:
+        self.close()
+
     def retrieve(self, question: str, *, limit: Optional[int] = None) -> list[tuple]:
         """Ranked (chunk, score) fusing lexical/vector seeds with 1-hop graph
         structure — a passage cited/linked by a strong seed is surfaced beside it
@@ -98,6 +133,14 @@ class OmniFuse:
         evidence: on finreg it drops multi-hop to 24/120 while still costing single-hop.
         Pass ``fusion_direction="both"`` when the graph's edges are symmetric.
         """
+        read_view = getattr(self.vector, "read_view", None)
+        view = read_view() if callable(read_view) else nullcontext()
+        with view:
+            return self._retrieve_current_view(question, limit=limit)
+
+    def _retrieve_current_view(
+        self, question: str, *, limit: Optional[int]
+    ) -> list[tuple]:
         limit = limit or self.vector_k
         vhits = self.vector.search(question, limit=self.vector_k)
         scores: dict[str, float] = {}

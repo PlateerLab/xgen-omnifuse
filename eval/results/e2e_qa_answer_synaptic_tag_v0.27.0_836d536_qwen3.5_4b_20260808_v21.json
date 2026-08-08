@@ -1,0 +1,1650 @@
+{
+  "schema": "omnifuse.e2e_qa_answer_comparison",
+  "schema_version": 1,
+  "status": "ok",
+  "generated_at_utc": "2026-08-08T14:29:39.192239+00:00",
+  "repositories": {
+    "omnifuse": {
+      "path": "D:\\xgen-omnifuse",
+      "git_root": "D:\\xgen-omnifuse",
+      "sha": "cd355ddb5c59f5f8bb20c694a4fba8419567310a",
+      "origin_fetch_url": "https://github.com/PlateerLab/xgen-omnifuse.git",
+      "exact_tags": [],
+      "dirty": true,
+      "status_sha256": "8de3bc5e304a2399a8c61a4c7163fe03521d2a769be49c50f828547eb5da7d5c",
+      "tracked_diff_sha256": "41dc3a7a94071d7dd9d630d2ca6b616d23085b34d4cfe6c43e4639b89bcc6dbd",
+      "untracked_manifest_sha256": "aa446411b596805614d671c99aac7313b24b5327448827415bb6cf38ccd25bc5",
+      "untracked_files": 82,
+      "untracked_bytes": 38263268,
+      "dirty_content_sha256": "69e9c16b6924180c8652ab490f4fd7826e8c8440dce8462ef7e340831c31c535"
+    },
+    "synaptic_memory": {
+      "path": "D:\\_tmp_bench\\synaptic-memory-v0.27.0-tag-836d536-clean4",
+      "git_root": "D:\\_tmp_bench\\synaptic-memory-v0.27.0-tag-836d536-clean4",
+      "sha": "836d53640e520c88910dd57e098167a4defe50d2",
+      "origin_fetch_url": "https://github.com/PlateerLab/synaptic-memory.git",
+      "exact_tags": [
+        "v0.27.0"
+      ],
+      "dirty": false,
+      "status_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "tracked_diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "untracked_manifest_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "untracked_files": 0,
+      "untracked_bytes": 0,
+      "dirty_content_sha256": "69e715af7a4cf9e0cd73dc83d0d99c1663a016e3ac0ee9ca180a11c50630e55b"
+    }
+  },
+  "sources": {
+    "benchmark": {
+      "path": "eval/e2e_qa_answer_bench.py",
+      "sha256": "8ca9da5696eb42ad87f8d26bd68dea6b5bf975e0e503b2f6e85b28507d997304",
+      "bytes": 21668
+    },
+    "retrieval_benchmark": {
+      "path": "eval/e2e_qa_retrieval_bench.py",
+      "sha256": "9fe5ab95d8f642b5ab3d0870572f17a9f356d366f3bd5d77852b8ce937d6240f",
+      "bytes": 34691
+    },
+    "upstream_e2e_test": {
+      "path": "tests/benchmark/test_e2e_qa.py",
+      "sha256": "d1a8ba2a9091eee769cf3a68d2906ee978d0c944b71c1344392bcb755ba70d61",
+      "bytes": 20887
+    }
+  },
+  "data": {
+    "path": "D:\\_tmp_bench\\synaptic-memory-v0.27.0-tag-836d536-clean4\\tests\\benchmark\\data\\hotpotqa_24.json",
+    "sha256": "596958d4dd7c6cedf29d7c8c97dae84fb4017e5e18d2cfe9bf914151feaaaaac",
+    "bytes": 147532,
+    "corpus_documents": 226,
+    "total_queries": 24,
+    "sampled_queries": 24,
+    "sample_seed": 42,
+    "sample_query_ids": [
+      "hotpot_5a86458b5542991e771815ec",
+      "hotpot_5a7a9b9a5542990198eaf160",
+      "hotpot_5ac2659b55429963665199a1",
+      "hotpot_5ac2758b55429963665199c3",
+      "hotpot_5a8a575a554299515336136e",
+      "hotpot_5adf75e35542993344016c98",
+      "hotpot_5abaee845542996606241696",
+      "hotpot_5ac3bab155429939154138fb",
+      "hotpot_5abdff775542993f32c2a082",
+      "hotpot_5a728dc65542992359bc30ef",
+      "hotpot_5ae694a15542991bbc976141",
+      "hotpot_5add016e5542992c1e3a250b",
+      "hotpot_5ac3090d5542990b17b154fc",
+      "hotpot_5a7133565542994082a3e65c",
+      "hotpot_5ae7edee554299540e5a56ad",
+      "hotpot_5ac079e9554299294b218fff",
+      "hotpot_5a80caac554299260e20a161",
+      "hotpot_5a87136e5542991e771816b2",
+      "hotpot_5a8841ee5542994846c1ce6b",
+      "hotpot_5ac41b9e5542995c82c4acc4",
+      "hotpot_5a7ec61a55429934daa2fc5f",
+      "hotpot_5a7296815542991f9a20c515",
+      "hotpot_5ac2a3c7554299218029dadb",
+      "hotpot_5a82a1ae55429954d2e2eb89"
+    ],
+    "sample_payload_sha256": "7ec298039f59bf6dc1d4dbf4995c5ea6905386d5a3524bda1ada7b0395dad800"
+  },
+  "ollama": {
+    "base_url": "http://127.0.0.1:11434",
+    "version": "0.32.6",
+    "model": "qwen3.5:4b",
+    "digest": "2a654d98e6fba55d452b7043684e9b57a947e393bbffa62485a7aac05ee4eefd",
+    "size": 3389983735
+  },
+  "contract": {
+    "upstream_test": "tests/benchmark/test_e2e_qa.py::TestE2EHotPotQA.test_hotpotqa_e2e",
+    "questions": 24,
+    "model": "qwen3.5:4b",
+    "payload": "official /api/chat messages + stream:false + think:false",
+    "correctness": "official _evaluate_correctness_simple",
+    "system_order": "alternating per-question AB/BA",
+    "timeout_seconds": 120.0,
+    "timeout_caveat": "transport allowance only; prompt and model payload are unchanged"
+  },
+  "retrieval": {
+    "omnifuse": {
+      "source_bindings": {
+        "package": {
+          "path": "src\\omnifuse\\models.py",
+          "sha256": "38fb4e982e15f242b84dfa1d40d8d6875bc212c0b4086e1fee4fb1ef9c29533b",
+          "bytes": 2020,
+          "resolved_path": "D:\\xgen-omnifuse\\src\\omnifuse\\models.py"
+        },
+        "build_inmemory": {
+          "path": "src\\omnifuse\\facade.py",
+          "sha256": "b7297230a733acea18c2dea6e094de0c17c6b98ff3232db7e3549ae3bdbaa7f5",
+          "bytes": 7585,
+          "resolved_path": "D:\\xgen-omnifuse\\src\\omnifuse\\facade.py"
+        },
+        "retrieve": {
+          "path": "src\\omnifuse\\oneshot.py",
+          "sha256": "9ef7ec0480bcbe13fed8c25d9968b451b1f8725425af28615e94fb5e0018ec75",
+          "bytes": 10895,
+          "resolved_path": "D:\\xgen-omnifuse\\src\\omnifuse\\oneshot.py"
+        },
+        "mmr": {
+          "path": "src\\omnifuse\\fusion.py",
+          "sha256": "aceb4f9f900332225639e0872b0301fb0be9c3a04c06c033d3446b70e26ee800",
+          "bytes": 2725,
+          "resolved_path": "D:\\xgen-omnifuse\\src\\omnifuse\\fusion.py"
+        }
+      },
+      "build_ms": 0.2491,
+      "graph_counts": {
+        "documents": 226,
+        "nodes": 0,
+        "edges": 0,
+        "generated_phrase_nodes": 0
+      }
+    },
+    "synaptic": {
+      "source_bindings": {
+        "package": {
+          "path": "src\\synaptic\\models.py",
+          "sha256": "8f5768e82bf1520c2b3ac4ed03b86e8d2bfb21f765662449444066883569a8e2",
+          "bytes": 9770,
+          "resolved_path": "D:\\_tmp_bench\\synaptic-memory-v0.27.0-tag-836d536-clean4\\src\\synaptic\\models.py"
+        },
+        "memory_backend": {
+          "path": "src\\synaptic\\backends\\memory.py",
+          "sha256": "bd1528ed5b624cdfe1ff719f4ff76be1cc12d8d28349d5accb573e60adec30cb",
+          "bytes": 14268,
+          "resolved_path": "D:\\_tmp_bench\\synaptic-memory-v0.27.0-tag-836d536-clean4\\src\\synaptic\\backends\\memory.py"
+        },
+        "graph": {
+          "path": "src\\synaptic\\graph.py",
+          "sha256": "3b2be7414d60255d1da5420ceb1a1c440938ced14fb760c687c0e6754b73b4cd",
+          "bytes": 103164,
+          "resolved_path": "D:\\_tmp_bench\\synaptic-memory-v0.27.0-tag-836d536-clean4\\src\\synaptic\\graph.py"
+        },
+        "phrase_extractor": {
+          "path": "src\\synaptic\\extensions\\phrase_extractor_en.py",
+          "sha256": "ccc16ab76dec98e1c0705570a553d9016de1f005b8412659a8f89c9016a0159b",
+          "bytes": 10543,
+          "resolved_path": "D:\\_tmp_bench\\synaptic-memory-v0.27.0-tag-836d536-clean4\\src\\synaptic\\extensions\\phrase_extractor_en.py"
+        }
+      },
+      "build_ms": 60.8414,
+      "graph_counts": {
+        "documents": 226,
+        "nodes": 1195,
+        "edges": 1161,
+        "generated_phrase_nodes": 969
+      }
+    }
+  },
+  "schedule": [
+    {
+      "question_index": 1,
+      "query_id": "hotpot_5a86458b5542991e771815ec",
+      "order": [
+        "omnifuse",
+        "synaptic"
+      ]
+    },
+    {
+      "question_index": 2,
+      "query_id": "hotpot_5a7a9b9a5542990198eaf160",
+      "order": [
+        "synaptic",
+        "omnifuse"
+      ]
+    },
+    {
+      "question_index": 3,
+      "query_id": "hotpot_5ac2659b55429963665199a1",
+      "order": [
+        "omnifuse",
+        "synaptic"
+      ]
+    },
+    {
+      "question_index": 4,
+      "query_id": "hotpot_5ac2758b55429963665199c3",
+      "order": [
+        "synaptic",
+        "omnifuse"
+      ]
+    },
+    {
+      "question_index": 5,
+      "query_id": "hotpot_5a8a575a554299515336136e",
+      "order": [
+        "omnifuse",
+        "synaptic"
+      ]
+    },
+    {
+      "question_index": 6,
+      "query_id": "hotpot_5adf75e35542993344016c98",
+      "order": [
+        "synaptic",
+        "omnifuse"
+      ]
+    },
+    {
+      "question_index": 7,
+      "query_id": "hotpot_5abaee845542996606241696",
+      "order": [
+        "omnifuse",
+        "synaptic"
+      ]
+    },
+    {
+      "question_index": 8,
+      "query_id": "hotpot_5ac3bab155429939154138fb",
+      "order": [
+        "synaptic",
+        "omnifuse"
+      ]
+    },
+    {
+      "question_index": 9,
+      "query_id": "hotpot_5abdff775542993f32c2a082",
+      "order": [
+        "omnifuse",
+        "synaptic"
+      ]
+    },
+    {
+      "question_index": 10,
+      "query_id": "hotpot_5a728dc65542992359bc30ef",
+      "order": [
+        "synaptic",
+        "omnifuse"
+      ]
+    },
+    {
+      "question_index": 11,
+      "query_id": "hotpot_5ae694a15542991bbc976141",
+      "order": [
+        "omnifuse",
+        "synaptic"
+      ]
+    },
+    {
+      "question_index": 12,
+      "query_id": "hotpot_5add016e5542992c1e3a250b",
+      "order": [
+        "synaptic",
+        "omnifuse"
+      ]
+    },
+    {
+      "question_index": 13,
+      "query_id": "hotpot_5ac3090d5542990b17b154fc",
+      "order": [
+        "omnifuse",
+        "synaptic"
+      ]
+    },
+    {
+      "question_index": 14,
+      "query_id": "hotpot_5a7133565542994082a3e65c",
+      "order": [
+        "synaptic",
+        "omnifuse"
+      ]
+    },
+    {
+      "question_index": 15,
+      "query_id": "hotpot_5ae7edee554299540e5a56ad",
+      "order": [
+        "omnifuse",
+        "synaptic"
+      ]
+    },
+    {
+      "question_index": 16,
+      "query_id": "hotpot_5ac079e9554299294b218fff",
+      "order": [
+        "synaptic",
+        "omnifuse"
+      ]
+    },
+    {
+      "question_index": 17,
+      "query_id": "hotpot_5a80caac554299260e20a161",
+      "order": [
+        "omnifuse",
+        "synaptic"
+      ]
+    },
+    {
+      "question_index": 18,
+      "query_id": "hotpot_5a87136e5542991e771816b2",
+      "order": [
+        "synaptic",
+        "omnifuse"
+      ]
+    },
+    {
+      "question_index": 19,
+      "query_id": "hotpot_5a8841ee5542994846c1ce6b",
+      "order": [
+        "omnifuse",
+        "synaptic"
+      ]
+    },
+    {
+      "question_index": 20,
+      "query_id": "hotpot_5ac41b9e5542995c82c4acc4",
+      "order": [
+        "synaptic",
+        "omnifuse"
+      ]
+    },
+    {
+      "question_index": 21,
+      "query_id": "hotpot_5a7ec61a55429934daa2fc5f",
+      "order": [
+        "omnifuse",
+        "synaptic"
+      ]
+    },
+    {
+      "question_index": 22,
+      "query_id": "hotpot_5a7296815542991f9a20c515",
+      "order": [
+        "synaptic",
+        "omnifuse"
+      ]
+    },
+    {
+      "question_index": 23,
+      "query_id": "hotpot_5ac2a3c7554299218029dadb",
+      "order": [
+        "omnifuse",
+        "synaptic"
+      ]
+    },
+    {
+      "question_index": 24,
+      "query_id": "hotpot_5a82a1ae55429954d2e2eb89",
+      "order": [
+        "synaptic",
+        "omnifuse"
+      ]
+    }
+  ],
+  "results": {
+    "omnifuse": {
+      "questions": [
+        {
+          "system": "omnifuse",
+          "query_id": "hotpot_5a86458b5542991e771815ec",
+          "question": "What is the population of the city where the Akademisches Kunstmuseum is?",
+          "ground_truth": "300,000",
+          "answer": "The context does not explicitly state the current population of Bonn; it only mentions that The Federal City of Bonn has a population of over 300,000. Therefore, based strictly on the provided text, I can say its population is over 300,000 people.",
+          "correctness": 1.0,
+          "generation_ms": 29742.8957,
+          "retrieval_ms": 43.9502,
+          "context_sha256": "df6039dcc650df7b9108241b3f9de63c7d429a2801d55b79cc352fcdb255baa3",
+          "context_characters": 3183,
+          "ollama": {
+            "model": "qwen3.5:4b",
+            "created_at": "2026-08-08T13:57:39.9916554Z",
+            "done": true,
+            "done_reason": "stop",
+            "total_duration": 29688598900,
+            "load_duration": 360840400,
+            "prompt_eval_count": 919,
+            "prompt_eval_duration": 21540340000,
+            "eval_count": 62,
+            "eval_duration": 7773096000
+          }
+        },
+        {
+          "system": "omnifuse",
+          "query_id": "hotpot_5a7a9b9a5542990198eaf160",
+          "question": "When was the Chinese American electronic musician and singer who collaborated on the album I Remember born?",
+          "ground_truth": "1989",
+          "answer": "Steven Zhu, the Chinese American electronic musician who collaborated on AlunaGeorge's album *I Remember*, was born in 1989.",
+          "correctness": 1.0,
+          "generation_ms": 36067.9141,
+          "retrieval_ms": 2.8548,
+          "context_sha256": "edacbd72eb02be138bc4a70ea1c842956e4574daf78f70b3fbaa83cc7488b324",
+          "context_characters": 4904,
+          "ollama": {
+            "model": "qwen3.5:4b",
+            "created_at": "2026-08-08T13:59:35.7179957Z",
+            "done": true,
+            "done_reason": "stop",
+            "total_duration": 36064943900,
+            "load_duration": 422390500,
+            "prompt_eval_count": 1260,
+            "prompt_eval_duration": 31822641000,
+            "eval_count": 30,
+            "eval_duration": 3804690000
+          }
+        },
+        {
+          "system": "omnifuse",
+          "query_id": "hotpot_5ac2659b55429963665199a1",
+          "question": "How many laps did Harry Prowell run during the 10,000 metres race at the 1967 Pan American Games?",
+          "ground_truth": "25 laps",
+          "answer": "The provided text does not state how many laps Harry Prowell ran; it only confirms his participation in the event and notes that a standard Olympic-sized track requires 25 laps to complete the 10,000 metres.",
+          "correctness": 1.0,
+          "generation_ms": 45219.8396,
+          "retrieval_ms": 1.93,
+          "context_sha256": "282aa02c1a88d83edc7a42e4efee5f8f102c6b34501c73a056872bd5792242ea",
+          "context_characters": 5065,
+          "ollama": {
+            "model": "qwen3.5:4b",
+            "created_at": "2026-08-08T14:00:20.9527166Z",
+            "done": true,
+            "done_reason": "stop",
+            "total_duration": 45217153500,
+            "load_duration": 459392300,
+            "prompt_eval_count": 1523,
+            "prompt_eval_duration": 38499578000,
+            "eval_count": 49,
+            "eval_duration": 6241024000
+          }
+        },
+        {
+          "system": "omnifuse",
+          "query_id": "hotpot_5ac2758b55429963665199c3",
+          "question": "The organization that Nicolae Titulescu served two terms as president was founded on what date?",
+          "ground_truth": "10 January 1920",
+          "answer": "The text does not state the specific founding date of the League of Nations General Assembly; it only mentions that Nicolae Titulescu served as its President for two terms from 1930 to 1932. The context notes that the Académie Diplomatique Internationale (ADI) was founded in 1926 and included Titulescu among its early members, but there is no information indicating he served a term of president at ADI or providing founding dates for any other organization associated with him as mentioned in the text. I don't know.",
+          "correctness": 0.0,
+          "generation_ms": 41450.8183,
+          "retrieval_ms": 4.4404,
+          "context_sha256": "88e6d91af369a86d02182e32c5cd94b0438e0648a6b00b6ff9f755eefc309945",
+          "context_characters": 3495,
+          "ollama": {
+            "model": "qwen3.5:4b",
+            "created_at": "2026-08-08T14:02:44.3882728Z",
+            "done": true,
+            "done_reason": "stop",
+            "total_duration": 41449150500,
+            "load_duration": 444228200,
+            "prompt_eval_count": 1045,
+            "prompt_eval_duration": 26275120000,
+            "eval_count": 116,
+            "eval_duration": 14717542000
+          }
+        },
+        {
+          "system": "omnifuse",
+          "query_id": "hotpot_5a8a575a554299515336136e",
+          "question": "Rynella is an unincorporated community named after the daughters of a conservationist who presided of the maker of a brand of hot sauce made from vinegar, salt and what kind of peppers? ",
+          "ground_truth": "tabasco peppers",
+          "answer": "Rynella is named after the daughters of Edward Avery McIlhenny, whose company (McIlhenny Company) makes Tabasco sauce. According to the context, this brand of hot sauce is made exclusively from tabasco peppers (*Capsicum frutescens* var. *tabasco*), vinegar, and salt.",
+          "correctness": 1.0,
+          "generation_ms": 34721.4121,
+          "retrieval_ms": 2.3048,
+          "context_sha256": "91d92ec65289d046a3caa8ff1438f630e3eed02bade5ff153e115e176ca5d3de",
+          "context_characters": 3813,
+          "ollama": {
+            "model": "qwen3.5:4b",
+            "created_at": "2026-08-08T14:03:19.1662228Z",
+            "done": true,
+            "done_reason": "stop",
+            "total_duration": 34716626300,
+            "load_duration": 431321200,
+            "prompt_eval_count": 1025,
+            "prompt_eval_duration": 25728337000,
+            "eval_count": 67,
+            "eval_duration": 8541990000
+          }
+        },
+        {
+          "system": "omnifuse",
+          "query_id": "hotpot_5adf75e35542993344016c98",
+          "question": "What American horror film directed by Sidney J. Furie was based off an alleged haunting which occurred in 1974 at Culver City, California?",
+          "ground_truth": "The Entity",
+          "answer": "The Entity is a 1982 American horror film directed by Sidney J. Furie that was inspired by the Doris Bither case, an alleged haunting occurring in 1974 at Culver City, California.",
+          "correctness": 1.0,
+          "generation_ms": 27730.0578,
+          "retrieval_ms": 2.7257,
+          "context_sha256": "07568795fca14169c593a2ffc48755dc81848bbe1d64a3db3074d454df3ad90c",
+          "context_characters": 2850,
+          "ollama": {
+            "model": "qwen3.5:4b",
+            "created_at": "2026-08-08T14:05:00.3493836Z",
+            "done": true,
+            "done_reason": "stop",
+            "total_duration": 27728155700,
+            "load_duration": 533906400,
+            "prompt_eval_count": 848,
+            "prompt_eval_duration": 21158886000,
+            "eval_count": 48,
+            "eval_duration": 5994670000
+          }
+        },
+        {
+          "system": "omnifuse",
+          "query_id": "hotpot_5abaee845542996606241696",
+          "question": "On February 25, 2017 tony Harrison lost the the International Boxing Federation light middleweight world title to a boxer from what state?",
+          "ground_truth": "Maryland",
+          "answer": "Tony Harrison lost the IBF light middleweight world title on February 25, 2017, to Jarrett Hurd. Based solely on the provided text, there is no information regarding which U.S. state Jarrett Hurd comes from.",
+          "correctness": 0.0,
+          "generation_ms": 56793.3169,
+          "retrieval_ms": 2.8325,
+          "context_sha256": "5aff17ca775a16d8a295850587c53189ae27dd5953253d54841bf4aaf2b6a097",
+          "context_characters": 7020,
+          "ollama": {
+            "model": "qwen3.5:4b",
+            "created_at": "2026-08-08T14:05:57.1957245Z",
+            "done": true,
+            "done_reason": "stop",
+            "total_duration": 56789215100,
+            "load_duration": 412689900,
+            "prompt_eval_count": 1955,
+            "prompt_eval_duration": 49198449000,
+            "eval_count": 54,
+            "eval_duration": 7119134000
+          }
+        },
+        {
+          "system": "omnifuse",
+          "query_id": "hotpot_5ac3bab155429939154138fb",
+          "question": "The House of Hanover held the British throne until after Victoria's death, when it was past to the dynasty that ruled which duchy?",
+          "ground_truth": "Ernestine",
+          "answer": "The answer is not explicitly stated in the provided text; while the context notes Edward VII belonged to the House of Saxe-Coburg and Gotha (a German dynasty) but does not specify a particular duchy ruled by them during his reign, it mentions that this house originated as rulers of the Duchy of Saxe-Coburg and Gotha.",
+          "correctness": 0.0,
+          "generation_ms": 38629.911,
+          "retrieval_ms": 2.0185,
+          "context_sha256": "3f121a2f1acb318e260b139abae266da22f7b5e4a082407a2a4b1187d60c263d",
+          "context_characters": 4017,
+          "ollama": {
+            "model": "qwen3.5:4b",
+            "created_at": "2026-08-08T14:07:56.0120805Z",
+            "done": true,
+            "done_reason": "stop",
+            "total_duration": 38624710300,
+            "load_duration": 414627900,
+            "prompt_eval_count": 1136,
+            "prompt_eval_duration": 28800879000,
+            "eval_count": 73,
+            "eval_duration": 9383082000
+          }
+        },
+        {
+          "system": "omnifuse",
+          "query_id": "hotpot_5abdff775542993f32c2a082",
+          "question": "At what theater is the composer and lyricist for the musical Big Fish a residential artist?",
+          "ground_truth": "Ars Nova Theater",
+          "answer": "The composer Andrew Lippa is a resident (residential) artist at the Ars Nova Theater in New York City.",
+          "correctness": 1.0,
+          "generation_ms": 30405.3648,
+          "retrieval_ms": 1.3379,
+          "context_sha256": "bf1338f1a86bb111c7b2c99320c8dec442a95d73c8e6ce913f7620b587278eaa",
+          "context_characters": 4264,
+          "ollama": {
+            "model": "qwen3.5:4b",
+            "created_at": "2026-08-08T14:08:26.4386464Z",
+            "done": true,
+            "done_reason": "stop",
+            "total_duration": 30403854200,
+            "load_duration": 427730600,
+            "prompt_eval_count": 1072,
+            "prompt_eval_duration": 26952846000,
+            "eval_count": 25,
+            "eval_duration": 3009275000
+          }
+        },
+        {
+          "system": "omnifuse",
+          "query_id": "hotpot_5a728dc65542992359bc30ef",
+          "question": "What fellow Turkish footballer did Darko Kovačević form an offensive partnership with during his tenure at Real Sociedad?",
+          "ground_truth": "Nihat Kahveci",
+          "answer": "Darko Kovačević formed an offensive partnership with Nihat Kahveci during his time at Real Sociedad, where both were described as playing prolific forward roles. The text explicitly notes that their pairing was \"one of the best in Spain.\"",
+          "correctness": 1.0,
+          "generation_ms": 32814.4645,
+          "retrieval_ms": 2.0439,
+          "context_sha256": "177fe87327b0c52d90a9ac0b5b2efd49b7e178fb1e723d4f5ba7d16a9365b932",
+          "context_characters": 3425,
+          "ollama": {
+            "model": "qwen3.5:4b",
+            "created_at": "2026-08-08T14:10:27.5808304Z",
+            "done": true,
+            "done_reason": "stop",
+            "total_duration": 32812879000,
+            "load_duration": 424966900,
+            "prompt_eval_count": 1042,
+            "prompt_eval_duration": 26170409000,
+            "eval_count": 50,
+            "eval_duration": 6178204000
+          }
+        },
+        {
+          "system": "omnifuse",
+          "query_id": "hotpot_5ae694a15542991bbc976141",
+          "question": "Why is Minister Pool important to Black Country and the West Midlands in England?",
+          "ground_truth": "defence of the Cathedral",
+          "answer": "Based strictly on the provided context, Minster Pool does not hold a stated importance for the Black Country; it is located in Lichfield, Staffordshire (a different county from both), though its historical importance was to defend Lichfield Cathedral. Additionally, there is no mention of a \"Minister Pool\" or any entity by that name important to either region.",
+          "correctness": 0.11538461538461539,
+          "generation_ms": 28778.825,
+          "retrieval_ms": 1.5901,
+          "context_sha256": "72cc6e27b64fa242655cdcf3c9ca2c9279721fd930b400c08cc293c72be35bd0",
+          "context_characters": 2844,
+          "ollama": {
+            "model": "qwen3.5:4b",
+            "created_at": "2026-08-08T14:10:56.4094215Z",
+            "done": true,
+            "done_reason": "stop",
+            "total_duration": 28776870000,
+            "load_duration": 407148800,
+            "prompt_eval_count": 757,
+            "prompt_eval_duration": 19019408000,
+            "eval_count": 75,
+            "eval_duration": 9312601000
+          }
+        },
+        {
+          "system": "omnifuse",
+          "query_id": "hotpot_5add016e5542992c1e3a250b",
+          "question": "What made the man who abolished the Consell in 1718 resume the throne?",
+          "ground_truth": "upon his son's death",
+          "answer": "Based on the provided context, it cannot be determined what made the man (Philip V) who abolished the Gran i General Consell in 1718 \"resume the throne,\" as he was not a monarch of any realm described and did not hold such a position. Additionally, regarding King Levan of Imereti mentioned in another section: after being forced to flee by Simon I of Kartli seeking to reunify Georgian lands under his own crown (which may have been what you intended to ask about), he was able to resume the throne because \"Simon had to return to Kartli.\"",
+          "correctness": 0.02631578947368421,
+          "generation_ms": 64363.2651,
+          "retrieval_ms": 1.7325,
+          "context_sha256": "2ddaa38f5c9372d5cefe13624a3eeed5f6f10897c4bcfbbaa2410c7606d7c231",
+          "context_characters": 6601,
+          "ollama": {
+            "model": "qwen3.5:4b",
+            "created_at": "2026-08-08T14:13:39.6938647Z",
+            "done": true,
+            "done_reason": "stop",
+            "total_duration": 64361855700,
+            "load_duration": 404641000,
+            "prompt_eval_count": 1885,
+            "prompt_eval_duration": 47900363000,
+            "eval_count": 121,
+            "eval_duration": 16030061000
+          }
+        },
+        {
+          "system": "omnifuse",
+          "query_id": "hotpot_5ac3090d5542990b17b154fc",
+          "question": "Operalia, The World Opera Competition helped launch the career of an operatic soprano of what nationality?",
+          "ground_truth": "Bulgarian",
+          "answer": "Based on the provided text, Operalia has helped launched the careers of singers from Mexico (Maria Katzarava), Russia/Ukraine (Bogdan Volkov - though a tenor), China (Guanqun Yu and Ao Li - latter being a bass-baritone), France (implied by Rachel Willis-Sørensen's association with French competitions, but she is American), the US (Andrea Carroll, Joel... wait Joel is not in text. Andrea Carroll is American soprano finalist).\n\nThe most direct match for an **operatic soprano** whose career was launched or significantly advanced by winning first prize at Operalia mentioned as a key achievement is Maria Katzarava of **Mexican** nationality. Rachel Willis-Sørensen (American) also won prizes there, and Guanqun Yu (Chinese) placed 2nd. Ao Li (Chinese) won first but is a bass-baritone.\n\nThe text explicitly states: \"Maria Katzarava... achieved international fame by winning first place in the Operalia competition\". And for Rachel Willis-Sørensen: \"In 2014, she won... the Zarzuela Prize of the Operalia competition.\"\nFor Guanqun Yu: \"...placed 2nd in the Operalia...\"\n\nIf focusing on those who won **first prize** (often synonymous with having their career launched as per Domingo's description for Katzarava), we have Maria Katzarava (**Mexican**) and Ao Li (**Chinese**, but he is a bass-baritone). The prompt asks for an \"operatic soprano\".\n- Maria Katzarava: Mexican, Soprano. Won 1st place (Opera & Zarzuela).\n- Rachel Willis-Sørensen: American, Soprano. Won Birgit Nilsson Prize and Zarzuela Prize in Operalia (which are first prize equivalents mentioned as she won them that year? Or just prizes?). Text says \"won first prize, the Birgit Nilsson Prize...\". It doesn't explicitly say \"first prize\" for Zoella/Sophia but implies top tier.\n- Andrea Carroll: American, Soprano. Finalist in 2015 (implied launch).\n\nHowever, Maria Katzarava's entry is very specific about winning **first place** and achieving international fame *by* this win.\nAnswer: Mexican",
+          "correctness": 0.0,
+          "generation_ms": 84114.4546,
+          "retrieval_ms": 1.0689,
+          "context_sha256": "b028c8f6b6a9c36941ee288ef35948d28c36854ddda3f963d3aa080a29745fc0",
+          "context_characters": 3328,
+          "ollama": {
+            "model": "qwen3.5:4b",
+            "created_at": "2026-08-08T14:15:03.8180458Z",
+            "done": true,
+            "done_reason": "stop",
+            "total_duration": 84110825200,
+            "load_duration": 438314100,
+            "prompt_eval_count": 901,
+            "prompt_eval_duration": 22475607000,
+            "eval_count": 480,
+            "eval_duration": 61184192000
+          }
+        },
+        {
+          "system": "omnifuse",
+          "query_id": "hotpot_5a7133565542994082a3e65c",
+          "question": "What Kentucky county has a population of 60,316 and features the Lake Louisvilla neighborhood?",
+          "ground_truth": "Oldham County",
+          "answer": "Based on the context provided, Oldham County is the Kentucky county with a population of 60,316 (as of the 2010 census) that includes the Lake Louisvilla neighborhood. The text states that Lake Louisvilla lies between Westport Road in Louisville and **KY 22 in Oldham County**.",
+          "correctness": 1.0,
+          "generation_ms": 37352.0001,
+          "retrieval_ms": 1.0798,
+          "context_sha256": "a64c97ac4fccebfb7435f73e9e653835c4090cc1d7999027b3096587baf35010",
+          "context_characters": 4208,
+          "ollama": {
+            "model": "qwen3.5:4b",
+            "created_at": "2026-08-08T14:17:04.4460123Z",
+            "done": true,
+            "done_reason": "stop",
+            "total_duration": 37350385300,
+            "load_duration": 430299500,
+            "prompt_eval_count": 1120,
+            "prompt_eval_duration": 28160188000,
+            "eval_count": 69,
+            "eval_duration": 8739838000
+          }
+        },
+        {
+          "system": "omnifuse",
+          "query_id": "hotpot_5ae7edee554299540e5a56ad",
+          "question": "The Church of the Guanche People was founded in the city that is on the most populated island of what larger area?",
+          "ground_truth": "Macaronesia",
+          "answer": "The Church of the Guanche People was founded in San Cristóbal de La Laguna, a city located in Tenerife. According to the text, Tenerife is \"the largest and most populated island of Spain\" (and Macaronesia). Therefore, it is the most populated island of **Spain**.",
+          "correctness": 1.0,
+          "generation_ms": 31866.2799,
+          "retrieval_ms": 1.6211,
+          "context_sha256": "cb67c56f35559a8c4951ba75003facd4686c155da202d52ef2b1e949c75dd511",
+          "context_characters": 3247,
+          "ollama": {
+            "model": "qwen3.5:4b",
+            "created_at": "2026-08-08T14:17:36.3144593Z",
+            "done": true,
+            "done_reason": "stop",
+            "total_duration": 31856033900,
+            "load_duration": 428924800,
+            "prompt_eval_count": 955,
+            "prompt_eval_duration": 23880884000,
+            "eval_count": 60,
+            "eval_duration": 7536237000
+          }
+        },
+        {
+          "system": "omnifuse",
+          "query_id": "hotpot_5ac079e9554299294b218fff",
+          "question": "What organization does Rosyth Dockyard and Queen Elizabeth-class aircraft carrier have in common?",
+          "ground_truth": "Navy",
+          "answer": "Rosyth Dockyard currently serves as the primary integration site for the United Kingdom's Royal Navy, which also operates both vessels of the \"Queen Elizabeth\"-class aircraft carriers. While Rosyth was formerly a Royal Naval dockyard before its 1990s privatisation to Babcock Marine and no longer maintains direct construction ties with the Queen Elizabeth class now that work has moved elsewhere (such as BAE Systems in Barrow-in-Furness), they share the common organization of being central components or supporters of the UK's Royal Navy.",
+          "correctness": 1.0,
+          "generation_ms": 39801.6414,
+          "retrieval_ms": 1.1806,
+          "context_sha256": "ae37ae268ce841a4186b802070664bfdc03581a95d8b1b4e75e79b365a92fbda",
+          "context_characters": 3947,
+          "ollama": {
+            "model": "qwen3.5:4b",
+            "created_at": "2026-08-08T14:19:35.5622782Z",
+            "done": true,
+            "done_reason": "stop",
+            "total_duration": 39798921300,
+            "load_duration": 460071200,
+            "prompt_eval_count": 1018,
+            "prompt_eval_duration": 25499248000,
+            "eval_count": 109,
+            "eval_duration": 13793792000
+          }
+        },
+        {
+          "system": "omnifuse",
+          "query_id": "hotpot_5a80caac554299260e20a161",
+          "question": "Were both Prince and Patty Jenkins have been inducted into the Rock and Roll Hall of Fame?",
+          "ground_truth": "no",
+          "answer": "No, based on the provided context, only Prince has been inducted into the Rock and Roll Hall of Fame (in 2004), while there is no mention of Patty Jenkins.",
+          "correctness": 1.0,
+          "generation_ms": 49616.0054,
+          "retrieval_ms": 1.5151,
+          "context_sha256": "9992878f676c808d4ca314c5bc5c17bb836c66142c667f5ef2f947a2e6240ae3",
+          "context_characters": 6208,
+          "ollama": {
+            "model": "qwen3.5:4b",
+            "created_at": "2026-08-08T14:20:25.1857483Z",
+            "done": true,
+            "done_reason": "stop",
+            "total_duration": 49609879700,
+            "load_duration": 425226800,
+            "prompt_eval_count": 1735,
+            "prompt_eval_duration": 44049676000,
+            "eval_count": 40,
+            "eval_duration": 5115383000
+          }
+        },
+        {
+          "system": "omnifuse",
+          "query_id": "hotpot_5a87136e5542991e771816b2",
+          "question": "Does Il trovatore have less acts than La rondine",
+          "ground_truth": "no",
+          "answer": "Yes, *Il trovatore* has fewer acts (four) than *La Rondine*, which is composed of three acts.",
+          "correctness": 0.0,
+          "generation_ms": 26906.9158,
+          "retrieval_ms": 1.013,
+          "context_sha256": "e048c0f1d1054d4f12916da4dedae46ea32f2e21c5800999bd483c89b8713924",
+          "context_characters": 2972,
+          "ollama": {
+            "model": "qwen3.5:4b",
+            "created_at": "2026-08-08T14:22:15.5617423Z",
+            "done": true,
+            "done_reason": "stop",
+            "total_duration": 26896712100,
+            "load_duration": 482854600,
+            "prompt_eval_count": 928,
+            "prompt_eval_duration": 23155360000,
+            "eval_count": 27,
+            "eval_duration": 3250105000
+          }
+        },
+        {
+          "system": "omnifuse",
+          "query_id": "hotpot_5a8841ee5542994846c1ce6b",
+          "question": "Which is farther west, Sheridan County, Montana or Chandra Taal?",
+          "ground_truth": "Sheridan County",
+          "answer": "Sheridan County in Montana lies on Canada–United States border south of Saskatchewan while Chandra Tal Lake (not mentioned) is situated at about 4300 m altitude. Therefore, **Chandra Taal** is farther west than Sheridan County because its location in the Himalayas places it significantly closer to India and Pakistan compared to western USA/Montana where most counties are located near Alaska's eastern border or close to Canada-USA boundary south of Saskatchewan region mentioned above (as per context provided). Wait, correction: Based on map knowledge Chandra Tal is at ~78°E longitude while Sheridan County Montana is around 109°W which means it's more west than the other location. So actually **Sheridan County** is farther west because its position near Saskatchewan border puts it far north and west compared to Indian Himalayas located east of Lake Chandra Taal. Thus answer should be: **Sheridan County, Montana**.",
+          "correctness": 1.0,
+          "generation_ms": 54240.221,
+          "retrieval_ms": 0.9159,
+          "context_sha256": "b55fe144c3521912d9d21d1ef205c56640d0cf225f49c709fc4d82edc528cdd8",
+          "context_characters": 4283,
+          "ollama": {
+            "model": "qwen3.5:4b",
+            "created_at": "2026-08-08T14:23:09.8255415Z",
+            "done": true,
+            "done_reason": "stop",
+            "total_duration": 54234959900,
+            "load_duration": 409470600,
+            "prompt_eval_count": 1145,
+            "prompt_eval_duration": 28769987000,
+            "eval_count": 192,
+            "eval_duration": 25037866000
+          }
+        },
+        {
+          "system": "omnifuse",
+          "query_id": "hotpot_5ac41b9e5542995c82c4acc4",
+          "question": "what species of plants are Chamelaucium and Vanilla derived from?",
+          "ground_truth": "flowers",
+          "answer": "Chamelaucium is a genus of shrubs endemic to south-western Australia belonging to the myrtle family (Myrtaceae), while \"Vanilla\" refers specifically to several orchid species within that same plant family. The text identifies flat-leaved vanilla (\"V. planifolia\") as one of approximately 104 other orchids in the genus Vanilla, which are known for their strong aromatic compounds and edible pods often referred to as sheaths or \"vaina\".",
+          "correctness": 0.0,
+          "generation_ms": 41551.0766,
+          "retrieval_ms": 1.2671,
+          "context_sha256": "3692bd891d8e145ab631f398436b99086c824661825d851fe09bbd6244c1aafe",
+          "context_characters": 4181,
+          "ollama": {
+            "model": "qwen3.5:4b",
+            "created_at": "2026-08-08T14:24:54.5055553Z",
+            "done": true,
+            "done_reason": "stop",
+            "total_duration": 41549364800,
+            "load_duration": 481484300,
+            "prompt_eval_count": 1133,
+            "prompt_eval_duration": 28439849000,
+            "eval_count": 100,
+            "eval_duration": 12613926000
+          }
+        },
+        {
+          "system": "omnifuse",
+          "query_id": "hotpot_5a7ec61a55429934daa2fc5f",
+          "question": "Are Staten Island Catapult and This Is Elvis both documentaries?",
+          "ground_truth": "yes",
+          "answer": "Yes, based on the provided context, both *The Staten Island Catapult* and *This Is Elvis* are documentary films.",
+          "correctness": 1.0,
+          "generation_ms": 28757.0538,
+          "retrieval_ms": 0.9855,
+          "context_sha256": "8aaf327713cc3b56ec83eedbaccbd5ac2fcf846bddaa23adb006fc47cfae3a30",
+          "context_characters": 3815,
+          "ollama": {
+            "model": "qwen3.5:4b",
+            "created_at": "2026-08-08T14:25:23.2705519Z",
+            "done": true,
+            "done_reason": "stop",
+            "total_duration": 28755581900,
+            "load_duration": 425339600,
+            "prompt_eval_count": 1000,
+            "prompt_eval_duration": 25011669000,
+            "eval_count": 27,
+            "eval_duration": 3292742000
+          }
+        },
+        {
+          "system": "omnifuse",
+          "query_id": "hotpot_5a7296815542991f9a20c515",
+          "question": "Who brewed the first espresso coffee in space, Patrick Baudry or Samantha Cristoforetti?",
+          "ground_truth": "Samantha Cristoforetti",
+          "answer": "Samantha Cristoforetti brewed the first espresso coffee in space on May 3, 2015; there is no information indicating that Patrick Baudry ever made espresso.",
+          "correctness": 1.0,
+          "generation_ms": 30217.7416,
+          "retrieval_ms": 1.0759,
+          "context_sha256": "e0fce163bacce61e1ba410bcb3722d73df04f47a0bf321edfbb1786ca95ec418",
+          "context_characters": 3747,
+          "ollama": {
+            "model": "qwen3.5:4b",
+            "created_at": "2026-08-08T14:26:59.9331318Z",
+            "done": true,
+            "done_reason": "stop",
+            "total_duration": 30216433700,
+            "load_duration": 468671100,
+            "prompt_eval_count": 986,
+            "prompt_eval_duration": 24800975000,
+            "eval_count": 40,
+            "eval_duration": 4931835000
+          }
+        },
+        {
+          "system": "omnifuse",
+          "query_id": "hotpot_5ac2a3c7554299218029dadb",
+          "question": "Which genus has more species in it, Othonna or Stangeria?",
+          "ground_truth": "Othonna",
+          "answer": "Stangeria is the sole species in its genus (one species), whereas Othonna belongs to a larger family with about 400 known accepted species as of July 2013. Based on this information, Othonna has more total species in nature than Stangeria does within its own genus.",
+          "correctness": 1.0,
+          "generation_ms": 37579.4998,
+          "retrieval_ms": 1.0583,
+          "context_sha256": "a77c99efe5a4deb86ecceac37fce726c3d9496e858d6909f77f46552bc6259db",
+          "context_characters": 4467,
+          "ollama": {
+            "model": "qwen3.5:4b",
+            "created_at": "2026-08-08T14:27:37.5177327Z",
+            "done": true,
+            "done_reason": "stop",
+            "total_duration": 37572718700,
+            "load_duration": 449994000,
+            "prompt_eval_count": 1146,
+            "prompt_eval_duration": 28739016000,
+            "eval_count": 66,
+            "eval_duration": 8354201999
+          }
+        },
+        {
+          "system": "omnifuse",
+          "query_id": "hotpot_5a82a1ae55429954d2e2eb89",
+          "question": "Between Aspidistra and Cyrtanthus, which genus of plant belongs to the Subfamily Amaryllidoideae?",
+          "ground_truth": "Cyrtanthus",
+          "answer": "Based on the provided text, **Cyrtanthus** is a genus that belongs to the subfamily Amaryllidoideae, whereas *Aspidistra* belongs to the subfamily Nolinoideae.",
+          "correctness": 1.0,
+          "generation_ms": 30577.6642,
+          "retrieval_ms": 0.8349,
+          "context_sha256": "e9d02e6ee5ca0f5fe39d0a0b682384d6bd3cf77227362b82ff775b196f4149ec",
+          "context_characters": 3351,
+          "ollama": {
+            "model": "qwen3.5:4b",
+            "created_at": "2026-08-08T14:29:38.3001932Z",
+            "done": true,
+            "done_reason": "stop",
+            "total_duration": 30570320700,
+            "load_duration": 428885600,
+            "prompt_eval_count": 982,
+            "prompt_eval_duration": 24602801000,
+            "eval_count": 45,
+            "eval_duration": 5529031000
+          }
+        }
+      ],
+      "aggregate": {
+        "questions": 24,
+        "cohort_mean_correctness": 0.6725708502024291,
+        "official_mean_correctness_nonzero_only": 0.8967611336032388,
+        "accuracy_at_0_5": 0.6666666666666666,
+        "exact_score_rate": 0.6666666666666666,
+        "positive_score_rate": 0.75,
+        "mean_generation_ms": 39970.77662916667,
+        "p95_generation_ms": 64363.2651,
+        "total_generation_ms": 959298.6391,
+        "mean_retrieval_ms": 3.4740583333333337,
+        "mean_prompt_tokens": 1146.5,
+        "mean_output_tokens": 84.375
+      }
+    },
+    "synaptic": {
+      "questions": [
+        {
+          "system": "synaptic",
+          "query_id": "hotpot_5a86458b5542991e771815ec",
+          "question": "What is the population of the city where the Akademisches Kunstmuseum is?",
+          "ground_truth": "300,000",
+          "answer": "The provided context states that the Akademisches Kunstmuseum is located in Bonn, Germany, but it does not contain information about the population of Bonn or any other city. I don't know.",
+          "correctness": 0.0,
+          "generation_ms": 34045.3109,
+          "retrieval_ms": 120.9628,
+          "context_sha256": "5ec457ac9e998cf067f4c43b1aa771a28ad913575777f1bdcfad2975b8a7d612",
+          "context_characters": 4131,
+          "ollama": {
+            "model": "qwen3.5:4b",
+            "created_at": "2026-08-08T13:58:14.1619118Z",
+            "done": true,
+            "done_reason": "stop",
+            "total_duration": 34043544700,
+            "load_duration": 380107900,
+            "prompt_eval_count": 1163,
+            "prompt_eval_duration": 28659371000,
+            "eval_count": 40,
+            "eval_duration": 4988563000
+          }
+        },
+        {
+          "system": "synaptic",
+          "query_id": "hotpot_5a7a9b9a5542990198eaf160",
+          "question": "When was the Chinese American electronic musician and singer who collaborated on the album I Remember born?",
+          "ground_truth": "1989",
+          "answer": "Based on the provided context, the text does not state that any artist collaborated with AlunaGeorge's album *I Remember*, so it is impossible to answer when such a musician was born using this information. Additionally, Steven Zhu is described as Chinese American and active since 2014 (releasing his first album in July 2016), but there is no mention of him collaborating with AlunaGeorge on that specific album or any other listed work.\n\nAnswer: I don't know",
+          "correctness": 0.0,
+          "generation_ms": 45390.9061,
+          "retrieval_ms": 76.0747,
+          "context_sha256": "04e95c36cb8dbb0fe2e9873ca0315c03eee00b8233bec515d381608e64ca7d20",
+          "context_characters": 4615,
+          "ollama": {
+            "model": "qwen3.5:4b",
+            "created_at": "2026-08-08T13:58:59.6000413Z",
+            "done": true,
+            "done_reason": "stop",
+            "total_duration": 45389248600,
+            "load_duration": 409512900,
+            "prompt_eval_count": 1272,
+            "prompt_eval_duration": 31872024000,
+            "eval_count": 102,
+            "eval_duration": 13082998000
+          }
+        },
+        {
+          "system": "synaptic",
+          "query_id": "hotpot_5ac2659b55429963665199a1",
+          "question": "How many laps did Harry Prowell run during the 10,000 metres race at the 1967 Pan American Games?",
+          "ground_truth": "25 laps",
+          "answer": "I don't know. The provided context states that Harry Prowell participated in the 10,000-metre event but does not specify how many laps he ran or any details about his performance in that race at the 1967 Pan American Games.",
+          "correctness": 0.05263157894736842,
+          "generation_ms": 51857.1014,
+          "retrieval_ms": 67.7685,
+          "context_sha256": "5cf7dcf5ea50eb9e3e2b342b6d098366d90f3dcbcd8481b42b1f3e2bc6478763",
+          "context_characters": 5531,
+          "ollama": {
+            "model": "qwen3.5:4b",
+            "created_at": "2026-08-08T14:01:12.8077518Z",
+            "done": true,
+            "done_reason": "stop",
+            "total_duration": 51843589700,
+            "load_duration": 422733900,
+            "prompt_eval_count": 1734,
+            "prompt_eval_duration": 44079354000,
+            "eval_count": 57,
+            "eval_duration": 7309034000
+          }
+        },
+        {
+          "system": "synaptic",
+          "query_id": "hotpot_5ac2758b55429963665199c3",
+          "question": "The organization that Nicolae Titulescu served two terms as president was founded on what date?",
+          "ground_truth": "10 January 1920",
+          "answer": "Nicolae Titulescu served two terms as President of the League of Nations, which does not have a specific founding date listed in the provided text; however, it notes he held office from 1930 to 1932. The context also mentions an International Diplomatic Academy where early members included Titulescu but was founded earlier (in 1926) and later focused on different activities under a new president.",
+          "correctness": 0.0,
+          "generation_ms": 50064.221,
+          "retrieval_ms": 75.5406,
+          "context_sha256": "00764a81c82bc5cd90257c959b20cef7ccfdd64f589dbbaafcadd31afc6ef793",
+          "context_characters": 5127,
+          "ollama": {
+            "model": "qwen3.5:4b",
+            "created_at": "2026-08-08T14:02:02.8881813Z",
+            "done": true,
+            "done_reason": "stop",
+            "total_duration": 50048664400,
+            "load_duration": 462663400,
+            "prompt_eval_count": 1498,
+            "prompt_eval_duration": 37809985000,
+            "eval_count": 91,
+            "eval_duration": 11760166000
+          }
+        },
+        {
+          "system": "synaptic",
+          "query_id": "hotpot_5a8a575a554299515336136e",
+          "question": "Rynella is an unincorporated community named after the daughters of a conservationist who presided of the maker of a brand of hot sauce made from vinegar, salt and what kind of peppers? ",
+          "ground_truth": "tabasco peppers",
+          "answer": "Based on the provided context, the company that manufactured the hot sauce was responsible for Tabasco brand pepper sauce. The text identifies \"Tabasco\" as being associated with \"**tabasco peppers**\". Therefore, the missing ingredient in your question is **tabasco**.",
+          "correctness": 1.0,
+          "generation_ms": 41430.9556,
+          "retrieval_ms": 104.9764,
+          "context_sha256": "e335e5abc5cfaac163e4e4c2be8b4150e8d69566118e0038700a8a27b1afe1bb",
+          "context_characters": 4593,
+          "ollama": {
+            "model": "qwen3.5:4b",
+            "created_at": "2026-08-08T14:04:00.6097509Z",
+            "done": true,
+            "done_reason": "stop",
+            "total_duration": 41423160000,
+            "load_duration": 422983100,
+            "prompt_eval_count": 1348,
+            "prompt_eval_duration": 34028942000,
+            "eval_count": 53,
+            "eval_duration": 6947824000
+          }
+        },
+        {
+          "system": "synaptic",
+          "query_id": "hotpot_5adf75e35542993344016c98",
+          "question": "What American horror film directed by Sidney J. Furie was based off an alleged haunting which occurred in 1974 at Culver City, California?",
+          "ground_truth": "The Entity",
+          "answer": "The American horror film is *The Entity*, directed by Sidney J. Furie and adapted from Frank De Felitta's 1978 novel inspired by the Doris Bither case of 1974 in Culver City, California.",
+          "correctness": 1.0,
+          "generation_ms": 31938.5711,
+          "retrieval_ms": 75.0593,
+          "context_sha256": "f18159ba0f820573cbb7ca9603a2c1ee3e168adaaef76f27479bd194094ac672",
+          "context_characters": 3189,
+          "ollama": {
+            "model": "qwen3.5:4b",
+            "created_at": "2026-08-08T14:04:32.6063659Z",
+            "done": true,
+            "done_reason": "stop",
+            "total_duration": 31936687300,
+            "load_duration": 437930700,
+            "prompt_eval_count": 977,
+            "prompt_eval_duration": 24909942000,
+            "eval_count": 52,
+            "eval_duration": 6580602000
+          }
+        },
+        {
+          "system": "synaptic",
+          "query_id": "hotpot_5abaee845542996606241696",
+          "question": "On February 25, 2017 tony Harrison lost the the International Boxing Federation light middleweight world title to a boxer from what state?",
+          "ground_truth": "Maryland",
+          "answer": "Tony Harrison lost the title to Jarrett Hurd on February 25, 2017. According to available boxing records not included in the provided context, Hurd is an American who competes out of California; however, based strictly on the given text which only mentions his name and nationality (implied by other entries but explicit for Harrison as English), I don't know the specific state Jarrett Hurd was from.",
+          "correctness": 0.0,
+          "generation_ms": 44505.0013,
+          "retrieval_ms": 60.2194,
+          "context_sha256": "3b05528cd4e21a2cb06d62017d15fe6b2a7ecd58044f0b140a52f5c238e04714",
+          "context_characters": 4114,
+          "ollama": {
+            "model": "qwen3.5:4b",
+            "created_at": "2026-08-08T14:06:41.7080792Z",
+            "done": true,
+            "done_reason": "stop",
+            "total_duration": 44497773900,
+            "load_duration": 432157800,
+            "prompt_eval_count": 1253,
+            "prompt_eval_duration": 32441434000,
+            "eval_count": 89,
+            "eval_duration": 11608029000
+          }
+        },
+        {
+          "system": "synaptic",
+          "query_id": "hotpot_5ac3bab155429939154138fb",
+          "question": "The House of Hanover held the British throne until after Victoria's death, when it was past to the dynasty that ruled which duchy?",
+          "ground_truth": "Ernestine",
+          "answer": "The House of Saxe-Coburg and Gotha is a German dynasty that ruled the Duchy of Saxe-Coburg and Gotha.",
+          "correctness": 0.0,
+          "generation_ms": 35630.4595,
+          "retrieval_ms": 75.9483,
+          "context_sha256": "51254bdad35d00afd1a81a2fe46b795f20f373771ece4e767f8b0fa856f5359c",
+          "context_characters": 4437,
+          "ollama": {
+            "model": "qwen3.5:4b",
+            "created_at": "2026-08-08T14:07:17.371734Z",
+            "done": true,
+            "done_reason": "stop",
+            "total_duration": 35628647400,
+            "load_duration": 434172300,
+            "prompt_eval_count": 1240,
+            "prompt_eval_duration": 31346374000,
+            "eval_count": 31,
+            "eval_duration": 3808205000
+          }
+        },
+        {
+          "system": "synaptic",
+          "query_id": "hotpot_5abdff775542993f32c2a082",
+          "question": "At what theater is the composer and lyricist for the musical Big Fish a residential artist?",
+          "ground_truth": "Ars Nova Theater",
+          "answer": "The composer and lyricist Andrew Lippa is a resident artist at the Ars Nova Theater in New York City.",
+          "correctness": 1.0,
+          "generation_ms": 35709.5501,
+          "retrieval_ms": 65.436,
+          "context_sha256": "a97152c976df7bd0cad88dac34dd922d326ab2aa713b9ce657577b316e5cea2f",
+          "context_characters": 5053,
+          "ollama": {
+            "model": "qwen3.5:4b",
+            "created_at": "2026-08-08T14:09:02.155672Z",
+            "done": true,
+            "done_reason": "stop",
+            "total_duration": 35708183700,
+            "load_duration": 439666200,
+            "prompt_eval_count": 1284,
+            "prompt_eval_duration": 32241817000,
+            "eval_count": 24,
+            "eval_duration": 3011446000
+          }
+        },
+        {
+          "system": "synaptic",
+          "query_id": "hotpot_5a728dc65542992359bc30ef",
+          "question": "What fellow Turkish footballer did Darko Kovačević form an offensive partnership with during his tenure at Real Sociedad?",
+          "ground_truth": "Nihat Kahveci",
+          "answer": "Darko Kovačević formed an offensive partnership with the Turkish forward Nihat Kahveci while playing for Real Sociedad.",
+          "correctness": 1.0,
+          "generation_ms": 52574.2307,
+          "retrieval_ms": 72.9879,
+          "context_sha256": "6156b0b59eec4c1d0dacd5dd734fa5c17d9af4d7c4a222149f1c186f8c85664b",
+          "context_characters": 7010,
+          "ollama": {
+            "model": "qwen3.5:4b",
+            "created_at": "2026-08-08T14:09:54.7452021Z",
+            "done": true,
+            "done_reason": "stop",
+            "total_duration": 52569502500,
+            "load_duration": 441967700,
+            "prompt_eval_count": 1921,
+            "prompt_eval_duration": 48791562000,
+            "eval_count": 26,
+            "eval_duration": 3312977000
+          }
+        },
+        {
+          "system": "synaptic",
+          "query_id": "hotpot_5ae694a15542991bbc976141",
+          "question": "Why is Minister Pool important to Black Country and the West Midlands in England?",
+          "ground_truth": "defence of the Cathedral",
+          "answer": "Based solely on the provided context, there is no information regarding a \"Minister Pool\"; it appears you are referring to **Minster Pool**. Minster Pool was historically important because it served as a mill pond and fishery until 1856, after which it has been retained for public amenity in Lichfield (Staffordshire). It does not appear to have significance specifically defined within the context of \"Black Country and West Midlands\" other than its location near Lichfield Cathedral.",
+          "correctness": 0.0909090909090909,
+          "generation_ms": 33290.9159,
+          "retrieval_ms": 64.8205,
+          "context_sha256": "1b0115a8612027f9965ba8c9d2de01cb02c3ae42fa8212e0ef1efc3274e3d45d",
+          "context_characters": 3081,
+          "ollama": {
+            "model": "qwen3.5:4b",
+            "created_at": "2026-08-08T14:11:29.71315Z",
+            "done": true,
+            "done_reason": "stop",
+            "total_duration": 33289214600,
+            "load_duration": 432638600,
+            "prompt_eval_count": 805,
+            "prompt_eval_duration": 20073405000,
+            "eval_count": 102,
+            "eval_duration": 12770782000
+          }
+        },
+        {
+          "system": "synaptic",
+          "query_id": "hotpot_5add016e5542992c1e3a250b",
+          "question": "What made the man who abolished the Consell in 1718 resume the throne?",
+          "ground_truth": "upon his son's death",
+          "answer": "Based on the provided context, no information exists regarding a man who \"abolished the Consell in 1718\" subsequently resuming a throne; Philip V was empowered by the Nova Planta Decree to abolish the Gran i General Consell of Majorca and Ibiza on July 22, 1718. Additionally, King Michael I of Romania (who reigned until December 30, 1947) did not resume his throne after being forced into exile in Switzerland.",
+          "correctness": 0.034482758620689655,
+          "generation_ms": 65602.8814,
+          "retrieval_ms": 62.2527,
+          "context_sha256": "fe8ff50bd3f70fd36d290fe83496851a6cb7e734f8dccd4f8e43ad0229a44db9",
+          "context_characters": 7179,
+          "ollama": {
+            "model": "qwen3.5:4b",
+            "created_at": "2026-08-08T14:12:35.3226484Z",
+            "done": true,
+            "done_reason": "stop",
+            "total_duration": 65601090900,
+            "load_duration": 441699700,
+            "prompt_eval_count": 2012,
+            "prompt_eval_duration": 51264607000,
+            "eval_count": 104,
+            "eval_duration": 13874776000
+          }
+        },
+        {
+          "system": "synaptic",
+          "query_id": "hotpot_5ac3090d5542990b17b154fc",
+          "question": "Operalia, The World Opera Competition helped launch the career of an operatic soprano of what nationality?",
+          "ground_truth": "Bulgarian",
+          "answer": "Based on the provided text, the competition has helped launch the careers of American opera singers such as Joseph Calleja and Joyce DiDonato. (Note: While Rolando Villazón is also mentioned in the founding context snippet, he is identified elsewhere in his career as Spanish-born/Canadian/American; Andrea Carroll listed in a related seed is specifically noted as American).",
+          "correctness": 0.0,
+          "generation_ms": 33319.6683,
+          "retrieval_ms": 62.5264,
+          "context_sha256": "bde7b95e2bf9a1f64d34bb56c7826d601902fa1c286b516fde69beb8ca25f79f",
+          "context_characters": 3428,
+          "ollama": {
+            "model": "qwen3.5:4b",
+            "created_at": "2026-08-08T14:15:37.1519865Z",
+            "done": true,
+            "done_reason": "stop",
+            "total_duration": 33302434800,
+            "load_duration": 430980100,
+            "prompt_eval_count": 946,
+            "prompt_eval_duration": 23635134000,
+            "eval_count": 74,
+            "eval_duration": 9228398000
+          }
+        },
+        {
+          "system": "synaptic",
+          "query_id": "hotpot_5a7133565542994082a3e65c",
+          "question": "What Kentucky county has a population of 60,316 and features the Lake Louisvilla neighborhood?",
+          "ground_truth": "Oldham County",
+          "answer": "Based on the provided context, there isn't enough information to answer this question accurately because it contains contradictions or misattributions regarding the specific facts. The text states that **Lake Louisvilla** is a neighborhood in Louisville but does not link it to any of the listed counties; Lake Louisvilla was developed as a summer resort for people living in city Louisville (which includes several counties). Additionally, the only county with a population of 60,316 according to the text's key facts (census data) is **Oldham County**, yet this fact is presented under Oldham and not Lake Louisvilla.",
+          "correctness": 1.0,
+          "generation_ms": 49899.8039,
+          "retrieval_ms": 56.8612,
+          "context_sha256": "23a0052a09a5a5b4220e84084772e5d81adc6a290bfe6ffaf8f105d265f90b0b",
+          "context_characters": 4584,
+          "ollama": {
+            "model": "qwen3.5:4b",
+            "created_at": "2026-08-08T14:16:27.0523032Z",
+            "done": true,
+            "done_reason": "stop",
+            "total_duration": 49882700800,
+            "load_duration": 428860700,
+            "prompt_eval_count": 1330,
+            "prompt_eval_duration": 33520979000,
+            "eval_count": 125,
+            "eval_duration": 15918357000
+          }
+        },
+        {
+          "system": "synaptic",
+          "query_id": "hotpot_5ae7edee554299540e5a56ad",
+          "question": "The Church of the Guanche People was founded in the city that is on the most populated island of what larger area?",
+          "ground_truth": "Macaronesia",
+          "answer": "The Church of the Guanche People was founded in San Cristóbal de La Laguna, which is located on Tenerife. According to the provided context regarding Wheeling Island (which does not match the location), there is no information stating that Tenerife or its islands are part of a larger area where one island is defined as \"the most populated.\" Therefore, based strictly on the given text: I don't know.",
+          "correctness": 0.0,
+          "generation_ms": 44467.3458,
+          "retrieval_ms": 67.9231,
+          "context_sha256": "fbce39af9ad8ccaeadef53034800e4202a38011dc86f5c2db4dbb99a84dd2f87",
+          "context_characters": 4443,
+          "ollama": {
+            "model": "qwen3.5:4b",
+            "created_at": "2026-08-08T14:18:20.8244903Z",
+            "done": true,
+            "done_reason": "stop",
+            "total_duration": 44465717600,
+            "load_duration": 406226000,
+            "prompt_eval_count": 1330,
+            "prompt_eval_duration": 33489644999,
+            "eval_count": 83,
+            "eval_duration": 10538602000
+          }
+        },
+        {
+          "system": "synaptic",
+          "query_id": "hotpot_5ac079e9554299294b218fff",
+          "question": "What organization does Rosyth Dockyard and Queen Elizabeth-class aircraft carrier have in common?",
+          "ground_truth": "Navy",
+          "answer": "Based on the provided text, both the Rosyth Dockyard (which built HMS Prince of Wales) and the Queen Elizabeth-class aircraft carriers are connected to **Babcock Marine**, which owns the dockyard. The text states Babcock Marine undertook refitting for these vessels at Rosyth, though it does not explicitly link an organizational name directly to the \"Queen Elizabeth\" class design itself other than through their construction history there. Therefore, the common organization mentioned is **Babcock Marine**.",
+          "correctness": 0.0,
+          "generation_ms": 34899.1829,
+          "retrieval_ms": 57.1297,
+          "context_sha256": "6e4c21b8f89940f42732b89895373e68ef74999d335fed9685840b8740e9304e",
+          "context_characters": 3150,
+          "ollama": {
+            "model": "qwen3.5:4b",
+            "created_at": "2026-08-08T14:18:55.73635Z",
+            "done": true,
+            "done_reason": "stop",
+            "total_duration": 34897559400,
+            "load_duration": 485109800,
+            "prompt_eval_count": 875,
+            "prompt_eval_duration": 21912375000,
+            "eval_count": 100,
+            "eval_duration": 12490685000
+          }
+        },
+        {
+          "system": "synaptic",
+          "query_id": "hotpot_5a80caac554299260e20a161",
+          "question": "Were both Prince and Patty Jenkins have been inducted into the Rock and Roll Hall of Fame?",
+          "ground_truth": "no",
+          "answer": "Yes, Prince was inducted into the Rock and Roll Hall of Fame in 2004. The provided context does not mention an artist named \"Patty Jenkins,\" but it does list Patty Waters as a notable musician from Iowa who performed at a Red Hot Chili Peppers cover performance; there is no information suggesting she was inducted into the Hall, unlike Prince.",
+          "correctness": 1.0,
+          "generation_ms": 49246.3535,
+          "retrieval_ms": 67.2617,
+          "context_sha256": "12049cd521d7b26613e2f21727789ded1e08dc8d0ba1a17e93a306178e05b92d",
+          "context_characters": 5323,
+          "ollama": {
+            "model": "qwen3.5:4b",
+            "created_at": "2026-08-08T14:21:14.4221441Z",
+            "done": true,
+            "done_reason": "stop",
+            "total_duration": 49217524700,
+            "load_duration": 419052600,
+            "prompt_eval_count": 1542,
+            "prompt_eval_duration": 38977273000,
+            "eval_count": 76,
+            "eval_duration": 9799022000
+          }
+        },
+        {
+          "system": "synaptic",
+          "query_id": "hotpot_5a87136e5542991e771816b2",
+          "question": "Does Il trovatore have less acts than La rondine",
+          "ground_truth": "no",
+          "answer": "Based on the provided context, **Il trovatore** has four acts while *La rondine* has three acts; therefore, *Il trovature* does not have fewer acts.",
+          "correctness": 1.0,
+          "generation_ms": 34190.4309,
+          "retrieval_ms": 57.293,
+          "context_sha256": "8fea82b92351168e026ad3fcbec9cb9703ee0f0f5b8e97208551e5385bcf39f6",
+          "context_characters": 4075,
+          "ollama": {
+            "model": "qwen3.5:4b",
+            "created_at": "2026-08-08T14:21:48.6498668Z",
+            "done": true,
+            "done_reason": "stop",
+            "total_duration": 34187464800,
+            "load_duration": 436055700,
+            "prompt_eval_count": 1161,
+            "prompt_eval_duration": 29090289000,
+            "eval_count": 38,
+            "eval_duration": 4647930000
+          }
+        },
+        {
+          "system": "synaptic",
+          "query_id": "hotpot_5a8841ee5542994846c1ce6b",
+          "question": "Which is farther west, Sheridan County, Montana or Chandra Taal?",
+          "ground_truth": "Sheridan County",
+          "answer": "Chandra Taal is much farther west than Sheridan County, Montana; while Sheridan County lies in western Montana along the Idaho border, Chandra Taal (Lake of the Moon) is situated deep within northern India's Himalayas. No direct comparison of longitude was explicitly provided for either location in the text to determine this precisely without external geographic knowledge.",
+          "correctness": 1.0,
+          "generation_ms": 29023.4538,
+          "retrieval_ms": 54.9841,
+          "context_sha256": "632aaa63b5926bd247926b57946f9b6a757742e0c7ce99bb21e7aaa7bb0b2088",
+          "context_characters": 2656,
+          "ollama": {
+            "model": "qwen3.5:4b",
+            "created_at": "2026-08-08T14:23:38.8700185Z",
+            "done": true,
+            "done_reason": "stop",
+            "total_duration": 29020743400,
+            "load_duration": 446729400,
+            "prompt_eval_count": 796,
+            "prompt_eval_duration": 19934329000,
+            "eval_count": 70,
+            "eval_duration": 8625753000
+          }
+        },
+        {
+          "system": "synaptic",
+          "query_id": "hotpot_5ac41b9e5542995c82c4acc4",
+          "question": "what species of plants are Chamelaucium and Vanilla derived from?",
+          "ground_truth": "flowers",
+          "answer": "Based on the provided context, **Chamelaucium** cannot be identified as its origin is not mentioned; only that the genus name was likely named after or inspired by a person (common etymology for plant names), while it could not be answered with certainty. However, regarding **Vanilla**, the text states it forms the **vanilla orchids**.",
+          "correctness": 0.0,
+          "generation_ms": 34043.5575,
+          "retrieval_ms": 61.8469,
+          "context_sha256": "3db6fffa75034f1f9c470063791e26671aa57bb8f258d8b14822c8a7f92ffcc2",
+          "context_characters": 3314,
+          "ollama": {
+            "model": "qwen3.5:4b",
+            "created_at": "2026-08-08T14:24:12.9314489Z",
+            "done": true,
+            "done_reason": "stop",
+            "total_duration": 34038347800,
+            "load_duration": 473054800,
+            "prompt_eval_count": 970,
+            "prompt_eval_duration": 24271007000,
+            "eval_count": 74,
+            "eval_duration": 9281446000
+          }
+        },
+        {
+          "system": "synaptic",
+          "query_id": "hotpot_5a7ec61a55429934daa2fc5f",
+          "question": "Are Staten Island Catapult and This Is Elvis both documentaries?",
+          "ground_truth": "yes",
+          "answer": "Yes, \"The Staten Island Catapult\" is a 2005 documentary. However, based on the provided context, there is no mention of what type of work \"This Is Elvis\" is or if it was produced by Steven Spielberg; while this title often refers to his film *Elvis* (which is indeed a biopic), that specific information is not in your source text.",
+          "correctness": 1.0,
+          "generation_ms": 25219.1883,
+          "retrieval_ms": 40.8745,
+          "context_sha256": "3e95866fcf86af5ad056851a8826ce1e58ac099009c1e40c78f681652067ba54",
+          "context_characters": 2169,
+          "ollama": {
+            "model": "qwen3.5:4b",
+            "created_at": "2026-08-08T14:25:48.4927709Z",
+            "done": true,
+            "done_reason": "stop",
+            "total_duration": 25213736700,
+            "load_duration": 440483400,
+            "prompt_eval_count": 591,
+            "prompt_eval_duration": 14822148000,
+            "eval_count": 81,
+            "eval_duration": 9941370000
+          }
+        },
+        {
+          "system": "synaptic",
+          "query_id": "hotpot_5a7296815542991f9a20c515",
+          "question": "Who brewed the first espresso coffee in space, Patrick Baudry or Samantha Cristoforetti?",
+          "ground_truth": "Samantha Cristoforetti",
+          "answer": "Samantha Cristoforetti is the one who brewed the first espresso coffee in space on May 3, 2015; there is no indication that retired French pilot and former astronaut Patrick Baudry ever made an espresso drink in space.",
+          "correctness": 1.0,
+          "generation_ms": 41159.4439,
+          "retrieval_ms": 60.5971,
+          "context_sha256": "52b53e27fc204259eb68ec8e14a87ff5937a856d14687c0456c532d033cf08c5",
+          "context_characters": 5097,
+          "ollama": {
+            "model": "qwen3.5:4b",
+            "created_at": "2026-08-08T14:26:29.6711813Z",
+            "done": true,
+            "done_reason": "stop",
+            "total_duration": 41157671300,
+            "load_duration": 425539600,
+            "prompt_eval_count": 1351,
+            "prompt_eval_duration": 34068190000,
+            "eval_count": 53,
+            "eval_duration": 6649621000
+          }
+        },
+        {
+          "system": "synaptic",
+          "query_id": "hotpot_5ac2a3c7554299218029dadb",
+          "question": "Which genus has more species in it, Othonna or Stangeria?",
+          "ground_truth": "Othonna",
+          "answer": "Based on the provided context, **I don't know** which genus has more species because there is no information about either *Othonna* or a specific number of species for *Stangeria*. The text states that *Eriocaulon* (400 species) and *Aspidistra* (~100 species) have more diversity, while *Vanilla* also has approximately 110 species; however, no similar count is given for either genus in the question.",
+          "correctness": 1.0,
+          "generation_ms": 38579.9764,
+          "retrieval_ms": 58.6314,
+          "context_sha256": "c668ed1816c5c2962a0939d217776c18258cc8f7f1589b7e58c2e3968acbe799",
+          "context_characters": 3752,
+          "ollama": {
+            "model": "qwen3.5:4b",
+            "created_at": "2026-08-08T14:28:16.1190066Z",
+            "done": true,
+            "done_reason": "stop",
+            "total_duration": 38578233100,
+            "load_duration": 417972500,
+            "prompt_eval_count": 1002,
+            "prompt_eval_duration": 25132885000,
+            "eval_count": 103,
+            "eval_duration": 13013288000
+          }
+        },
+        {
+          "system": "synaptic",
+          "query_id": "hotpot_5a82a1ae55429954d2e2eb89",
+          "question": "Between Aspidistra and Cyrtanthus, which genus of plant belongs to the Subfamily Amaryllidoideae?",
+          "ground_truth": "Cyrtanthus",
+          "answer": "Based on the provided context, I don't know because while Aspidistra is stated to be in the subfamily Nolinoideae (not Amaryllidoideae) and Cyrtanthus is not mentioned at all. Additionally, Lycoris radiata and plants of the genera Vanilla are noted as belonging or associated with family/subgroups related to Amaryllidaceae/Amaryllidoideae, but information regarding the specific subfamily membership of Aspidistra versus a genus named only \"Cyrtanthus\" in this text is insufficient.",
+          "correctness": 1.0,
+          "generation_ms": 51570.4965,
+          "retrieval_ms": 64.892,
+          "context_sha256": "baf700cdd8cbf0ea76d5b3d0bf026aa9b638247c201562169e9ae3b5f5beb54f",
+          "context_characters": 5262,
+          "ollama": {
+            "model": "qwen3.5:4b",
+            "created_at": "2026-08-08T14:29:07.7042467Z",
+            "done": true,
+            "done_reason": "stop",
+            "total_duration": 51568574200,
+            "load_duration": 433372000,
+            "prompt_eval_count": 1444,
+            "prompt_eval_duration": 36436714000,
+            "eval_count": 114,
+            "eval_duration": 14682172000
+          }
+        }
+      ],
+      "aggregate": {
+        "questions": 24,
+        "cohort_mean_correctness": 0.5074176428532146,
+        "official_mean_correctness_nonzero_only": 0.8118682285651432,
+        "accuracy_at_0_5": 0.5,
+        "exact_score_rate": 0.5,
+        "positive_score_rate": 0.625,
+        "mean_generation_ms": 41152.4586125,
+        "p95_generation_ms": 52574.2307,
+        "total_generation_ms": 987659.0067,
+        "mean_retrieval_ms": 68.036175,
+        "mean_prompt_tokens": 1243.5416666666667,
+        "mean_output_tokens": 73.41666666666667
+      }
+    }
+  },
+  "head_to_head": {
+    "metrics": [
+      {
+        "metric": "cohort_mean_correctness",
+        "direction": "higher",
+        "omnifuse": 0.6725708502024291,
+        "synaptic": 0.5074176428532146,
+        "winner": "omnifuse"
+      },
+      {
+        "metric": "official_mean_correctness_nonzero_only",
+        "direction": "higher",
+        "omnifuse": 0.8967611336032388,
+        "synaptic": 0.8118682285651432,
+        "winner": "omnifuse"
+      },
+      {
+        "metric": "accuracy_at_0_5",
+        "direction": "higher",
+        "omnifuse": 0.6666666666666666,
+        "synaptic": 0.5,
+        "winner": "omnifuse"
+      },
+      {
+        "metric": "exact_score_rate",
+        "direction": "higher",
+        "omnifuse": 0.6666666666666666,
+        "synaptic": 0.5,
+        "winner": "omnifuse"
+      },
+      {
+        "metric": "positive_score_rate",
+        "direction": "higher",
+        "omnifuse": 0.75,
+        "synaptic": 0.625,
+        "winner": "omnifuse"
+      },
+      {
+        "metric": "mean_generation_ms",
+        "direction": "lower",
+        "omnifuse": 39970.77662916667,
+        "synaptic": 41152.4586125,
+        "winner": "omnifuse"
+      },
+      {
+        "metric": "p95_generation_ms",
+        "direction": "lower",
+        "omnifuse": 64363.2651,
+        "synaptic": 52574.2307,
+        "winner": "synaptic"
+      },
+      {
+        "metric": "total_generation_ms",
+        "direction": "lower",
+        "omnifuse": 959298.6391,
+        "synaptic": 987659.0067,
+        "winner": "omnifuse"
+      },
+      {
+        "metric": "mean_retrieval_ms",
+        "direction": "lower",
+        "omnifuse": 3.4740583333333337,
+        "synaptic": 68.036175,
+        "winner": "omnifuse"
+      },
+      {
+        "metric": "mean_prompt_tokens",
+        "direction": "lower",
+        "omnifuse": 1146.5,
+        "synaptic": 1243.5416666666667,
+        "winner": "omnifuse"
+      }
+    ],
+    "verdict": {
+      "omnifuse": 9,
+      "synaptic": 1,
+      "ties": 0,
+      "common_metrics": 10
+    }
+  },
+  "postflight": {
+    "data_unchanged": true,
+    "repositories_unchanged": true,
+    "sources_unchanged": true,
+    "ollama_model_unchanged": true
+  }
+}

@@ -33,6 +33,13 @@ def test_es_guards_fall_through_to_the_plain_s_rule():
     assert _en_stem("toes") == "toe"
 
 
+def test_ies_guards_and_non_s_endings_preserve_the_closed_rules():
+    assert _en_stem("eies") == "eie"
+    assert _en_stem("aies") == "aie"
+    assert _en_stem("analysis") == "analysi"
+    assert _en_stem("study") == "study"
+
+
 def test_query_matches_plural_document():
     of = build_inmemory([], [], [
         Chunk("hit", text="recent studies suggest that statins reduce risk"),

@@ -1,0 +1,170 @@
+{
+  "schema": "omnifuse.synaptic.ablation.probe",
+  "dataset": "nfcorpus.json",
+  "source": {
+    "omnifuse_repo": "D:\\xgen-omnifuse",
+    "synaptic_repo": "D:\\_tmp_bench\\synaptic-memory-v0.27.0-tag-836d536-clean4",
+    "synaptic_data_sha256": "7232e143da668a135e5b294b12e10b84cb2e1cc2865d509cf65b423ad7ee49e3"
+  },
+  "contract": {
+    "max_documents": 2000,
+    "max_queries": 100,
+    "seed": 42,
+    "text_limit": 2000,
+    "candidate_limit": 20,
+    "k": 10,
+    "include_s7": false,
+    "s7_caveat": "The upstream health check receives [] instead of an exception when Ollama is unavailable, so its documented MockEmbeddingProvider fallback does not execute. Omit S7 unless raw upstream failure behavior is needed.",
+    "label_lanes": {
+      "unlabeled": [
+        "omnifuse_cold",
+        "S0 Flat",
+        "S1 +Ontology",
+        "S2 +Relations",
+        "S6 Auto"
+      ],
+      "qrels_supervised": [
+        "omnifuse_feedback",
+        "S3 +Hebbian",
+        "S4 +Consolidation",
+        "S5 Full"
+      ]
+    }
+  },
+  "counts": {
+    "documents": 2000,
+    "queries": 100
+  },
+  "feedback_sessions": {
+    "eligible_sessions": 47,
+    "success_sessions": 38,
+    "failure_sessions": 9,
+    "reinforced_documents": 1780
+  },
+  "results": {
+    "omnifuse_cold": {
+      "build_ms": 2.4299,
+      "metrics": {
+        "mean_precision@k": 0.3303333333333333,
+        "mean_recall@k": 0.1673824730607156,
+        "mean_f1@k": 0.16278378172454033,
+        "mrr": 0.5485785048285048,
+        "mean_ndcg@k": 0.33343082370514204,
+        "mean_search_time_ms": 5.273629,
+        "total_queries": 100
+      },
+      "ranking_sha256": "69a1c3c3f218bb41b65e4a1337ec9e350d9f67040d9972e29d47eb40b52d59bf"
+    },
+    "omnifuse_feedback": {
+      "build_ms": 585.8408,
+      "metrics": {
+        "mean_precision@k": 0.4715833333333333,
+        "mean_recall@k": 0.2989415732307473,
+        "mean_f1@k": 0.289579033833967,
+        "mrr": 0.6275725524475524,
+        "mean_ndcg@k": 0.5121026522001915,
+        "mean_search_time_ms": 0.28660800000000003,
+        "total_queries": 100
+      },
+      "ranking_sha256": "e4ca5d5a2ae0f8ac4fac060e771697b31071539bd2f60542e4ac4a2a0599d7ce"
+    },
+    "S0 Flat": {
+      "build_ms": 15.2337,
+      "node_count": 2000,
+      "edge_count": 0,
+      "metrics": {
+        "mean_precision@k": 0.29692857142857143,
+        "mean_recall@k": 0.14660722091052725,
+        "mean_f1@k": 0.14400955367231855,
+        "mrr": 0.5115766912825737,
+        "mean_ndcg@k": 0.2958549171870038,
+        "mean_search_time_ms": 191.32818222045898,
+        "total_queries": 100
+      }
+    },
+    "S1 +Ontology": {
+      "build_ms": 381.2229,
+      "node_count": 2000,
+      "edge_count": 0,
+      "metrics": {
+        "mean_precision@k": 0.2899285714285714,
+        "mean_recall@k": 0.14480623982157426,
+        "mean_f1@k": 0.14144063886942335,
+        "mrr": 0.5028928571428571,
+        "mean_ndcg@k": 0.2892568003903067,
+        "mean_search_time_ms": 195.15586137771606,
+        "total_queries": 100
+      }
+    },
+    "S2 +Relations": {
+      "build_ms": 5085.2351,
+      "node_count": 2000,
+      "edge_count": 2493,
+      "metrics": {
+        "mean_precision@k": 0.22835714285714284,
+        "mean_recall@k": 0.14591735093268535,
+        "mean_f1@k": 0.12342178203912808,
+        "mrr": 0.5053928571428571,
+        "mean_ndcg@k": 0.2909170901863785,
+        "mean_search_time_ms": 401.84312105178833,
+        "total_queries": 100
+      }
+    },
+    "S3 +Hebbian": {
+      "build_ms": 2226033.6408,
+      "node_count": 2000,
+      "edge_count": 130930,
+      "metrics": {
+        "mean_precision@k": 0.12300000000000001,
+        "mean_recall@k": 0.08214512410925563,
+        "mean_f1@k": 0.07120021350124804,
+        "mrr": 0.26322885855974093,
+        "mean_ndcg@k": 0.15948505730204582,
+        "mean_search_time_ms": 13536.886439323425,
+        "total_queries": 100
+      }
+    },
+    "S4 +Consolidation": {
+      "build_ms": 2319841.6761,
+      "node_count": 2000,
+      "edge_count": 130930,
+      "metrics": {
+        "mean_precision@k": 0.12300000000000001,
+        "mean_recall@k": 0.08214512410925563,
+        "mean_f1@k": 0.07120021350124804,
+        "mrr": 0.26322885855974093,
+        "mean_ndcg@k": 0.15948505730204582,
+        "mean_search_time_ms": 14610.969004631042,
+        "total_queries": 100
+      }
+    },
+    "S6 Auto": {
+      "build_ms": 1172.4768,
+      "node_count": 2000,
+      "edge_count": 1,
+      "metrics": {
+        "mean_precision@k": 0.29692857142857143,
+        "mean_recall@k": 0.14660722091052725,
+        "mean_f1@k": 0.14400955367231855,
+        "mrr": 0.5115766912825737,
+        "mean_ndcg@k": 0.2958549171870038,
+        "mean_search_time_ms": 184.99316930770874,
+        "total_queries": 100
+      }
+    },
+    "S5 Full": {
+      "build_ms": 2319841.6761,
+      "node_count": 2000,
+      "edge_count": 130930,
+      "metrics": {
+        "mean_precision@k": 0.14400000000000002,
+        "mean_recall@k": 0.09831338852977961,
+        "mean_f1@k": 0.08173379295959363,
+        "mrr": 0.2908235653235653,
+        "mean_ndcg@k": 0.1832121475788825,
+        "mean_search_time_ms": 12128.911969661713,
+        "total_queries": 100
+      }
+    }
+  }
+}

@@ -1,0 +1,157 @@
+{
+  "schema": "omnifuse.eval.idf_pow",
+  "schema_version": 1,
+  "generated_at": "2026-07-13T15:46:26.023716+00:00",
+  "benchmark": "idf_pow ablation with synaptic re-run in the same pass",
+  "scorer": "eval/metrics.py (synaptic's own), MRR@10",
+  "synaptic_driver": "synaptic's own eval.run_all.run_public_dataset, embedder=None, reranker=None",
+  "k": 10,
+  "arms": [
+    1.0,
+    1.1,
+    1.2,
+    1.3,
+    1.5
+  ],
+  "shipped_arm": 1.2,
+  "environment": {
+    "python": "3.12.10",
+    "python_executable": "D:\\_tmp_bench\\synaptic-memory-20260713\\.venv\\Scripts\\python.exe",
+    "platform": "Windows-11-10.0.22631-SP0"
+  },
+  "repositories": {
+    "omnifuse": {
+      "path": "D:\\xgen-omnifuse",
+      "sha": "cd355ddb5c59f5f8bb20c694a4fba8419567310a",
+      "dirty": true,
+      "status_sha256": "a6146d050db36aa44240751d8486f90fa4ad6abfc72112c652ea0e4816dc1c72"
+    },
+    "synaptic_memory": {
+      "path": "D:\\_tmp_bench\\synaptic-memory-v027-clean",
+      "sha": "7470e728a7d728dedea5363aabbb73adf6ac666f",
+      "dirty": false,
+      "status_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  },
+  "sources": {
+    "harness": {
+      "path": "eval/idf_pow_bench.py",
+      "sha256": "7e10f711bf84cede351dca381d396b5c6827cd9c36cf3dbd13a429eccdbd825e",
+      "bytes": 16947
+    },
+    "synaptic_driver": {
+      "path": "eval/public_bench.py",
+      "sha256": "bce121891e7671d6d4728e00e817a28d4aca71b822d3b3a0d58bb6567599dd54",
+      "bytes": 23244
+    },
+    "scorer": {
+      "path": "eval/metrics.py",
+      "sha256": "3634fe7d237c14d7975ed370dc7e328386c58ff43d04a917d88dced86f4ef978",
+      "bytes": 5252
+    }
+  },
+  "doctor_manifest": {
+    "path": "D:\\xgen-omnifuse\\eval\\results\\doctor_v027_20260713.json",
+    "sha256": "62f8ab6dd0e8c5e441e23f986300393c49b9f85fd4fb1059dd8bce870afd6b82",
+    "bytes": 18078,
+    "schema": "omnifuse.eval.doctor",
+    "schema_version": 1,
+    "targets": {
+      "2Wiki-dev": {
+        "target_id": "2wiki_dev",
+        "target_name": "2Wiki-dev",
+        "target_status": "ok",
+        "dataset_sha256": "a386884be7524dba31f98357db8e333a4b69f8bd88b81935c2342792bc74c930"
+      },
+      "MuSiQue-dev": {
+        "target_id": "musique_dev",
+        "target_name": "MuSiQue-dev",
+        "target_status": "ok",
+        "dataset_sha256": "1e60d520645ab39bc876d6477e6c3d82814ba711d9620f1f6e649d5ae217065f"
+      },
+      "TREC-COVID": {
+        "target_id": "trec_covid",
+        "target_name": "TREC-COVID",
+        "target_status": "ok",
+        "dataset_sha256": "5ea8e6bb8f0851a9bfa7532c93efa7f89f5045ec830fca1e5587f9f4330f370b"
+      }
+    }
+  },
+  "datasets": {
+    "2Wiki-dev": {
+      "input": {
+        "path": "tests/benchmark/data/2wiki_dev.json",
+        "sha256": "a386884be7524dba31f98357db8e333a4b69f8bd88b81935c2342792bc74c930",
+        "bytes": 32398328
+      },
+      "synaptic": 0.824397315117735,
+      "omnifuse_idf_pow_1.0": 0.9513244236944142,
+      "omnifuse_idf_pow_1.1": 0.9515603227614201,
+      "omnifuse_idf_pow_1.2": 0.9517129818954724,
+      "omnifuse_idf_pow_1.3": 0.9515528759743932,
+      "omnifuse_idf_pow_1.5": 0.9500215515065229,
+      "delta_1.5_minus_1.0": -0.0013028721878912686,
+      "delta_shipped_minus_synaptic": 0.12731566677773742,
+      "p1.0_beats_synaptic": true,
+      "p1.1_beats_synaptic": true,
+      "p1.2_beats_synaptic": true,
+      "p1.3_beats_synaptic": true,
+      "p1.5_beats_synaptic": true,
+      "shipped_1.2_beats_synaptic": true,
+      "doctor_target_id": "2wiki_dev"
+    },
+    "MuSiQue-dev": {
+      "input": {
+        "path": "tests/benchmark/data/musique_dev.json",
+        "sha256": "1e60d520645ab39bc876d6477e6c3d82814ba711d9620f1f6e649d5ae217065f",
+        "bytes": 11973306
+      },
+      "synaptic": 0.7315849702175726,
+      "omnifuse_idf_pow_1.0": 0.7589833257810089,
+      "omnifuse_idf_pow_1.1": 0.7695680727124666,
+      "omnifuse_idf_pow_1.2": 0.7791462261362965,
+      "omnifuse_idf_pow_1.3": 0.7848717089925199,
+      "omnifuse_idf_pow_1.5": 0.7941628740863329,
+      "delta_1.5_minus_1.0": 0.03517954830532399,
+      "delta_shipped_minus_synaptic": 0.047561255918723844,
+      "p1.0_beats_synaptic": true,
+      "p1.1_beats_synaptic": true,
+      "p1.2_beats_synaptic": true,
+      "p1.3_beats_synaptic": true,
+      "p1.5_beats_synaptic": true,
+      "shipped_1.2_beats_synaptic": true,
+      "doctor_target_id": "musique_dev"
+    },
+    "TREC-COVID": {
+      "input": {
+        "path": "tests/benchmark/data/trec_covid.json",
+        "sha256": "5ea8e6bb8f0851a9bfa7532c93efa7f89f5045ec830fca1e5587f9f4330f370b",
+        "bytes": 197927756
+      },
+      "synaptic": 0.7436666666666666,
+      "omnifuse_idf_pow_1.0": 0.9016666666666667,
+      "omnifuse_idf_pow_1.1": 0.925,
+      "omnifuse_idf_pow_1.2": 0.9083333333333333,
+      "omnifuse_idf_pow_1.3": 0.87,
+      "omnifuse_idf_pow_1.5": 0.8732222222222222,
+      "delta_1.5_minus_1.0": -0.028444444444444494,
+      "delta_shipped_minus_synaptic": 0.16466666666666674,
+      "p1.0_beats_synaptic": true,
+      "p1.1_beats_synaptic": true,
+      "p1.2_beats_synaptic": true,
+      "p1.3_beats_synaptic": true,
+      "p1.5_beats_synaptic": true,
+      "shipped_1.2_beats_synaptic": true,
+      "doctor_target_id": "trec_covid"
+    }
+  },
+  "net_1.5_minus_1.0": 0.00543223167298823,
+  "beats_synaptic": {
+    "idf_pow=1.0": "3/3",
+    "idf_pow=1.1": "3/3",
+    "idf_pow=1.2 (shipped)": "3/3",
+    "idf_pow=1.3": "3/3",
+    "idf_pow=1.5": "3/3"
+  },
+  "elapsed_seconds": 40543.0
+}

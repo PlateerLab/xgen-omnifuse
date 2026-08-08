@@ -1,0 +1,130 @@
+{
+  "schema": "omnifuse.eval.performance",
+  "schema_version": 1,
+  "generated_at": "2026-07-13T04:20:23.520638+00:00",
+  "dataset": {
+    "path": "D:\\_tmp_bench\\synaptic-memory-v027-clean\\tests\\benchmark\\data\\publichealthqa_ko.json",
+    "sha256": "39424575de99a912161b9a315e2046876844e581d5229a66701b5f43a4c548dd",
+    "documents": 77,
+    "queries": 77
+  },
+  "environment": {
+    "python": "3.12.10",
+    "python_executable": "D:\\_tmp_bench\\synaptic-memory-20260713\\.venv\\Scripts\\python.exe",
+    "platform": "Windows-11-10.0.22631-SP0",
+    "sqlite": "3.49.1",
+    "packages": {
+      "omnifuse": null,
+      "synaptic_memory": "0.27.0",
+      "kiwipiepy": "0.23.1"
+    }
+  },
+  "repositories": {
+    "omnifuse": {
+      "path": "D:\\xgen-omnifuse",
+      "status": "ok",
+      "git_head_sha": "cd355ddb5c59f5f8bb20c694a4fba8419567310a",
+      "dirty": true,
+      "status_porcelain": [
+        " M CHANGELOG.md",
+        " M README.md",
+        " M docs/comparison/omnifuse_vs_synaptic.md",
+        " M eval/README.md",
+        " M eval/compare_synaptic.py",
+        " M eval/finreg_bench.py",
+        " M eval/idf_pow_bench.py",
+        " M eval/perf_bench.py",
+        " M eval/public_bench.py",
+        "?? eval/bench.py",
+        "?? eval/enterprise_bench.py",
+        "?? eval/footprint_bench.py",
+        "?? eval/results/doctor_v027_20260713.json",
+        "?? eval/results/enterprise_v027_20260713.json",
+        "?? eval/results/extended6_preliminary_v027_20260713.json",
+        "?? eval/results/finreg_no_graph_v027_20260713.json",
+        "?? eval/results/finreg_omnifuse_v027_20260713.json",
+        "?? eval/results/perf_publichealth_v027_20260713.json",
+        "?? eval/results/public_v027_20260713.json",
+        "?? tests/test_enterprise_bench.py",
+        "?? tests/test_eval_bench.py",
+        "?? tests/test_finreg_bench.py",
+        "?? tests/test_footprint_bench.py",
+        "?? tests/test_idf_pow_bench.py",
+        "?? tests/test_perf_bench.py",
+        "?? tests/test_public_bench.py"
+      ],
+      "tracked_diff_sha256": "d33946c1c14682a2eff2ad897b98776165eb3e734ed308d6ce10f8da7c93b317"
+    },
+    "synaptic_memory": {
+      "path": "D:\\_tmp_bench\\synaptic-memory-v027-clean",
+      "status": "ok",
+      "git_head_sha": "7470e728a7d728dedea5363aabbb73adf6ac666f",
+      "dirty": false,
+      "status_porcelain": [],
+      "tracked_diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  },
+  "provenance": {
+    "harness_sha256": "7d4f4d53ecb47a70b017f03852e8181da9ae6cecd30a946efb70ac93e4285a23",
+    "scorer_sha256": "3634fe7d237c14d7975ed370dc7e328386c58ff43d04a917d88dced86f4ef978"
+  },
+  "contract": {
+    "k": 10,
+    "candidate_limit": 20,
+    "warmup_rounds": 1,
+    "measurement_rounds": 5,
+    "accuracy_scorer": "eval/metrics.py::BenchmarkResult",
+    "latency_timer": "time.perf_counter in isolated fresh workers",
+    "worker_model": "one fresh process per system; OmniFuse runs first",
+    "ingest_capability_caveat": "Both ingest the same raw corpus to a queryable native index, but the artifacts are not capability-equivalent: OmniFuse builds a RAM index; synaptic builds a durable, disk-queryable SQLite graph.",
+    "memory_scope": "whole fresh worker process, including imports, build, warm-up, and queries"
+  },
+  "results": [
+    {
+      "system": "OmniFuse",
+      "ingest_s": 0.05899449996650219,
+      "query_latency_p50_ms": 0.12879999121651053,
+      "query_latency_p95_ms": 0.22852000547572968,
+      "query_latency_mean_ms": 0.13878649348610794,
+      "query_latency_samples": 385,
+      "mrr_at_k": 0.613270459699031,
+      "k": 10,
+      "candidate_limit": 20,
+      "warmup_rounds": 1,
+      "measurement_rounds": 5,
+      "process_memory": {
+        "scope": "entire fresh worker process (imports, build, warmup, measured queries)",
+        "kind": "Windows process working set",
+        "current_rss_mb": 31.744,
+        "peak_rss_mb": 31.744
+      },
+      "runtime": {
+        "package_path": "D:\\xgen-omnifuse\\src\\omnifuse\\__init__.py",
+        "package_version": "0.5.0"
+      }
+    },
+    {
+      "system": "synaptic",
+      "ingest_s": 5.520582899975125,
+      "query_latency_p50_ms": 4.196599998977035,
+      "query_latency_p95_ms": 5.270560027565807,
+      "query_latency_mean_ms": 4.2090109086825285,
+      "query_latency_samples": 385,
+      "mrr_at_k": 0.606545042259328,
+      "k": 10,
+      "candidate_limit": 20,
+      "warmup_rounds": 1,
+      "measurement_rounds": 5,
+      "process_memory": {
+        "scope": "entire fresh worker process (imports, build, warmup, measured queries)",
+        "kind": "Windows process working set",
+        "current_rss_mb": 522.674176,
+        "peak_rss_mb": 599.793664
+      },
+      "runtime": {
+        "package_path": "D:\\_tmp_bench\\synaptic-memory-v027-clean\\src\\synaptic\\__init__.py",
+        "package_version": "0.27.0"
+      }
+    }
+  ]
+}

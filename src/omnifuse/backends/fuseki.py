@@ -14,7 +14,7 @@ import urllib.request
 from typing import Optional
 
 from ..models import Node
-from ..text import tokenize
+from ..text import tokenize_query
 
 _RDF_TYPE = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type"
 _RDFS_LABEL = "http://www.w3.org/2000/01/rdf-schema#label"
@@ -56,7 +56,7 @@ class FusekiGraph:
         return b.get(key, {}).get("value", "")
 
     def search_labels(self, query: str, *, limit: int = 30) -> list[tuple[Node, float]]:
-        terms = [t for t in tokenize(query) if len(t) >= 2][:8]
+        terms = [t for t in tokenize_query(query) if len(t) >= 2][:8]
         if not terms:
             return []
         filt = " || ".join(f'CONTAINS(LCASE(STR(?l)), "{t}")' for t in terms)

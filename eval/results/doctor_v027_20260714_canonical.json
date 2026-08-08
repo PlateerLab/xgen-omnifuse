@@ -1,0 +1,642 @@
+{
+  "schema": "omnifuse.eval.doctor",
+  "schema_version": 1,
+  "generated_at": "2026-07-13T23:43:06.418392+00:00",
+  "environment": {
+    "python": "3.12.10",
+    "python_implementation": "CPython",
+    "python_executable": "D:\\_tmp_bench\\synaptic-memory-20260713\\.venv\\Scripts\\python.exe",
+    "platform": "Windows-11-10.0.22631-SP0"
+  },
+  "repositories": {
+    "omnifuse": {
+      "path": "D:\\xgen-omnifuse",
+      "status": "ok",
+      "sha": "cd355ddb5c59f5f8bb20c694a4fba8419567310a",
+      "dirty": true,
+      "status_sha256": "5aed3468c53f84e528e9d1d5539240cf60c9aa974350a1020ee0d4302ff25514",
+      "tracked_diff_sha256": "7e770be9f480a41406b2927508e53c836aba96671ff0a97365b70b8a0b7a205b",
+      "untracked_manifest_sha256": "74f411b15c0be799214fd807832e9585ce89b90b0205dd02c34ca4d4cf90f375",
+      "untracked_files": 27,
+      "untracked_bytes": 513466,
+      "dirty_content_sha256": "e761e97d5bc673225decf88971d346a2eb5fe9131b4d25d15e2dad1ccda0fc6e"
+    },
+    "synaptic_memory": {
+      "path": "D:\\_tmp_bench\\synaptic-memory-v027-clean",
+      "status": "ok",
+      "sha": "7470e728a7d728dedea5363aabbb73adf6ac666f",
+      "dirty": false,
+      "status_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "tracked_diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "untracked_manifest_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "untracked_files": 0,
+      "untracked_bytes": 0,
+      "dirty_content_sha256": "69e715af7a4cf9e0cd73dc83d0d99c1663a016e3ac0ee9ca180a11c50630e55b"
+    },
+    "captured_before_output_write": true,
+    "allow_dirty": true
+  },
+  "scorer": {
+    "omnifuse": {
+      "path": "eval/metrics.py",
+      "status": "ok",
+      "sha256": "3634fe7d237c14d7975ed370dc7e328386c58ff43d04a917d88dced86f4ef978",
+      "bytes": 5252
+    },
+    "synaptic_memory": {
+      "path": "tests/benchmark/metrics.py",
+      "status": "ok",
+      "sha256": "3634fe7d237c14d7975ed370dc7e328386c58ff43d04a917d88dced86f4ef978",
+      "bytes": 5252
+    },
+    "equal": true
+  },
+  "targets": [
+    {
+      "id": "finreg_single",
+      "name": "finreg single-hop",
+      "group": "finreg",
+      "source": "omnifuse",
+      "strict_public": true,
+      "status": "ok",
+      "sha256": "a9883d41867372bd65f0a1f9d7856b103fc91b8474fc24cceb907341e8876e47",
+      "sha256_kind": "file-manifest-v1",
+      "bytes": 7263690,
+      "files": [
+        {
+          "path": "eval/data/finreg/raw.jsonl",
+          "status": "ok",
+          "sha256": "bc502934d8b56c8272964a9f09a017cf6db9bd479095598d7a88ec2edab5daf9",
+          "bytes": 6955149,
+          "validation": {
+            "status": "ok",
+            "format": "jsonl",
+            "documents": 4417
+          },
+          "role": "corpus"
+        },
+        {
+          "path": "eval/data/queries/finreg.json",
+          "status": "ok",
+          "sha256": "94ce4881bf2b612464490fc7d47e6c8c7d7cbaef86b48ce1f4d51347b5b500ab",
+          "bytes": 308541,
+          "validation": {
+            "status": "ok",
+            "format": "query-json",
+            "queries": 120
+          },
+          "role": "queries"
+        }
+      ]
+    },
+    {
+      "id": "finreg_multi",
+      "name": "finreg multi-hop",
+      "group": "finreg",
+      "source": "omnifuse",
+      "strict_public": true,
+      "status": "ok",
+      "sha256": "0fb74c38c6be6b8754e704971e134cd8fe6fdd8e6f4fa80a786e2968823fabac",
+      "sha256_kind": "file-manifest-v1",
+      "bytes": 7699689,
+      "files": [
+        {
+          "path": "eval/data/finreg/raw.jsonl",
+          "status": "ok",
+          "sha256": "bc502934d8b56c8272964a9f09a017cf6db9bd479095598d7a88ec2edab5daf9",
+          "bytes": 6955149,
+          "validation": {
+            "status": "ok",
+            "format": "jsonl",
+            "documents": 4417
+          },
+          "role": "corpus"
+        },
+        {
+          "path": "eval/data/queries/finreg_multihop.json",
+          "status": "ok",
+          "sha256": "915af3a609d4dc6da335de43c77db76e45b043ae27f5904ff52eba85447245a4",
+          "bytes": 744540,
+          "validation": {
+            "status": "ok",
+            "format": "query-json",
+            "queries": 120
+          },
+          "role": "queries"
+        }
+      ]
+    },
+    {
+      "id": "hotpotqa_24",
+      "name": "HotPotQA-24",
+      "group": "tracked_public",
+      "source": "synaptic",
+      "strict_public": true,
+      "status": "ok",
+      "sha256": "596958d4dd7c6cedf29d7c8c97dae84fb4017e5e18d2cfe9bf914151feaaaaac",
+      "sha256_kind": "file",
+      "bytes": 147532,
+      "files": [
+        {
+          "path": "tests/benchmark/data/hotpotqa_24.json",
+          "status": "ok",
+          "sha256": "596958d4dd7c6cedf29d7c8c97dae84fb4017e5e18d2cfe9bf914151feaaaaac",
+          "bytes": 147532,
+          "validation": {
+            "status": "ok",
+            "format": "public-ir-json",
+            "documents": 226,
+            "queries": 24
+          },
+          "role": "dataset"
+        }
+      ]
+    },
+    {
+      "id": "hotpotqa_200",
+      "name": "HotPotQA-200",
+      "group": "tracked_public",
+      "source": "synaptic",
+      "strict_public": true,
+      "status": "ok",
+      "sha256": "67fa43e7a76076242e08ba034b6a4b7ec474001fb282260e5c53c851abd10be9",
+      "sha256_kind": "file",
+      "bytes": 1317589,
+      "files": [
+        {
+          "path": "tests/benchmark/data/hotpotqa.json",
+          "status": "ok",
+          "sha256": "67fa43e7a76076242e08ba034b6a4b7ec474001fb282260e5c53c851abd10be9",
+          "bytes": 1317589,
+          "validation": {
+            "status": "ok",
+            "format": "public-ir-json",
+            "documents": 1990,
+            "queries": 200
+          },
+          "role": "dataset"
+        }
+      ]
+    },
+    {
+      "id": "allganize_rag_ko",
+      "name": "Allganize RAG-ko",
+      "group": "tracked_public",
+      "source": "synaptic",
+      "strict_public": true,
+      "status": "ok",
+      "sha256": "b439b4b6c2495b90f1bf506cceb0cc0125f46c9b8cf6597655b77b03ab736537",
+      "sha256_kind": "file",
+      "bytes": 218748,
+      "files": [
+        {
+          "path": "tests/benchmark/data/allganize_rag_ko.json",
+          "status": "ok",
+          "sha256": "b439b4b6c2495b90f1bf506cceb0cc0125f46c9b8cf6597655b77b03ab736537",
+          "bytes": 218748,
+          "validation": {
+            "status": "ok",
+            "format": "public-ir-json",
+            "documents": 200,
+            "queries": 200
+          },
+          "role": "dataset"
+        }
+      ]
+    },
+    {
+      "id": "allganize_rag_eval",
+      "name": "Allganize RAG-Eval",
+      "group": "tracked_public",
+      "source": "synaptic",
+      "strict_public": true,
+      "status": "ok",
+      "sha256": "3c4ee4a484e7023a0d318ea3cc9df6550c80637675c28984e929d9b3e890ee3d",
+      "sha256_kind": "file",
+      "bytes": 215420,
+      "files": [
+        {
+          "path": "tests/benchmark/data/allganize_rag_eval.json",
+          "status": "ok",
+          "sha256": "3c4ee4a484e7023a0d318ea3cc9df6550c80637675c28984e929d9b3e890ee3d",
+          "bytes": 215420,
+          "validation": {
+            "status": "ok",
+            "format": "public-ir-json",
+            "documents": 300,
+            "queries": 300
+          },
+          "role": "dataset"
+        }
+      ]
+    },
+    {
+      "id": "publichealthqa_ko",
+      "name": "PublicHealthQA",
+      "group": "tracked_public",
+      "source": "synaptic",
+      "strict_public": true,
+      "status": "ok",
+      "sha256": "39424575de99a912161b9a315e2046876844e581d5229a66701b5f43a4c548dd",
+      "sha256_kind": "file",
+      "bytes": 72280,
+      "files": [
+        {
+          "path": "tests/benchmark/data/publichealthqa_ko.json",
+          "status": "ok",
+          "sha256": "39424575de99a912161b9a315e2046876844e581d5229a66701b5f43a4c548dd",
+          "bytes": 72280,
+          "validation": {
+            "status": "ok",
+            "format": "public-ir-json",
+            "documents": 77,
+            "queries": 77
+          },
+          "role": "dataset"
+        }
+      ]
+    },
+    {
+      "id": "autorag_retrieval",
+      "name": "AutoRAG",
+      "group": "tracked_public",
+      "source": "synaptic",
+      "strict_public": true,
+      "status": "ok",
+      "sha256": "715b8e8db5af290b5476d534797d05fbdf3d85f302f8ca273b6d04373efe3a01",
+      "sha256_kind": "file",
+      "bytes": 1409438,
+      "files": [
+        {
+          "path": "tests/benchmark/data/autorag_retrieval.json",
+          "status": "ok",
+          "sha256": "715b8e8db5af290b5476d534797d05fbdf3d85f302f8ca273b6d04373efe3a01",
+          "bytes": 1409438,
+          "validation": {
+            "status": "ok",
+            "format": "public-ir-json",
+            "documents": 720,
+            "queries": 114
+          },
+          "role": "dataset"
+        }
+      ]
+    },
+    {
+      "id": "klue_mrc",
+      "name": "KLUE-MRC",
+      "group": "tracked_public",
+      "source": "synaptic",
+      "strict_public": true,
+      "status": "ok",
+      "sha256": "39a1f628b3ec1788a8385b234b0273e9c6926a344bf97ed8f7291ff2aafcd7c8",
+      "sha256_kind": "file",
+      "bytes": 15548965,
+      "files": [
+        {
+          "path": "tests/benchmark/data/klue_mrc.json",
+          "status": "ok",
+          "sha256": "39a1f628b3ec1788a8385b234b0273e9c6926a344bf97ed8f7291ff2aafcd7c8",
+          "bytes": 15548965,
+          "validation": {
+            "status": "ok",
+            "format": "public-ir-json",
+            "documents": 5841,
+            "queries": 5841
+          },
+          "role": "dataset"
+        }
+      ]
+    },
+    {
+      "id": "ko_strategyqa",
+      "name": "Ko-StrategyQA",
+      "group": "tracked_public",
+      "source": "synaptic",
+      "strict_public": true,
+      "status": "ok",
+      "sha256": "dd0ff36612c28d12922b00f3ba3f8369d7ae1fe93bd8a5541002a2b9623ebe5d",
+      "sha256_kind": "file",
+      "bytes": 7299145,
+      "files": [
+        {
+          "path": "tests/benchmark/data/ko_strategyqa.json",
+          "status": "ok",
+          "sha256": "dd0ff36612c28d12922b00f3ba3f8369d7ae1fe93bd8a5541002a2b9623ebe5d",
+          "bytes": 7299145,
+          "validation": {
+            "status": "ok",
+            "format": "public-ir-json",
+            "documents": 9251,
+            "queries": 592
+          },
+          "role": "dataset"
+        }
+      ]
+    },
+    {
+      "id": "2wiki_dev",
+      "name": "2Wiki-dev",
+      "group": "download_only_extended",
+      "source": "synaptic",
+      "strict_public": true,
+      "status": "ok",
+      "sha256": "a386884be7524dba31f98357db8e333a4b69f8bd88b81935c2342792bc74c930",
+      "sha256_kind": "file",
+      "bytes": 32398328,
+      "files": [
+        {
+          "path": "tests/benchmark/data/2wiki_dev.json",
+          "status": "ok",
+          "sha256": "a386884be7524dba31f98357db8e333a4b69f8bd88b81935c2342792bc74c930",
+          "bytes": 32398328,
+          "validation": {
+            "status": "ok",
+            "format": "public-ir-json",
+            "documents": 56709,
+            "queries": 12576
+          },
+          "role": "dataset"
+        }
+      ]
+    },
+    {
+      "id": "musique_dev",
+      "name": "MuSiQue-dev",
+      "group": "download_only_extended",
+      "source": "synaptic",
+      "strict_public": true,
+      "status": "ok",
+      "sha256": "1e60d520645ab39bc876d6477e6c3d82814ba711d9620f1f6e649d5ae217065f",
+      "sha256_kind": "file",
+      "bytes": 11973306,
+      "files": [
+        {
+          "path": "tests/benchmark/data/musique_dev.json",
+          "status": "ok",
+          "sha256": "1e60d520645ab39bc876d6477e6c3d82814ba711d9620f1f6e649d5ae217065f",
+          "bytes": 11973306,
+          "validation": {
+            "status": "ok",
+            "format": "public-ir-json",
+            "documents": 21100,
+            "queries": 2417
+          },
+          "role": "dataset"
+        }
+      ]
+    },
+    {
+      "id": "trec_covid",
+      "name": "TREC-COVID",
+      "group": "download_only_extended",
+      "source": "synaptic",
+      "strict_public": true,
+      "status": "ok",
+      "sha256": "5ea8e6bb8f0851a9bfa7532c93efa7f89f5045ec830fca1e5587f9f4330f370b",
+      "sha256_kind": "file",
+      "bytes": 197927756,
+      "files": [
+        {
+          "path": "tests/benchmark/data/trec_covid.json",
+          "status": "ok",
+          "sha256": "5ea8e6bb8f0851a9bfa7532c93efa7f89f5045ec830fca1e5587f9f4330f370b",
+          "bytes": 197927756,
+          "validation": {
+            "status": "ok",
+            "format": "public-ir-json",
+            "documents": 171332,
+            "queries": 50
+          },
+          "role": "dataset"
+        }
+      ]
+    },
+    {
+      "id": "scifact",
+      "name": "SciFact",
+      "group": "download_only_extended",
+      "source": "synaptic",
+      "strict_public": true,
+      "status": "ok",
+      "sha256": "4ed8de69f7f6e0d5b87aa04e297f3cb4e1462efe0dc1ae17238ed360909c09df",
+      "sha256_kind": "file",
+      "bytes": 8093279,
+      "files": [
+        {
+          "path": "tests/benchmark/data/scifact.json",
+          "status": "ok",
+          "sha256": "4ed8de69f7f6e0d5b87aa04e297f3cb4e1462efe0dc1ae17238ed360909c09df",
+          "bytes": 8093279,
+          "validation": {
+            "status": "ok",
+            "format": "public-ir-json",
+            "documents": 5183,
+            "queries": 300
+          },
+          "role": "dataset"
+        }
+      ]
+    },
+    {
+      "id": "xpqa_ko",
+      "name": "XPQA-ko",
+      "group": "download_only_extended",
+      "source": "synaptic",
+      "strict_public": true,
+      "status": "ok",
+      "sha256": "a9c11fb11ce6cd6d1a49c9cee9956509b070f27597d2fe448000fd11eac7d2e7",
+      "sha256_kind": "file",
+      "bytes": 153112,
+      "files": [
+        {
+          "path": "tests/benchmark/data/xpqa_ko.json",
+          "status": "ok",
+          "sha256": "a9c11fb11ce6cd6d1a49c9cee9956509b070f27597d2fe448000fd11eac7d2e7",
+          "bytes": 153112,
+          "validation": {
+            "status": "ok",
+            "format": "public-ir-json",
+            "documents": 889,
+            "queries": 654
+          },
+          "role": "dataset"
+        }
+      ]
+    },
+    {
+      "id": "nfcorpus",
+      "name": "NFCorpus",
+      "group": "download_only_extended",
+      "source": "synaptic",
+      "strict_public": true,
+      "status": "ok",
+      "sha256": "7232e143da668a135e5b294b12e10b84cb2e1cc2865d509cf65b423ad7ee49e3",
+      "sha256_kind": "file",
+      "bytes": 6244913,
+      "files": [
+        {
+          "path": "tests/benchmark/data/nfcorpus.json",
+          "status": "ok",
+          "sha256": "7232e143da668a135e5b294b12e10b84cb2e1cc2865d509cf65b423ad7ee49e3",
+          "bytes": 6244913,
+          "validation": {
+            "status": "ok",
+            "format": "public-ir-json",
+            "documents": 3633,
+            "queries": 323
+          },
+          "role": "dataset"
+        }
+      ]
+    },
+    {
+      "id": "miracl_retrieval_ko",
+      "name": "MIRACL-retrieval-ko",
+      "group": "download_only_extended",
+      "source": "synaptic",
+      "strict_public": true,
+      "status": "ok",
+      "sha256": "1fceef9746fead4e4415876fd95c8b308d57c60a02c42ec73b22965902a54685",
+      "sha256_kind": "file",
+      "bytes": 5273494,
+      "files": [
+        {
+          "path": "tests/benchmark/data/miracl_retrieval_ko.json",
+          "status": "ok",
+          "sha256": "1fceef9746fead4e4415876fd95c8b308d57c60a02c42ec73b22965902a54685",
+          "bytes": 5273494,
+          "validation": {
+            "status": "ok",
+            "format": "public-ir-json",
+            "documents": 10000,
+            "queries": 213
+          },
+          "role": "dataset"
+        }
+      ]
+    },
+    {
+      "id": "fiqa",
+      "name": "FiQA",
+      "group": "download_only_extended",
+      "source": "synaptic",
+      "strict_public": true,
+      "status": "ok",
+      "sha256": "dd5488a45c8f4dd342ec5eb43b119aac86febf05255fcacc6f53554ad94244dc",
+      "sha256_kind": "file",
+      "bytes": 47053652,
+      "files": [
+        {
+          "path": "tests/benchmark/data/fiqa.json",
+          "status": "ok",
+          "sha256": "dd5488a45c8f4dd342ec5eb43b119aac86febf05255fcacc6f53554ad94244dc",
+          "bytes": 47053652,
+          "validation": {
+            "status": "ok",
+            "format": "public-ir-json",
+            "documents": 57638,
+            "queries": 648
+          },
+          "role": "dataset"
+        }
+      ]
+    },
+    {
+      "id": "multilongdoc_ko",
+      "name": "MultiLongDoc-ko",
+      "group": "download_only_extended",
+      "source": "synaptic",
+      "strict_public": true,
+      "status": "ok",
+      "sha256": "af3e1b20bdb87abb0ebc4e372fe8b36b69e4cd695b48759290d077d1e794f98b",
+      "sha256_kind": "file",
+      "bytes": 193546626,
+      "files": [
+        {
+          "path": "tests/benchmark/data/multilongdoc_ko.json",
+          "status": "ok",
+          "sha256": "af3e1b20bdb87abb0ebc4e372fe8b36b69e4cd695b48759290d077d1e794f98b",
+          "bytes": 193546626,
+          "validation": {
+            "status": "ok",
+            "format": "public-ir-json",
+            "documents": 6176,
+            "queries": 200
+          },
+          "role": "dataset"
+        }
+      ]
+    },
+    {
+      "id": "enterprise_scenario",
+      "name": "enterprise scenario",
+      "group": "enterprise",
+      "source": "synaptic",
+      "strict_public": false,
+      "status": "ok",
+      "sha256": "80070e6cab109702e6527a002dc0d83191f8ad22954443c40f5f5155d6051a3e",
+      "sha256_kind": "file",
+      "bytes": 19435,
+      "files": [
+        {
+          "path": "tests/benchmark/data/enterprise_scenario.json",
+          "status": "ok",
+          "sha256": "80070e6cab109702e6527a002dc0d83191f8ad22954443c40f5f5155d6051a3e",
+          "bytes": 19435,
+          "validation": {
+            "status": "ok",
+            "format": "enterprise-scenario-json",
+            "documents": 12,
+            "queries": 15
+          },
+          "role": "dataset"
+        }
+      ]
+    },
+    {
+      "id": "kra_golden",
+      "name": "KRA private golden",
+      "group": "private",
+      "source": "private",
+      "strict_public": false,
+      "status": "skipped_private",
+      "sha256": null,
+      "sha256_kind": null,
+      "bytes": null,
+      "files": [
+        {
+          "path": null,
+          "status": "missing",
+          "sha256": null,
+          "bytes": null,
+          "role": "dataset"
+        }
+      ]
+    }
+  ],
+  "summary": {
+    "total_targets": 21,
+    "ok_targets": 20,
+    "status_counts": {
+      "ok": 20,
+      "skipped_missing_external": 0,
+      "skipped_private": 1,
+      "error": 0
+    },
+    "incomplete_targets": [
+      "kra_golden"
+    ],
+    "public": {
+      "total_targets": 19,
+      "ok_targets": 19,
+      "incomplete_targets": []
+    }
+  },
+  "strict_public": {
+    "enabled": true,
+    "would_pass": true,
+    "passed": true,
+    "blockers": []
+  }
+}

@@ -39,6 +39,7 @@ def test_evidence_never_changes_the_idf_of_a_content_term():
     fb = Feedback()
     fb.remember("강수량 감소 추세", ["trial"])       # '감소' also occurs in trial's body
     warm = build_inmemory([], [], CHUNKS, feedback=fb)
+    plain.retrieve("강수량 감소 추세", limit=len(CHUNKS))
     for term in ("#감소", "ldl"):
         assert plain.vector._bm25.idf.get(term) == warm.vector._bm25.idf.get(term)
 

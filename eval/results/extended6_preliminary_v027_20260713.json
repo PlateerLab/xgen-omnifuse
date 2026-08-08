@@ -1,0 +1,130 @@
+{
+  "schema": "omnifuse.eval.idf_pow_same_pass",
+  "schema_version": 1,
+  "status": "preliminary_subset",
+  "generated_at": "2026-07-13T04:13:45.0370418Z",
+  "benchmark": "idf_pow ablation with synaptic re-run in the same pass",
+  "environment": {
+    "python": "3.12.10",
+    "platform": "Windows-11-10.0.22631-SP0"
+  },
+  "repositories": {
+    "omnifuse": {
+      "git_head_sha": "cd355ddb5c59f5f8bb20c694a4fba8419567310a",
+      "dirty": true
+    },
+    "synaptic_memory": {
+      "git_head_sha": "7470e728a7d728dedea5363aabbb73adf6ac666f",
+      "version": "0.27.0",
+      "dirty": true,
+      "dirty_cause": "tracked bytecode files changed by the earlier benchmark import path"
+    }
+  },
+  "contract": {
+    "track": "six previously enumerated download-only extended datasets",
+    "coverage_caveat": "This is not the final extended track. A later audit added 2Wiki-dev, MuSiQue-dev, and TREC-COVID; the final current track has nine datasets and is run separately.",
+    "k": 10,
+    "omnifuse_candidate_limit": 20,
+    "scorer": "eval/metrics.py (byte-identical to synaptic tests/benchmark/metrics.py), MRR@10",
+    "synaptic_driver": "eval.run_all.run_public_dataset(embedder=None, reranker=None)",
+    "command": "python -u eval/idf_pow_bench.py --synaptic-repo D:\\_tmp_bench\\synaptic-memory-20260713 --datasets SciFact,XPQA-ko,NFCorpus,MIRACL-ko,FiQA,MultiLongDoc-ko --out D:\\xgen-omnifuse\\worklogs\\2026-07-13-extended-v027.json",
+    "elapsed_seconds": 7060
+  },
+  "provenance": {
+    "executed_harness": {
+      "path": "eval/idf_pow_bench.py",
+      "git_blob_sha1": "a1cc33b57122b881f8d9fa166575e3188accfeac",
+      "canonical_blob_sha256": "0fb85acaff5f1f1c8fd51c6b408656abe1333c134b82260220495757dfaa4453"
+    },
+    "public_driver_sha256": "5b081c7aee6c8184e400d3ebe3a9287061b25beead9f13fbfd0ad09179c661b7",
+    "synaptic_driver_sha256": "0f7c7408917eef7c7fce01c084bb51d84c2b272faa0dca68008fcd1e4bbfecb6",
+    "scorer_sha256": "3634fe7d237c14d7975ed370dc7e328386c58ff43d04a917d88dced86f4ef978",
+    "synaptic_scorer_sha256": "3634fe7d237c14d7975ed370dc7e328386c58ff43d04a917d88dced86f4ef978",
+    "scorers_byte_identical": true,
+    "input_manifest": {
+      "path": "eval/results/doctor_v027_20260713.json",
+      "sha256": "132eab0040ff7ce489a8f9b6c7713f4cc1631d95c3a0133a959e54fe2e792726",
+      "superseded_for_total_coverage": true
+    },
+    "raw_result": {
+      "path": "worklogs/2026-07-13-extended-v027.json",
+      "sha256": "29a59643358d5459f8260bc0b3522e66a5b47ce12ade0094ebc629aa0addcc8c"
+    },
+    "stdout": {
+      "path": "worklogs/2026-07-13-extended-v027.stdout.log",
+      "sha256": "61661d14e819df752f2e9852d1679a052da8e35b2372193db093c62fcf21b896"
+    },
+    "stderr": {
+      "path": "worklogs/2026-07-13-extended-v027.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "empty": true
+    }
+  },
+  "datasets": {
+    "SciFact": {
+      "doctor_target_id": "scifact",
+      "input_sha256": "4ed8de69f7f6e0d5b87aa04e297f3cb4e1462efe0dc1ae17238ed360909c09df",
+      "synaptic": 0.6317,
+      "omnifuse_idf_pow_1.0": 0.6395,
+      "omnifuse_idf_pow_1.2": 0.6441,
+      "omnifuse_idf_pow_1.5": 0.6456,
+      "shipped_1.2_beats_synaptic": true
+    },
+    "XPQA-ko": {
+      "doctor_target_id": "xpqa_ko",
+      "input_sha256": "a9c11fb11ce6cd6d1a49c9cee9956509b070f27597d2fe448000fd11eac7d2e7",
+      "synaptic": 0.3115,
+      "omnifuse_idf_pow_1.0": 0.3273,
+      "omnifuse_idf_pow_1.2": 0.3277,
+      "omnifuse_idf_pow_1.5": 0.329,
+      "shipped_1.2_beats_synaptic": true
+    },
+    "NFCorpus": {
+      "doctor_target_id": "nfcorpus",
+      "input_sha256": "7232e143da668a135e5b294b12e10b84cb2e1cc2865d509cf65b423ad7ee49e3",
+      "synaptic": 0.5124,
+      "omnifuse_idf_pow_1.0": 0.5236,
+      "omnifuse_idf_pow_1.2": 0.5175,
+      "omnifuse_idf_pow_1.5": 0.5182,
+      "shipped_1.2_beats_synaptic": true
+    },
+    "MIRACL-ko": {
+      "doctor_target_id": "miracl_retrieval_ko",
+      "input_sha256": "1fceef9746fead4e4415876fd95c8b308d57c60a02c42ec73b22965902a54685",
+      "synaptic": 0.9495,
+      "omnifuse_idf_pow_1.0": 0.9812,
+      "omnifuse_idf_pow_1.2": 0.975,
+      "omnifuse_idf_pow_1.5": 0.9617,
+      "shipped_1.2_beats_synaptic": true
+    },
+    "FiQA": {
+      "doctor_target_id": "fiqa",
+      "input_sha256": "dd5488a45c8f4dd342ec5eb43b119aac86febf05255fcacc6f53554ad94244dc",
+      "synaptic": 0.2902,
+      "omnifuse_idf_pow_1.0": 0.2929,
+      "omnifuse_idf_pow_1.2": 0.292,
+      "omnifuse_idf_pow_1.5": 0.2781,
+      "shipped_1.2_beats_synaptic": true
+    },
+    "MultiLongDoc-ko": {
+      "doctor_target_id": "multilongdoc_ko",
+      "input_sha256": "af3e1b20bdb87abb0ebc4e372fe8b36b69e4cd695b48759290d077d1e794f98b",
+      "synaptic": 0.6326,
+      "omnifuse_idf_pow_1.0": 0.6363,
+      "omnifuse_idf_pow_1.2": 0.6501,
+      "omnifuse_idf_pow_1.5": 0.6525,
+      "shipped_1.2_beats_synaptic": true
+    }
+  },
+  "summary": {
+    "datasets": 6,
+    "shipped_idf_pow_1.2": {
+      "wins": 6,
+      "ties": 0,
+      "losses": 0
+    },
+    "idf_pow_1.0_wins": "6/6",
+    "idf_pow_1.5_wins": "5/6",
+    "net_1.5_minus_1.0": -0.0159
+  }
+}

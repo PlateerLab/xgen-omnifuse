@@ -1,0 +1,105 @@
+{
+  "schema": "omnifuse.eval.finreg",
+  "schema_version": 1,
+  "generated_at": "2026-07-13T03:17:23.384579+00:00",
+  "environment": {
+    "python_version": "3.12.10",
+    "python_executable": "C:\\Users\\wlstn\\AppData\\Local\\Programs\\Python\\Python312\\python.exe",
+    "platform": "Windows-11-10.0.22631-SP0",
+    "dont_write_bytecode": true
+  },
+  "repository": {
+    "path": "D:\\xgen-omnifuse",
+    "sha": "cd355ddb5c59f5f8bb20c694a4fba8419567310a",
+    "dirty": true
+  },
+  "inputs": {
+    "corpus": {
+      "path": "D:\\xgen-omnifuse\\eval\\data\\finreg\\raw.jsonl",
+      "bytes": 6955149,
+      "sha256": "bc502934d8b56c8272964a9f09a017cf6db9bd479095598d7a88ec2edab5daf9"
+    },
+    "single_hop_queries": {
+      "path": "D:\\xgen-omnifuse\\eval\\data\\queries\\finreg.json",
+      "bytes": 308541,
+      "sha256": "94ce4881bf2b612464490fc7d47e6c8c7d7cbaef86b48ce1f4d51347b5b500ab"
+    },
+    "multi_hop_queries": {
+      "path": "D:\\xgen-omnifuse\\eval\\data\\queries\\finreg_multihop.json",
+      "bytes": 744540,
+      "sha256": "915af3a609d4dc6da335de43c77db76e45b043ae27f5904ff52eba85447245a4"
+    }
+  },
+  "scorer": {
+    "path": "D:\\xgen-omnifuse\\eval\\metrics.py",
+    "bytes": 5252,
+    "sha256": "3634fe7d237c14d7975ed370dc7e328386c58ff43d04a917d88dced86f4ef978",
+    "implementation": "BenchmarkResult via eval/_common.py"
+  },
+  "harness": {
+    "entrypoint": {
+      "path": "D:\\xgen-omnifuse\\eval\\finreg_bench.py",
+      "bytes": 8327,
+      "sha256": "533a5fb815b3b45760add5f09b82cbb8a5c652d1750897133e990591b6e529f4"
+    },
+    "shared_finreg_logic": {
+      "path": "D:\\xgen-omnifuse\\eval\\_common.py",
+      "bytes": 3816,
+      "sha256": "cab8d59c7dd21fbe200fc37bdadedb5448662b838059efa5ccf71ea45dbc257d"
+    }
+  },
+  "evaluation_contract": {
+    "k": 10,
+    "candidate_limit": 20,
+    "same_candidate_limit_for_all_query_tracks": true,
+    "dedupe": "first occurrence of each non-empty document id, preserving rank order",
+    "score_after_dedupe": true,
+    "retrieval": "single-shot; no LLM, embedder, or reranker",
+    "graph_fusion": true
+  },
+  "index_condition": {
+    "system": "omnifuse",
+    "state": "rebuilt_in_process_from_tracked_corpus",
+    "rebuild_included_in_total_timing": true,
+    "backend": "zero-infrastructure in-memory"
+  },
+  "result": {
+    "corpus": {
+      "documents": 4417,
+      "reference_edges": 8781
+    },
+    "queries": {
+      "single_hop": 120,
+      "multi_hop": 120
+    },
+    "scores": {
+      "single_hop": {
+        "mean_precision@k": 0.09583333333333334,
+        "mean_recall@k": 0.9583333333333334,
+        "mean_f1@k": 0.17424242424242425,
+        "mrr": 0.8470568783068783,
+        "mean_ndcg@k": 0.8737660484795847,
+        "mean_search_time_ms": 0.0,
+        "total_queries": 120,
+        "hits": 115,
+        "n": 120
+      },
+      "multi_hop": {
+        "mean_precision@k": 0.18583333333333335,
+        "mean_recall@k": 0.9291666666666667,
+        "mean_f1@k": 0.3097222222222223,
+        "mrr": 0.8196031746031747,
+        "mean_ndcg@k": 0.8088220330160599,
+        "mean_search_time_ms": 0.0,
+        "total_queries": 120,
+        "strict": 108,
+        "n": 120
+      }
+    },
+    "timing_seconds": {
+      "rebuild": 8.248505499970634,
+      "scoring_all_queries": 1.7876209000241943,
+      "total": 10.036133699992206
+    }
+  }
+}

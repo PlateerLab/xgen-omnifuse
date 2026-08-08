@@ -1,0 +1,80 @@
+{
+  "schema": "omnifuse.eval.trec-v15-omnifuse-followup",
+  "schema_version": 1,
+  "generated_at": "2026-07-24T05:12:42.979574+00:00",
+  "status": "ok",
+  "qualification": "OmniFuse-only two-worker follow-up on the byte-identical frozen input; Synaptic reference comes from the completed v14 AB/BA controller. This is not a new counterbalanced two-system cohort. Ingest is excluded from superiority claims because OmniFuse materializes lazily during warm-up.",
+  "input": {
+    "path": "worker-input/performance.json",
+    "sha256": "66e2137e0c98c9c908848ac8ea2abc7eba1d7a50b98cc6c93443d1187b475755",
+    "bytes": 198735634,
+    "documents": 171332,
+    "scored_queries": 50,
+    "relevance_judgments": 24673
+  },
+  "evidence": {
+    "canonical_v14_ab_ba": {
+      "path": "D:\\xgen-omnifuse\\eval\\results\\perf_trec_covid_sqlite_native_trials2_20260724_v14_raw_df_v1.json",
+      "bytes": 58512,
+      "sha256": "495e5b8fdf7f7f40dd30ec991f1d92b565398f1cce54182a05f6ddcac86a04dc"
+    },
+    "v15_omnifuse_workers": [
+      {
+        "path": "D:\\_tmp_bench\\evidence\\omnifuse-vs-synaptic\\20260724-v15-static-compact-v1\\trec_v15_omnifuse_worker_1.json",
+        "bytes": 2768,
+        "sha256": "f7cac23aaa8f45dcffbf3bf22b15613ba9583d265bcd0cc86ccdaf7a2be9492b"
+      },
+      {
+        "path": "D:\\_tmp_bench\\evidence\\omnifuse-vs-synaptic\\20260724-v15-static-compact-v1\\trec_v15_omnifuse_worker_2.json",
+        "bytes": 2769,
+        "sha256": "5e959e94f0a673034ae25f1a419b85fed2775ca8f196eb04268ecedf2e520502"
+      }
+    ]
+  },
+  "source_binding_consistent": true,
+  "v15_omnifuse_median": {
+    "ingest_s": 0.4316353500180412,
+    "query_latency_p50_ms": 109.49100001016632,
+    "query_latency_p95_ms": 158.93890498700785,
+    "query_latency_mean_ms": 110.5186786011327,
+    "mrr_at_k": 0.9083333333333333,
+    "current_rss_mb": 786.079744,
+    "peak_rss_mb": 2134.72256
+  },
+  "v14_omnifuse_median": {
+    "ingest_s": 0.45357150002382696,
+    "query_latency_p50_ms": 109.85067499859724,
+    "query_latency_p95_ms": 160.54433249955758,
+    "query_latency_mean_ms": 110.773199800984,
+    "current_rss_mb": 1078.3027200000001,
+    "peak_rss_mb": 2133.874688,
+    "mrr_at_k": 0.9083333333333333
+  },
+  "canonical_synaptic_median": {
+    "ingest_s": 23485.824606499984,
+    "query_latency_p50_ms": 2937.8128250100417,
+    "query_latency_p95_ms": 3269.4341450041975,
+    "query_latency_mean_ms": 2932.6910805986263,
+    "current_rss_mb": 412.884992,
+    "peak_rss_mb": 2133.987328,
+    "mrr_at_k": 0.721
+  },
+  "comparisons": {
+    "v15_vs_v14_omnifuse": {
+      "current_rss_delta_mb": -292.22297600000013,
+      "current_rss_ratio": 0.7289972745315897,
+      "query_p50_ratio": 0.9967257826277761,
+      "mrr_delta": 0.0
+    },
+    "synaptic_over_v15_omnifuse_speed_ratio": {
+      "query_p50": 26.83154619774469,
+      "query_p95": 20.570382973705847,
+      "query_mean": 26.535705255605265
+    },
+    "v15_omnifuse_over_synaptic_memory_ratio": {
+      "current_rss": 1.9038709549413702,
+      "peak_rss": 1.0003445343795405
+    },
+    "mrr_delta_v15_omnifuse_minus_synaptic": 0.18733333333333335
+  }
+}

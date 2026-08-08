@@ -1,0 +1,119 @@
+{
+    "schema":  "omnifuse.eval.sqlite_raw_scorer_diagnostic",
+    "schema_version":  1,
+    "status":  "ok",
+    "compiled_at":  "2026-07-27T04:23:43.4777076+00:00",
+    "input":  {
+                  "path":  "D:/_tmp_bench/evidence/omnifuse-vs-synaptic/20260724-v15-static-compact-persistence-v1/workers_nfcorpus/input.json",
+                  "sha256":  "1f08261e50a6604654ba2951728c49b2c98c756869f2686051682d20a66f0ba5",
+                  "documents":  3633,
+                  "queries":  100,
+                  "warmup":  1,
+                  "repeats":  5
+              },
+    "raw_scorer_ab":  {
+                          "kind":  "local current-host diagnostic, not the claim-grade cross-system cohort",
+                          "trials_per_variant":  7,
+                          "baseline":  {
+                                           "source_sha256":  "59626c2901f3e22e2de750835298cc482ed1493c6c0bdaf0b39339c9b634b637",
+                                           "metrics":  {
+                                                           "build_ms":  1076.3393,
+                                                           "open_ms":  0.9736,
+                                                           "first_query_ms":  0.6748,
+                                                           "query_p50_ms":  1.8197,
+                                                           "query_p95_ms":  20.080924999999983,
+                                                           "query_mean_ms":  5.9028686,
+                                                           "round_median_ms":  584.4596,
+                                                           "artifact_bytes":  6877184
+                                                       }
+                                       },
+                          "optimized":  {
+                                            "source_sha256":  "c69b1cbfa686c801cd2e0c5434031333a1508a89f42dc0232b2f653cf791ae47",
+                                            "metrics":  {
+                                                            "build_ms":  988.5949,
+                                                            "open_ms":  1.0074,
+                                                            "first_query_ms":  0.6856,
+                                                            "query_p50_ms":  1.28025,
+                                                            "query_p95_ms":  12.784384999999997,
+                                                            "query_mean_ms":  3.6905918,
+                                                            "round_median_ms":  369.2202,
+                                                            "artifact_bytes":  6877184
+                                                        }
+                                        },
+                          "optimized_over_baseline":  {
+                                                          "build_ms":  0.91847886628315067,
+                                                          "open_ms":  1.0347165160230074,
+                                                          "first_query_ms":  1.0160047421458209,
+                                                          "query_p50_ms":  0.70355003572017372,
+                                                          "query_p95_ms":  0.63664323232122066,
+                                                          "query_mean_ms":  0.62522004979070689,
+                                                          "round_median_ms":  0.63172920763043328,
+                                                          "artifact_bytes":  1
+                                                      },
+                          "equivalence":  {
+                                              "rankings_sha256":  "531b8c63c840f3772a68c898b45f93d12abca0ba2bb8944c685c74852d3e32f7",
+                                              "mrr_at_10":  0.514718253968254,
+                                              "artifact_sha256":  "c71431896400ac91602422d5f491765848313dd1c500f080687c1553e430a85c"
+                                          }
+                      },
+    "exact_applied_source_verification":  {
+                                              "trials":  3,
+                                              "source_sha256":  "a4afbaf43ec4f65cf308bbbff24e9bd3e7438a14f0252498a9c640e408945bf5",
+                                              "metrics":  {
+                                                              "build_ms":  1052.7979,
+                                                              "open_ms":  0.8739,
+                                                              "first_query_ms":  0.596,
+                                                              "query_p50_ms":  1.3286,
+                                                              "query_p95_ms":  12.142094999999992,
+                                                              "query_mean_ms":  3.6894074,
+                                                              "round_median_ms":  371.8886,
+                                                              "artifact_bytes":  6877184
+                                                          },
+                                              "rankings_sha256":  "531b8c63c840f3772a68c898b45f93d12abca0ba2bb8944c685c74852d3e32f7",
+                                              "mrr_at_10":  0.514718253968254,
+                                              "artifact_sha256":  "c71431896400ac91602422d5f491765848313dd1c500f080687c1553e430a85c"
+                                          },
+    "rejected_weighted_forward":  {
+                                      "trials_per_variant":  3,
+                                      "baseline_metrics":  {
+                                                               "build_ms":  1061.6942,
+                                                               "open_ms":  0.9284,
+                                                               "first_query_ms":  0.5915,
+                                                               "query_p50_ms":  1.87085,
+                                                               "query_p95_ms":  20.54638,
+                                                               "query_mean_ms":  6.0823348,
+                                                               "round_median_ms":  603.3935,
+                                                               "artifact_bytes":  6877184
+                                                           },
+                                      "weighted_metrics":  {
+                                                               "build_ms":  2155.1814,
+                                                               "open_ms":  0.8749,
+                                                               "first_query_ms":  0.6458,
+                                                               "query_p50_ms":  0.85625,
+                                                               "query_p95_ms":  3.977854999999999,
+                                                               "query_mean_ms":  1.4971792,
+                                                               "round_median_ms":  148.3496,
+                                                               "artifact_bytes":  10960896
+                                                           },
+                                      "weighted_over_baseline":  {
+                                                                     "build_ms":  2.0299455342225663,
+                                                                     "open_ms":  0.94237397673416634,
+                                                                     "first_query_ms":  1.0918005071851227,
+                                                                     "query_p50_ms":  0.45767966432370311,
+                                                                     "query_p95_ms":  0.19360369077180503,
+                                                                     "query_mean_ms":  0.24615205332005072,
+                                                                     "round_median_ms":  0.24585879695422638,
+                                                                     "artifact_bytes":  1.5938058368076236
+                                                                 },
+                                      "equivalence":  {
+                                                          "rankings_sha256":  "531b8c63c840f3772a68c898b45f93d12abca0ba2bb8944c685c74852d3e32f7",
+                                                          "mrr_at_10":  0.514718253968254
+                                                      },
+                                      "rejection":  "Query round improved, but build time doubled and artifact bytes increased 59.4%; not a Pareto improvement."
+                                  },
+    "limitations":  [
+                        "Process-level diagnostic on one frozen NFCorpus input; the official v16 claim-grade persistence cohort is the cross-system evidence.",
+                        "The seven-run optimized source differs from the applied source only by formatting; the exact applied source has a separate three-run verification block.",
+                        "Sub-millisecond open and first-query differences are treated as noise unless reproduced by the claim-grade cohort."
+                    ]
+}

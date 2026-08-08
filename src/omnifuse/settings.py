@@ -1,0 +1,6 @@
+"""Shared lexical scoring defaults."""
+
+DEFAULT_TITLE_WEIGHT = 4.0
+DEFAULT_LEXICAL_K1 = 1.5
+DEFAULT_LEXICAL_B = 0.75
+DEFAULT_IDF_POW = 1.2

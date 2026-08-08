@@ -1,0 +1,301 @@
+{
+  "schema": "omnifuse.eval.persistence_cohort_summary",
+  "schema_version": 1,
+  "status": "ok",
+  "compiled_at": "2026-07-23T08:58:38.323380+00:00",
+  "evidence_set": "20260723-v10-persistence-memory3-v1",
+  "scope": {
+    "datasets": 3,
+    "competitor": "PlateerLab/synaptic-memory",
+    "competitor_tag": "v0.27.0",
+    "competitor_sha": "836d53640e520c88910dd57e098167a4defe50d2",
+    "description": "Native SQLite persistence cohort using identical frozen inputs, the byte-identical six-metric scorer, four counterbalanced fresh workers per system and strict write-once provenance."
+  },
+  "contract": {
+    "k": 10,
+    "candidate_limit": 20,
+    "warmup_rounds": 1,
+    "measurement_rounds": 3,
+    "fresh_trials_per_system": 4,
+    "trial_order": [
+      ["omnifuse", "synaptic"],
+      ["synaptic", "omnifuse"],
+      ["omnifuse", "synaptic"],
+      ["synaptic", "omnifuse"]
+    ],
+    "synaptic_ingest": "SqliteGraphBackend.save_nodes_batch",
+    "artifact_scope": "native SQLite files after clean close",
+    "memory": "current RSS, whole-process lifetime peak and 10 ms workload peak after system import",
+    "worker_input_validation": "streaming file fingerprint plus incremental canonical JSON hash; no full-payload duplicate in the measured process"
+  },
+  "source_freeze": {
+    "omnifuse_head": "cd355ddb5c59f5f8bb20c694a4fba8419567310a",
+    "omnifuse_dirty_content_sha256": "73bd0d6eddad69247be059d5051163459d415082d3e7074a3dbd477abd506b1c",
+    "synaptic_dirty": false,
+    "synaptic_dirty_content_sha256": "69e715af7a4cf9e0cd73dc83d0d99c1663a016e3ac0ee9ca180a11c50630e55b",
+    "performance_runner_sha256": "17fe1e1a19181313e9b568bcd975001d146ae0124c12fbcdfb572d1860b40855",
+    "persistence_runner_sha256": "18926e7dd879b0460cf4fa532e10bf118731302173804f772dcd1caeb30b4a90",
+    "provenance_helper_sha256": "bf00d00710d9776ab65914444b47fdccb74b428cb992f6e8958209352e3c3c94",
+    "scorer_sha256": "3634fe7d237c14d7975ed370dc7e328386c58ff43d04a917d88dced86f4ef978",
+    "doctor": {
+      "external_file": "D:/_tmp_bench/evidence/omnifuse-vs-synaptic/20260723-v10-persistence-memory3-v1/doctor_v6.json",
+      "bytes": 19348,
+      "sha256": "079a8bd0f1b3261dd4dd70aedda90c4c6e2b8ae66309cb27136857b042620b9a",
+      "canonical_sha256": "2d855f261634b7f82236a7bc522544937128af2615dfba8bd05c9b7a3b646d7a",
+      "strict_public_ready": "19/19"
+    }
+  },
+  "verdict": {
+    "strict_efficiency_wins": 30,
+    "strict_accuracy_wins": 18,
+    "total_strict_wins": 48,
+    "ties": 0,
+    "losses": 0
+  },
+  "cases": [
+    {
+      "case_id": "allganize_rag_ko",
+      "name": "Allganize RAG-ko",
+      "dataset": {
+        "path": "tests/benchmark/data/allganize_rag_ko.json",
+        "sha256": "b439b4b6c2495b90f1bf506cceb0cc0125f46c9b8cf6597655b77b03ab736537",
+        "bytes": 218748,
+        "documents": 200,
+        "scored_queries": 200,
+        "relevance_judgments": 200
+      },
+      "idf_pow": 1.2,
+      "worker_input": {
+        "sha256": "628a80363a7aa5b25ec137c9d7f305ec6387bfabb2dcddcbe36310210025cb4c",
+        "bytes": 219985
+      },
+      "evidence": {
+        "external_file": "D:/_tmp_bench/evidence/omnifuse-vs-synaptic/20260723-v10-persistence-memory3-v1/persistence_allganize_rag_ko_idf12_v4.json",
+        "bytes": 103902,
+        "sha256": "3f8404649a57f0d6424afd73da350de63d34a08a9508f675be7f2a646bf83d20",
+        "completed_workers": 8
+      },
+      "omnifuse": {
+        "accuracy": {
+          "mrr_at_20": 0.9683333333333333,
+          "mrr_at_10": 0.9683333333333333,
+          "precision_at_10": 0.10654166666666667,
+          "recall_at_10": 1.0,
+          "f1_at_10": 0.188998556998557,
+          "ndcg_at_10": 0.9765464876785728
+        },
+        "rankings_sha256": "b668631106ed619bdfaf38600a7dde2432794491634fb99bd4b7149462b5209e",
+        "durable_create_p50_s": 0.12425475,
+        "clean_open_p50_ms": 0.8726499999999999,
+        "first_query_p50_ms": 1.1902,
+        "steady_query_p50_ms": 1.202325,
+        "steady_query_p95_ms": 2.032405,
+        "query_round_p50_s": 0.25396256666666667,
+        "artifact_bytes": 499712,
+        "current_rss_p50_mb": 34.154496,
+        "lifetime_peak_rss_p50_mb": 35.815424,
+        "workload_peak_rss_p50_mb": 34.7648
+      },
+      "synaptic": {
+        "accuracy": {
+          "mrr_at_20": 0.9585198412698412,
+          "mrr_at_10": 0.9585198412698412,
+          "precision_at_10": 0.10583333333333333,
+          "recall_at_10": 0.995,
+          "f1_at_10": 0.1877012987012987,
+          "ndcg_at_10": 0.9673137432463528
+        },
+        "rankings_sha256": "3749b7455a84716974d469b082ec65061d22ad89b9b852f4bd36bca6af9981b5",
+        "durable_create_p50_s": 3.4994914,
+        "clean_open_p50_ms": 2.5218,
+        "first_query_p50_ms": 132.67090000000002,
+        "steady_query_p50_ms": 130.87017500000002,
+        "steady_query_p95_ms": 144.58817749999997,
+        "query_round_p50_s": 23.481537966666668,
+        "artifact_bytes": 524288,
+        "current_rss_p50_mb": 521.9450879999999,
+        "lifetime_peak_rss_p50_mb": 599.4414079999999,
+        "workload_peak_rss_p50_mb": 539.097088
+      },
+      "ratios_synaptic_over_omnifuse": {
+        "durable_create": 28.163844,
+        "clean_open": 2.889818,
+        "first_query": 111.469417,
+        "steady_query_p50": 108.847587,
+        "steady_query_p95": 71.14142,
+        "query_round": 92.460626,
+        "artifact_bytes": 1.04918,
+        "current_rss": 15.281885,
+        "lifetime_peak_rss": 16.736962,
+        "workload_peak_rss": 15.506981
+      },
+      "strict_wins": 16,
+      "ties": 0,
+      "losses": 0
+    },
+    {
+      "case_id": "autorag_retrieval",
+      "name": "AutoRAG",
+      "dataset": {
+        "path": "tests/benchmark/data/autorag_retrieval.json",
+        "sha256": "715b8e8db5af290b5476d534797d05fbdf3d85f302f8ca273b6d04373efe3a01",
+        "bytes": 1409438,
+        "documents": 720,
+        "scored_queries": 114,
+        "relevance_judgments": 114
+      },
+      "idf_pow": 1.2,
+      "worker_input": {
+        "sha256": "137c2906b968bc52e723d4713d32448c15ceb4722e293aed8373f2ca9e4e0334",
+        "bytes": 1533164
+      },
+      "evidence": {
+        "external_file": "D:/_tmp_bench/evidence/omnifuse-vs-synaptic/20260723-v10-persistence-memory3-v1/persistence_autorag_retrieval_idf12_v3.json",
+        "bytes": 103857,
+        "sha256": "548603f344961badeb392a90257a118356551098f7c2e7780703752b968bb419",
+        "completed_workers": 8
+      },
+      "omnifuse": {
+        "accuracy": {
+          "mrr_at_20": 0.8918964076858813,
+          "mrr_at_10": 0.8918964076858813,
+          "precision_at_10": 0.1,
+          "recall_at_10": 1.0,
+          "f1_at_10": 0.18181818181818182,
+          "ndcg_at_10": 0.9191546145012597
+        },
+        "rankings_sha256": "a7351be4ff6d435d724f32bd74209096ee30baeab468affdb2a31d6c6faf6b31",
+        "durable_create_p50_s": 0.61766535,
+        "clean_open_p50_ms": 1.05345,
+        "first_query_p50_ms": 5.44435,
+        "steady_query_p50_ms": 6.160725,
+        "steady_query_p95_ms": 10.0885675,
+        "query_round_p50_s": 0.7358927166666667,
+        "artifact_bytes": 2686976,
+        "current_rss_p50_mb": 37.947392,
+        "lifetime_peak_rss_p50_mb": 44.72832,
+        "workload_peak_rss_p50_mb": 44.466176000000004
+      },
+      "synaptic": {
+        "accuracy": {
+          "mrr_at_20": 0.8911236424394319,
+          "mrr_at_10": 0.8904970760233918,
+          "precision_at_10": 0.09912280701754386,
+          "recall_at_10": 0.9912280701754386,
+          "f1_at_10": 0.1802232854864434,
+          "ndcg_at_10": 0.9155183892186317
+        },
+        "rankings_sha256": "3a060e76e685732bac3ebc1cba3396c4dde105b004ea8958e7e532285e687846",
+        "durable_create_p50_s": 12.2348118,
+        "clean_open_p50_ms": 2.57465,
+        "first_query_p50_ms": 255.0016,
+        "steady_query_p50_ms": 248.034525,
+        "steady_query_p95_ms": 299.07169999999996,
+        "query_round_p50_s": 28.570296550000002,
+        "artifact_bytes": 4526080,
+        "current_rss_p50_mb": 529.1683840000001,
+        "lifetime_peak_rss_p50_mb": 601.2497920000001,
+        "workload_peak_rss_p50_mb": 548.161536
+      },
+      "ratios_synaptic_over_omnifuse": {
+        "durable_create": 19.808156,
+        "clean_open": 2.444017,
+        "first_query": 46.837841,
+        "steady_query_p50": 40.260607,
+        "steady_query_p95": 29.644615,
+        "query_round": 38.823997,
+        "artifact_bytes": 1.684451,
+        "current_rss": 13.944789,
+        "lifetime_peak_rss": 13.442262,
+        "workload_peak_rss": 12.327607
+      },
+      "strict_wins": 16,
+      "ties": 0,
+      "losses": 0
+    },
+    {
+      "case_id": "nfcorpus",
+      "name": "NFCorpus",
+      "dataset": {
+        "path": "tests/benchmark/data/nfcorpus.json",
+        "sha256": "7232e143da668a135e5b294b12e10b84cb2e1cc2865d509cf65b423ad7ee49e3",
+        "bytes": 6244913,
+        "documents": 3633,
+        "scored_queries": 100,
+        "relevance_judgments": 3098
+      },
+      "idf_pow": 1.0,
+      "worker_input": {
+        "sha256": "1f08261e50a6604654ba2951728c49b2c98c756869f2686051682d20a66f0ba5",
+        "bytes": 5804102
+      },
+      "evidence": {
+        "external_file": "D:/_tmp_bench/evidence/omnifuse-vs-synaptic/20260723-v10-persistence-memory3-v1/persistence_nfcorpus_idf1_v3.json",
+        "bytes": 98967,
+        "sha256": "e357ca50e3f102c3c2f8cefc5bd9fa2c40623518536ec72da09d955dda3b5511",
+        "completed_workers": 8
+      },
+      "omnifuse": {
+        "accuracy": {
+          "mrr_at_20": 0.5172707749766573,
+          "mrr_at_10": 0.514718253968254,
+          "precision_at_10": 0.301,
+          "recall_at_10": 0.15211743746688083,
+          "f1_at_10": 0.14119901502659574,
+          "ndcg_at_10": 0.2980309526199708
+        },
+        "rankings_sha256": "92977462f2c6b9176c077174303162543e2d6abc1033e6b84bca5bc6dbbefb5c",
+        "durable_create_p50_s": 1.01642205,
+        "clean_open_p50_ms": 0.95935,
+        "first_query_p50_ms": 0.633,
+        "steady_query_p50_ms": 1.7996,
+        "steady_query_p95_ms": 18.236745000000006,
+        "query_round_p50_s": 0.5464783166666667,
+        "artifact_bytes": 5627904,
+        "current_rss_p50_mb": 43.97056,
+        "lifetime_peak_rss_p50_mb": 49.876992,
+        "workload_peak_rss_p50_mb": 49.862656
+      },
+      "synaptic": {
+        "accuracy": {
+          "mrr_at_20": 0.5087539682539682,
+          "mrr_at_10": 0.5080396825396826,
+          "precision_at_10": 0.28435714285714286,
+          "recall_at_10": 0.14482871475280842,
+          "f1_at_10": 0.13294847837598295,
+          "ndcg_at_10": 0.28073482318571946
+        },
+        "rankings_sha256": "cf439d118841e31bdbc5f07d9e70420d45fdca092ca88e4b25262920f901a833",
+        "durable_create_p50_s": 1.1429669,
+        "clean_open_p50_ms": 2.33005,
+        "first_query_p50_ms": 63.131699999999995,
+        "steady_query_p50_ms": 244.54225,
+        "steady_query_p95_ms": 284.1643025,
+        "query_round_p50_s": 18.8906478,
+        "artifact_bytes": 18132992,
+        "current_rss_p50_mb": 50.223104,
+        "lifetime_peak_rss_p50_mb": 55.676928000000004,
+        "workload_peak_rss_p50_mb": 55.676928000000004
+      },
+      "ratios_synaptic_over_omnifuse": {
+        "durable_create": 1.1245,
+        "clean_open": 2.42878,
+        "first_query": 99.734123,
+        "steady_query_p50": 135.887003,
+        "steady_query_p95": 15.581964,
+        "query_round": 34.567973,
+        "artifact_bytes": 3.22198,
+        "current_rss": 1.142198,
+        "lifetime_peak_rss": 1.116285,
+        "workload_peak_rss": 1.116606
+      },
+      "strict_wins": 16,
+      "ties": 0,
+      "losses": 0
+    }
+  ],
+  "limitations": [
+    "Current-host, no-embedding native SQLite cohort; values are not cross-machine constants.",
+    "The cohort covers lexical persistence, retrieval accuracy and process efficiency, not embedding, reranking, PostgreSQL or unrelated agent-memory features."
+  ]
+}

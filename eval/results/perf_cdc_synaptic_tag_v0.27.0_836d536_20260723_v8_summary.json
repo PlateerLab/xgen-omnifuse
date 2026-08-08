@@ -1,0 +1,251 @@
+{
+  "schema": "omnifuse.eval.performance_cdc_summary",
+  "schema_version": 1,
+  "status": "ok",
+  "compiled_at": "2026-07-23T04:02:15.8234856Z",
+  "evidence_set": "20260723-v8-production-memory3-v1",
+  "scope": {
+    "competitor": "PlateerLab/synaptic-memory",
+    "competitor_tag": "v0.27.0",
+    "competitor_sha": "836d53640e520c88910dd57e098167a4defe50d2",
+    "performance_protocol": "official-external-memory",
+    "cdc_protocol": "official-external-memory-cdc-v2",
+    "description": "Current-host no-embedding MemoryBackend comparison using official dataset selection, native public paths, byte-identical scoring, counterbalanced fresh workers and write-once evidence."
+  },
+  "source_freeze": {
+    "omnifuse_head": "cd355ddb5c59f5f8bb20c694a4fba8419567310a",
+    "omnifuse_dirty_content_sha256": "e2c3fa57e4efcfd2798b20afe016dded3e69cffd1128d31ab98aaceec22c7a21",
+    "omnifuse_source_tree_sha256": "b382141653a239451397b2f60c27fdf08ea96ee1d9493eb11121b735ac5f0813",
+    "omnifuse_memory_sha256": "0811f1368e1270a69b89038565b60eec9e5bcab91a4fd072d3b18ab97302d73d",
+    "omnifuse_facade_sha256": "51cc7a9810108b319edc15108676772a49fcbedb8f377f5eae2501825d300d80",
+    "static_lazy_test_sha256": "a4f0e23ed0f7e5748194d65f0caf650f91a30debb6f39ff690d787b99c64f124",
+    "performance_runner_sha256": "bdab503ba03a4399c6f151606bf0aafc835e8b064a962ad810dd21ddd1b59b21",
+    "cdc_runner_sha256": "7d34442538991f8ba7216892b40e0c85a770bfb0c135d1718cb7e635635dc11e",
+    "active_and_official_scorer_sha256": "3634fe7d237c14d7975ed370dc7e328386c58ff43d04a917d88dced86f4ef978",
+    "doctor": {
+      "external_file": "D:/_tmp_bench/evidence/omnifuse-vs-synaptic/20260723-v8-production-memory3-v1/doctor.json",
+      "bytes": 19348,
+      "sha256": "318e380dbbe76f19283e81951dc79970b326ef32b761f0b92e5e37756b25d2ac",
+      "canonical_sha256": "a0676dc53ad5f521b6e6c4ee925af559f61d95ed12111255362beb1bdeb34e74",
+      "strict_public_ready": "19/19"
+    }
+  },
+  "performance_contract": {
+    "k": 10,
+    "candidate_limit": 20,
+    "warmup_rounds": 1,
+    "measurement_rounds": 5,
+    "fresh_trials_per_system": 2,
+    "trial_order": [
+      ["omnifuse", "synaptic"],
+      ["synaptic", "omnifuse"]
+    ],
+    "timer": "time.perf_counter_ns",
+    "timed_retrieval": "fully materialized raw top-20",
+    "memory_scope": "whole fresh worker process",
+    "accuracy": "official BenchmarkResult-compatible MRR@10 and canonical top-20 IDs",
+    "publication": "strict preflight/postflight, isolated fresh workers, frozen inputs and atomic write-once external evidence"
+  },
+  "performance_cases": [
+    {
+      "case_id": "autorag_retrieval",
+      "documents": 720,
+      "queries": 114,
+      "dataset_sha256": "715b8e8db5af290b5476d534797d05fbdf3d85f302f8ca273b6d04373efe3a01",
+      "evidence": {
+        "external_file": "D:/_tmp_bench/evidence/omnifuse-vs-synaptic/20260723-v8-production-memory3-v1/autorag_retrieval.json",
+        "bytes": 222284,
+        "sha256": "eb4d98fa955389970e5f09601328e61edf105c04e8afdcf48ba1aa100315027b"
+      },
+      "omnifuse": {
+        "mrr_at_10": 0.8918964076858813,
+        "canonical_top20_sha256": "df6fddf29e420d6865e8b8f1720089f4a2cf2488f45e48642ab3959c63ba1b15",
+        "ingest_mean_s": 0.0009886,
+        "query_p50_mean_ms": 0.40295000000000003,
+        "query_p95_mean_ms": 0.6015724999999998,
+        "end_to_end_mean_s": 0.04833118,
+        "peak_rss_mean_mb": 63.498239999999996
+      },
+      "synaptic": {
+        "mrr_at_10": 0.8310045948203842,
+        "canonical_top20_sha256": "8a95935454e9f38efc03611490281d429f609bae84ef2633aa5c84453ec5eef4",
+        "ingest_mean_s": 0.0073729,
+        "query_p50_mean_ms": 206.812075,
+        "query_p95_mean_ms": 260.09511499999996,
+        "end_to_end_mean_s": 23.78159574,
+        "peak_rss_mean_mb": 614.3836160000001
+      },
+      "ratios_synaptic_over_omnifuse": {
+        "ingest": 7.457920291321059,
+        "query_p50": 513.2450055838193,
+        "query_p95": 432.3587181927366,
+        "end_to_end": 492.05493720616795,
+        "peak_rss": 9.675600709562975
+      }
+    },
+    {
+      "case_id": "allganize_rag_ko",
+      "documents": 200,
+      "queries": 200,
+      "dataset_sha256": "b439b4b6c2495b90f1bf506cceb0cc0125f46c9b8cf6597655b77b03ab736537",
+      "evidence": {
+        "external_file": "D:/_tmp_bench/evidence/omnifuse-vs-synaptic/20260723-v8-production-memory3-v1/allganize_rag_ko.json",
+        "bytes": 222192,
+        "sha256": "657fd0f395a58e22856f7b2b78b331b634a648450513aa83ee2f7a5afd6af52d"
+      },
+      "omnifuse": {
+        "mrr_at_10": 0.9683333333333333,
+        "canonical_top20_sha256": "89c74351b48aa50ed6e67ef5b740e46ba0cfc2cb1179db5665752147c84cca34",
+        "ingest_mean_s": 0.0002753,
+        "query_p50_mean_ms": 0.104675,
+        "query_p95_mean_ms": 0.18835249999999998,
+        "end_to_end_mean_s": 0.022587539999999996,
+        "peak_rss_mean_mb": 43.249664
+      },
+      "synaptic": {
+        "mrr_at_10": 0.9468392857142857,
+        "canonical_top20_sha256": "dfca51be7b43088d6105a9e6bf84ee5798af5eb1a0fc28e4d1a2d527cfa5c457",
+        "ingest_mean_s": 0.00161415,
+        "query_p50_mean_ms": 93.379525,
+        "query_p95_mean_ms": 105.0589675,
+        "end_to_end_mean_s": 16.703568509999997,
+        "peak_rss_mean_mb": 611.186688
+      },
+      "ratios_synaptic_over_omnifuse": {
+        "ingest": 5.863240101707228,
+        "query_p50": 892.0900406018629,
+        "query_p95": 557.7784605991426,
+        "end_to_end": 739.5036604251725,
+        "peak_rss": 14.131593900937588
+      }
+    },
+    {
+      "case_id": "nfcorpus",
+      "documents": 3633,
+      "queries": 100,
+      "dataset_sha256": "7232e143da668a135e5b294b12e10b84cb2e1cc2865d509cf65b423ad7ee49e3",
+      "evidence": {
+        "external_file": "D:/_tmp_bench/evidence/omnifuse-vs-synaptic/20260723-v8-production-memory3-v1/nfcorpus.json",
+        "bytes": 219522,
+        "sha256": "fb46a0dc7c2eb821f01502cc1c26d559ef1dff7cac6e70e239b26483bf7c730c"
+      },
+      "omnifuse": {
+        "mrr_at_10": 0.5057738095238095,
+        "canonical_top20_sha256": "8ed194b80f37de9e3eda240ca22b1f5d3293fec6b26c35916519068692587ee7",
+        "ingest_mean_s": 0.0043744000000000005,
+        "query_p50_mean_ms": 0.175825,
+        "query_p95_mean_ms": 1.559265,
+        "end_to_end_mean_s": 0.05318657,
+        "peak_rss_mean_mb": 74.05568
+      },
+      "synaptic": {
+        "mrr_at_10": 0.4771111111111111,
+        "canonical_top20_sha256": "7d9ec5a4d1851cee1b4b94d40decb53ee8dba7e2a3ff309ee210e61e051ca8ba",
+        "ingest_mean_s": 0.03712795,
+        "query_p50_mean_ms": 271.99175,
+        "query_p95_mean_ms": 349.2337325,
+        "end_to_end_mean_s": 23.06433182,
+        "peak_rss_mean_mb": 74.070016
+      },
+      "ratios_synaptic_over_omnifuse": {
+        "ingest": 8.487552578639356,
+        "query_p50": 1546.945826816437,
+        "query_p95": 223.97330312679372,
+        "end_to_end": 433.6495438604144,
+        "peak_rss": 1.0001935840707965
+      }
+    }
+  ],
+  "cdc": {
+    "case_id": "nfcorpus",
+    "documents": 3633,
+    "queries": 100,
+    "mutation_group_size": 36,
+    "phases": ["insert", "update", "delete", "noop"],
+    "steady_rounds": 5,
+    "fresh_trials_per_system": 2,
+    "evidence": {
+      "external_file": "D:/_tmp_bench/evidence/omnifuse-vs-synaptic/20260723-v8-production-memory3-v1/cdc_nfcorpus.json",
+      "bytes": 1045347,
+      "sha256": "40c387de4f4579d64361b36122d853e2389ca971ecedd5e8f10b68332d5eb170"
+    },
+    "omnifuse": {
+      "metrics": {
+        "mrr_at_20": 0.507952264239029,
+        "mrr_at_10": 0.5055952380952381,
+        "precision_at_10": 0.29604761904761906,
+        "recall_at_10": 0.1514429491779968,
+        "f1_at_10": 0.14005028496201105,
+        "ndcg_at_10": 0.2927459055469885
+      },
+      "p50": {
+        "initial_ingest_s": 0.0062684,
+        "mutation_s": 0.00042435,
+        "cold_first_round_s": 1.5952302999999999,
+        "steady_mean_round_s": 0.050185389999999996,
+        "incremental_end_to_end_s": 1.59565465,
+        "rss_initial_ingest_delta_mb": 0.31129600000000224,
+        "rss_after_mutation_delta_mb": 0.31334400000000073,
+        "rss_after_measured_queries_delta_mb": 4.214784000000002,
+        "peak_rss_after_measured_queries_mb": 69.179392
+      },
+      "rankings_sha256": "56f2f338f366a55920031362339661a68f728f7ff509d68b9ccee05b7c122152"
+    },
+    "synaptic": {
+      "metrics": {
+        "mrr_at_20": 0.4799061669324827,
+        "mrr_at_10": 0.4771111111111111,
+        "precision_at_10": 0.2506904761904762,
+        "recall_at_10": 0.1323170613454116,
+        "f1_at_10": 0.12055652367514867,
+        "ndcg_at_10": 0.24809830558761473
+      },
+      "p50": {
+        "initial_ingest_s": 0.030192450000000003,
+        "mutation_s": 0.0029112,
+        "cold_first_round_s": 23.118914699999998,
+        "steady_mean_round_s": 23.171357620000002,
+        "incremental_end_to_end_s": 23.121825899999997,
+        "rss_initial_ingest_delta_mb": 3.1416320000000013,
+        "rss_after_mutation_delta_mb": 3.350527999999997,
+        "rss_after_measured_queries_delta_mb": 7.448575999999996,
+        "peak_rss_after_measured_queries_mb": 75.620352
+      },
+      "rankings_sha256": "8712bd6c7b412b5a7a17f64f0e07101a44659358cc6adb72cae47a6c0a4bf128"
+    },
+    "ratios_synaptic_over_omnifuse": {
+      "initial_ingest": 4.8166118945823495,
+      "mutation": 6.860374690703429,
+      "cold_first_round": 14.492524809740637,
+      "steady_mean_round": 461.71520476377697,
+      "incremental_end_to_end": 14.490495108073667,
+      "rss_initial_ingest_delta": 10.092105263157826,
+      "rss_after_mutation_delta": 10.692810457516305,
+      "rss_after_measured_queries_delta": 1.7672497570456738,
+      "peak_rss_after_measured_queries": 1.0931051836940109
+    },
+    "exactness": "Both systems match their own full rebuild at every checkpoint; all rankings and float.hex scores are exact across both trials."
+  },
+  "interpretation": {
+    "accuracy": "OmniFuse preserves the earlier canonical rankings and has higher measured accuracy in all three performance cases and all six NFCorpus CDC metrics.",
+    "static_performance": "OmniFuse has lower native ingest, p50, p95, end-to-end and whole-worker peak RSS in all three measured cases on this host.",
+    "incremental_performance": "OmniFuse has lower ingest, mutation, cold, steady, end-to-end and all four reported memory values in the NFCorpus CDC cohort.",
+    "architecture": "Plain static lexical stores snapshot construction-time title/text values and materialize BM25 once on first use under a lock. Feedback-backed stores retain eager construction semantics."
+  },
+  "integrity": {
+    "performance_workers": 12,
+    "cdc_workers": 4,
+    "all_worker_artifacts_rehashed": true,
+    "all_integrity_flags_true": true,
+    "strict_json_duplicate_keys": 0,
+    "repository_and_source_postflight_unchanged": true,
+    "canonical_rankings_unchanged_from_20260722_reference": true
+  },
+  "limitations": [
+    "These are current-host observations, not cross-machine universal constants.",
+    "The repeated static performance cohort covers three selected official fixtures; direct14 remains the broader accuracy cohort.",
+    "The static protocol measures warmed query calls after one verified warm-up. First-use lexical materialization is therefore disclosed separately by the CDC cold-round result and the source-bound NFCorpus cold diagnostic.",
+    "This no-embedding MemoryBackend comparison does not establish superiority over Synaptic persistent backends, embedding pipelines, rerankers or unrelated agent-memory features.",
+    "The full raw evidence set is retained outside Git; this compact file records its immutable paths, sizes and SHA-256 hashes."
+  ]
+}
