@@ -54,6 +54,21 @@ the same non-zero transition, so no oracle-free zero-loss fusion is claimed.
 
 The sections below retain earlier immutable artifacts as historical evidence.
 
+### Superseded source-bound iterations
+
+The following write-once artifacts are retained for auditability but are not used by the
+current README verdict. Their recorded repository names, dirty-state fingerprints and local
+paths describe the environment at execution time and are intentionally not rewritten.
+
+| artifact | role | SHA-256 |
+|---|---|---|
+| [`direct v25`](results/direct_external14_synaptic_tag_v0.27.0_836d536_20260809_v25.json) | initial August source-bound Direct14 iteration | `7666762c42025148a008fa464ae8db209470bc4ca8471f9d4a49beed2d7c7318` |
+| [`direct v30`](results/direct_external14_synaptic_tag_v0.27.0_836d536_20260810_v30.json) | intermediate Direct14 ranking iteration | `464a119200f7492cca4dde7c95fc9e5f28854d7b3e516fefeb3e9a87f8eb759f` |
+| [`direct v31`](results/direct_external14_synaptic_tag_v0.27.0_836d536_20260810_v31.json) | final pre-v34 Direct14 iteration | `0fc1350f3b045ea839fcf6ac000d9eab11f30d9da5ba6568d2489903c53c62d2` |
+| [`HotPotQA v25`](results/e2e_qa_retrieval_synaptic_tag_v0.27.0_836d536_20260809_v25.json) | initial retrieval E2E iteration | `136137f13372907ea1a80c84fe201ecfdd96debdfbe9212f9b0e683f95f30ff8` |
+| [`Enterprise v25`](results/enterprise_synaptic_tag_v0.27.0_836d536_20260809_v25.json) | initial native-capability iteration | `85d1614b292bc957244df31b25da5a98c1d75439760ff994b82c06d8d76dc6ef` |
+| [`LongMemEval v25`](results/longmemeval_retrieval_synaptic_tag_v0.27.0_836d536_20260809_v25.json) | initial long-memory retrieval iteration | `9245756e15f2f44823e43c000ab52da3da2f8e7638fd638ac2962c9b4860dd36` |
+
 ## Historical HotPotQA official E2E result (2026-08-08, v22)
 
 `e2e_qa_retrieval_bench.py` reproduces the tagged
