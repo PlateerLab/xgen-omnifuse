@@ -21,6 +21,7 @@ jobs:
         uses: actions/checkout@v7
         with:
           fetch-depth: 0
+          token: ${{ secrets.SOURCE_SYNC_TOKEN }}
 
       - name: Fast-forward from the personal source
         run: |
