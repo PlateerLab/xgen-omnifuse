@@ -171,3 +171,63 @@ def test_head_to_head_uses_higher_quality_and_lower_cost() -> None:
         "ties": 0,
         "comparable_metrics": 8,
     }
+
+
+def test_per_question_head_to_head_reports_every_quality_loss() -> None:
+    def row(question_id: str, *, recall: float, retrieval_ms: float) -> dict:
+        return {
+            "question_id": question_id,
+            "build_ms": 1.0,
+            "retrieval_ms": retrieval_ms,
+            "metrics": {
+                "eligible": True,
+                "session_recall": recall,
+                "session_hit": recall > 0.0,
+                "reciprocal_rank": recall,
+                "ndcg": recall,
+            },
+            "process_memory": {
+                "before_build": {"current_rss_mb": 10.0},
+                "post_query": {"current_rss_mb": 11.0},
+            },
+        }
+
+    trials = {
+        "omnifuse": [
+            {
+                "result": {
+                    "questions": [
+                        row("win", recall=1.0, retrieval_ms=1.0),
+                        row("loss", recall=0.0, retrieval_ms=3.0),
+                    ]
+                }
+            }
+        ],
+        "synaptic": [
+            {
+                "result": {
+                    "questions": [
+                        row("win", recall=0.0, retrieval_ms=2.0),
+                        row("loss", recall=1.0, retrieval_ms=2.0),
+                    ]
+                }
+            }
+        ],
+    }
+
+    result = longmem._per_question_head_to_head(trials)
+
+    assert result["questions"] == 2
+    assert result["quality"]["questions_with_any_omnifuse_loss"] == 1
+    assert result["quality"]["losses"] == [
+        {
+            "question_id": "loss",
+            "metrics": [
+                "session_recall",
+                "session_hit",
+                "reciprocal_rank",
+                "ndcg",
+            ],
+        }
+    ]
+    assert result["efficiency"]["questions_with_any_omnifuse_loss"] == 1

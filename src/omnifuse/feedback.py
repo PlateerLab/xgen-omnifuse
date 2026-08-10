@@ -1,35 +1,9 @@
-"""Memory — the queries a chunk was confirmed to answer, indexed as *evidence*.
+"""Queries confirmed to answer a chunk, indexed as BM25F evidence.
 
-A user asks the same thing in different words. The document that answered them last time
-does not contain the new phrasing; it never will. What connects them is the *earlier
-query*. So memory stores that query, and retrieval matches against it.
-
-The trap is that memory must not become content. Our first attempt appended the remembered
-query to the document body and appeared to win big — until the placebo controls showed the
-gain survived shuffling the (query, document) pairing, and even lifted queries whose
-relevant documents remembered nothing. Injecting query text raises the document frequency
-of query vocabulary and deflates its IDF corpus-wide; the "memory" was an accidental,
-uncontrolled `idf_pow` reduction. See `eval/results/adaptive_memory.json`.
-
-So memory is an **evidence field** (`BM25F(evidence_fields=…)`): its terms score a
-document but never enter document frequency, and they are not length-normalized. Three
-properties follow, none of them tuned:
-
-* a chunk that remembers nothing has an empty evidence field, so a cold store ranks
-  **bit-identically** to one built with no feedback at all;
-* the collection's IDF is untouched, so memory cannot move a query whose relevant
-  documents remember nothing (measured: **Δ = +0.0000**);
-* remembering a second query does not dilute the first.
-
-    fb = Feedback()
-    fb.remember("statin side effects", ["doc7"])       # a user confirmed doc7 answered it
-    of = build_inmemory(nodes, triples, chunks, feedback=fb)
-
-Measured against synaptic's Hebbian reinforcement on the same corpus, queries and scorer
-(paraphrased re-queries, held-out): ΔMRR@10 **+0.4167 vs +0.0093** on the chunks that
-remember, with placebos at +0.024 (shuffled) and +0.080 (random query). On *unrelated*
-queries — a different question, not a rephrasing — memory correctly does nothing (+0.0006).
+Evidence terms score only the chunk that owns them. They do not enter document frequency
+or length normalization, so unrelated chunks and the collection's content IDF stay fixed.
 """
+
 from __future__ import annotations
 
 import json
@@ -87,7 +61,9 @@ class Feedback:
         else:
             self._mem.pop(doc_id, None)
 
-    def observe_ranked(self, retrieved: Iterable[str], relevant: Iterable[str], query: str) -> None:
+    def observe_ranked(
+        self, retrieved: Iterable[str], relevant: Iterable[str], query: str
+    ) -> None:
         """Record a judged result list: only the confirmed-relevant chunks remember it."""
         rel = set(relevant)
         self.remember(query, [d for d in retrieved if d in rel])

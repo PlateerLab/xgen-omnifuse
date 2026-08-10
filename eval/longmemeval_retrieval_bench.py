@@ -57,7 +57,7 @@ from provenance import (  # noqa: E402
 )
 
 SCHEMA = "omnifuse.eval.longmemeval_retrieval"
-SCHEMA_VERSION = 1
+SCHEMA_VERSION = 2
 WORKER_SCHEMA = "omnifuse.eval.longmemeval_retrieval_worker"
 WORKER_SCHEMA_VERSION = 1
 PROVENANCE_LEVEL = "isolated-balanced-upstream-path-preflight-postflight-write-once-v1"
@@ -809,7 +809,98 @@ def _aggregate_trials(trials: Sequence[Mapping[str, Any]]) -> dict[str, Any]:
     }
 
 
-def _head_to_head(aggregates: Mapping[str, Any]) -> dict[str, Any]:
+def _per_question_head_to_head(
+    trials: Mapping[str, Sequence[Mapping[str, Any]]],
+) -> dict[str, Any]:
+    question_rows = {
+        system: {
+            row["question_id"]: row
+            for row in system_trials[0]["result"]["questions"]
+            if row["metrics"]["eligible"]
+        }
+        for system, system_trials in trials.items()
+    }
+    omni = question_rows["omnifuse"]
+    synaptic = question_rows["synaptic"]
+    if list(omni) != list(synaptic):
+        raise ValueError("LongMemEval per-question system cohorts differ")
+
+    quality_fields = (
+        "session_recall",
+        "session_hit",
+        "reciprocal_rank",
+        "ndcg",
+    )
+    efficiency_fields = ("build_ms", "retrieval_ms", "rss_delta_mb")
+    quality_counts = {
+        field: {"omnifuse": 0, "synaptic": 0, "tie": 0} for field in quality_fields
+    }
+    efficiency_counts = {
+        field: {"omnifuse": 0, "synaptic": 0, "tie": 0, "unavailable": 0}
+        for field in efficiency_fields
+    }
+    quality_losses: list[dict[str, Any]] = []
+    efficiency_losses: list[dict[str, Any]] = []
+
+    for question_id, omni_row in omni.items():
+        synaptic_row = synaptic[question_id]
+        lost_quality: list[str] = []
+        for field in quality_fields:
+            omni_value = float(omni_row["metrics"][field])
+            synaptic_value = float(synaptic_row["metrics"][field])
+            if math.isclose(omni_value, synaptic_value, rel_tol=1e-12, abs_tol=1e-12):
+                winner = "tie"
+            elif omni_value > synaptic_value:
+                winner = "omnifuse"
+            else:
+                winner = "synaptic"
+                lost_quality.append(field)
+            quality_counts[field][winner] += 1
+        if lost_quality:
+            quality_losses.append({"question_id": question_id, "metrics": lost_quality})
+
+        lost_efficiency: list[str] = []
+        for field in efficiency_fields:
+            if field == "rss_delta_mb":
+                omni_value = _rss_delta(omni_row)
+                synaptic_value = _rss_delta(synaptic_row)
+            else:
+                omni_value = float(omni_row[field])
+                synaptic_value = float(synaptic_row[field])
+            if omni_value is None or synaptic_value is None:
+                winner = "unavailable"
+            elif math.isclose(omni_value, synaptic_value, rel_tol=1e-12, abs_tol=1e-12):
+                winner = "tie"
+            elif omni_value < synaptic_value:
+                winner = "omnifuse"
+            else:
+                winner = "synaptic"
+                lost_efficiency.append(field)
+            efficiency_counts[field][winner] += 1
+        if lost_efficiency:
+            efficiency_losses.append(
+                {"question_id": question_id, "metrics": lost_efficiency}
+            )
+
+    return {
+        "questions": len(omni),
+        "quality": {
+            "metrics": quality_counts,
+            "questions_with_any_omnifuse_loss": len(quality_losses),
+            "losses": quality_losses,
+        },
+        "efficiency": {
+            "metrics": efficiency_counts,
+            "questions_with_any_omnifuse_loss": len(efficiency_losses),
+            "losses": efficiency_losses,
+        },
+    }
+
+
+def _head_to_head(
+    aggregates: Mapping[str, Any],
+    trials: Mapping[str, Sequence[Mapping[str, Any]]] | None = None,
+) -> dict[str, Any]:
     omni = aggregates["omnifuse"]["metrics"]
     syn = aggregates["synaptic"]["metrics"]
     rows: list[dict[str, Any]] = []
@@ -861,7 +952,7 @@ def _head_to_head(aggregates: Mapping[str, Any]) -> dict[str, Any]:
     comparable = [row for row in rows if row["winner"] != "unavailable"]
     quality_rows = [row for row in comparable if row["metric"] in quality]
     efficiency_rows = [row for row in comparable if row["metric"] in efficiency]
-    return {
+    result = {
         "metrics": rows,
         "verdict": {
             "omnifuse_wins_or_ties_all_quality": all(
@@ -880,6 +971,9 @@ def _head_to_head(aggregates: Mapping[str, Any]) -> dict[str, Any]:
             "comparable_metrics": len(comparable),
         },
     }
+    if trials is not None:
+        result["per_question"] = _per_question_head_to_head(trials)
+    return result
 
 
 def _preflight(args: argparse.Namespace) -> dict[str, Any]:
@@ -1068,7 +1162,7 @@ def _controller(args: argparse.Namespace) -> int:
             }
             for system in SYSTEMS
         },
-        "head_to_head": _head_to_head(aggregates),
+        "head_to_head": _head_to_head(aggregates, rows),
         "postflight": {
             "data_unchanged": True,
             "repositories_unchanged": True,

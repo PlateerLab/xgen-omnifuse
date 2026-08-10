@@ -1,0 +1,31 @@
+name: Sync from js-omnifuse
+
+on:
+  schedule:
+    - cron: "*/15 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: sync-from-js-omnifuse
+  cancel-in-progress: false
+
+jobs:
+  fast-forward-mirror:
+    if: github.repository == 'PlateerLab/xgen-omnifuse'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the organization mirror
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Fast-forward from the personal source
+        run: |
+          git remote add source https://github.com/jinsoo96/js-omnifuse.git
+          git fetch --no-tags source main
+          git checkout main
+          git merge --ff-only source/main
+          git push origin main

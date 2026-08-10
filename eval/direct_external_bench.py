@@ -107,8 +107,8 @@ ENVIRONMENT_PROBE_SCHEMA = "omnifuse.eval.synaptic_direct_external_environment"
 REPORT_SCHEMA = "omnifuse.eval.synaptic_direct_external_comparison"
 WORKER_SCHEMA_VERSION = 4
 ENVIRONMENT_PROBE_SCHEMA_VERSION = 2
-REPORT_SCHEMA_VERSION = 4
-PROVENANCE_LEVEL = "official-tag-direct-fts-isolated-write-once-v4"
+REPORT_SCHEMA_VERSION = 5
+PROVENANCE_LEVEL = "official-tag-direct-fts-isolated-write-once-v5"
 METRIC_NAMES = (
     "mrr_at_20",
     "mrr_at_10",
@@ -1921,7 +1921,9 @@ def _strict_sha256(value: Any, *, label: str) -> str:
 def _assert_same_number(label: str, actual: Any, expected: float) -> None:
     number = _strict_number(actual, label=label, maximum=1.0)
     if not math.isclose(number, expected, rel_tol=0.0, abs_tol=1e-15):
-        raise ProvenanceError(f"{label} differs from the independently recomputed value")
+        raise ProvenanceError(
+            f"{label} differs from the independently recomputed value"
+        )
 
 
 def _validate_worker_contract(value: Any, *, case: DatasetCase) -> None:
@@ -2162,7 +2164,11 @@ def _official_case_contract(
                 f"official dataset {case.id} has invalid qrels for {query_id!r}"
             )
         relevant = sorted(
-            {str(document_id) for document_id in raw_relevant if str(document_id) in indexed_ids}
+            {
+                str(document_id)
+                for document_id in raw_relevant
+                if str(document_id) in indexed_ids
+            }
         )
         if relevant:
             expected_queries.append({"query_id": query_id, "relevant": relevant})
@@ -2184,9 +2190,7 @@ def _official_case_contract(
                 eligible_query_ids
             ),
             "scored_query_count": len(scored_query_ids),
-            "scored_query_ids_ordered_sha256": canonical_json_sha256(
-                scored_query_ids
-            ),
+            "scored_query_ids_ordered_sha256": canonical_json_sha256(scored_query_ids),
         },
         "document_preprocessing": {
             "text_character_limit": TEXT_LIMIT,
@@ -2204,7 +2208,9 @@ def _official_case_contract(
     }
 
 
-def _validate_query_row(value: Any, *, case: DatasetCase, system: str) -> dict[str, Any]:
+def _validate_query_row(
+    value: Any, *, case: DatasetCase, system: str
+) -> dict[str, Any]:
     label = f"worker {case.id} {system} query row"
     row = _strict_mapping(
         value,
@@ -2238,11 +2244,13 @@ def _validate_query_row(value: Any, *, case: DatasetCase, system: str) -> dict[s
     relevant_set = set(relevant)
     rr_20 = _reciprocal_rank_at_k(top_20, relevant_set, CANDIDATE_LIMIT)
     rr_10 = _reciprocal_rank_at_k(top_10, relevant_set, K)
-    _assert_same_number(f"{label} reciprocal rank at 20", row["reciprocal_rank_at_20"], rr_20)
-    _assert_same_number(f"{label} reciprocal rank at 10", row["reciprocal_rank_at_10"], rr_10)
-    search_time = _strict_number(
-        row["search_time_ms"], label=f"{label} search time"
+    _assert_same_number(
+        f"{label} reciprocal rank at 20", row["reciprocal_rank_at_20"], rr_20
     )
+    _assert_same_number(
+        f"{label} reciprocal rank at 10", row["reciprocal_rank_at_10"], rr_10
+    )
+    search_time = _strict_number(row["search_time_ms"], label=f"{label} search time")
     return {
         "query_id": query_id,
         "retrieved_top_10": top_10,
@@ -2260,9 +2268,7 @@ def _recompute_metrics(rows: Sequence[Mapping[str, Any]]) -> dict[str, float]:
         "mrr_at_20": sum(float(row["rr_20"]) for row in rows) / count,
         "mrr_at_10": sum(float(row["rr_10"]) for row in rows) / count,
         "precision_at_10": sum(
-            precision_at_k(
-                list(row["retrieved_top_10"]), set(row["relevant"]), K
-            )
+            precision_at_k(list(row["retrieved_top_10"]), set(row["relevant"]), K)
             for row in rows
         )
         / count,
@@ -2305,9 +2311,7 @@ def _validate_system_result(
     queries = result["queries"]
     if not isinstance(queries, list) or not queries:
         raise ProvenanceError(f"worker {case.id} {system} has no query rows")
-    rows = [
-        _validate_query_row(row, case=case, system=system) for row in queries
-    ]
+    rows = [_validate_query_row(row, case=case, system=system) for row in queries]
     query_ids = [str(row["query_id"]) for row in rows]
     if len(query_ids) != len(set(query_ids)):
         raise ProvenanceError(f"worker {case.id} {system} has duplicate query IDs")
@@ -2329,16 +2333,12 @@ def _validate_system_result(
         result["ingest_seconds_observed"],
         label=f"worker {case.id} {system} ingest time",
     )
-    expected_mean_search = sum(float(row["search_time_ms"]) for row in rows) / len(
-        rows
-    )
+    expected_mean_search = sum(float(row["search_time_ms"]) for row in rows) / len(rows)
     mean_search = _strict_number(
         result["mean_search_time_ms_observed"],
         label=f"worker {case.id} {system} mean search time",
     )
-    if not math.isclose(
-        mean_search, expected_mean_search, rel_tol=0.0, abs_tol=1e-12
-    ):
+    if not math.isclose(mean_search, expected_mean_search, rel_tol=0.0, abs_tol=1e-12):
         raise ProvenanceError(
             f"worker {case.id} {system} mean search time is inconsistent"
         )
@@ -2360,8 +2360,7 @@ def _validate_system_result(
             keys={"hits_at_10", "total", "micro_recall_at_10"},
         )
         hits = sum(
-            len(set(row["retrieved_top_10"]) & set(row["relevant"]))
-            for row in rows
+            len(set(row["retrieved_top_10"]) & set(row["relevant"])) for row in rows
         )
         total = sum(len(row["relevant"]) for row in rows)
         if (
@@ -2655,8 +2654,7 @@ def _summary(workers: Sequence[Mapping[str, Any]]) -> dict[str, Any]:
         for metric in METRIC_NAMES
     }
     macro = {
-        metric: {"omnifuse": 0.0, "synaptic_memory": 0.0}
-        for metric in METRIC_NAMES
+        metric: {"omnifuse": 0.0, "synaptic_memory": 0.0} for metric in METRIC_NAMES
     }
     for worker in workers:
         result = worker["payload"]["result"]
@@ -2673,6 +2671,108 @@ def _summary(workers: Sequence[Mapping[str, Any]]) -> dict[str, Any]:
         "failed_cases": 0,
         "wins": wins,
         "macro_average": macro,
+        "per_query_head_to_head": _per_query_head_to_head(workers),
+    }
+
+
+def _query_metric_values(row: Mapping[str, Any]) -> dict[str, float]:
+    retrieved_top_10 = [str(value) for value in row["retrieved_top_10"]]
+    retrieved_top_20 = [str(value) for value in row["retrieved_top_20"]]
+    relevant = {str(value) for value in row["relevant"]}
+    return {
+        "mrr_at_20": _reciprocal_rank_at_k(retrieved_top_20, relevant, CANDIDATE_LIMIT),
+        "mrr_at_10": _reciprocal_rank_at_k(retrieved_top_10, relevant, K),
+        "precision_at_10": precision_at_k(retrieved_top_10, relevant, K),
+        "recall_at_10": recall_at_k(retrieved_top_10, relevant, K),
+        "f1_at_10": f1_at_k(retrieved_top_10, relevant, K),
+        "ndcg_at_10": ndcg_at_k(retrieved_top_10, relevant, K),
+    }
+
+
+def _per_query_head_to_head(workers: Sequence[Mapping[str, Any]]) -> dict[str, Any]:
+    counts = {
+        metric: {"omnifuse": 0, "synaptic_memory": 0, "tie": 0}
+        for metric in METRIC_NAMES
+    }
+    latency_counts = {"omnifuse": 0, "synaptic_memory": 0, "tie": 0}
+    cases: list[dict[str, Any]] = []
+    total_queries = 0
+    total_quality_losses = 0
+    total_latency_losses = 0
+
+    for worker in workers:
+        result = worker["payload"]["result"]
+        systems = result["systems"]
+        omni_rows = systems["omnifuse"].get("queries")
+        synaptic_rows = systems["synaptic_memory"].get("queries")
+        if omni_rows is None or synaptic_rows is None:
+            return {"status": "unavailable", "reason": "worker query rows absent"}
+        omni = {row["query_id"]: row for row in omni_rows}
+        synaptic = {row["query_id"]: row for row in synaptic_rows}
+        if list(omni) != list(synaptic):
+            raise ProvenanceError(
+                f"worker {worker['case_id']} per-query system cohorts differ"
+            )
+
+        quality_loss_ids: list[str] = []
+        latency_loss_ids: list[str] = []
+        for query_id, omni_row in omni.items():
+            synaptic_row = synaptic[query_id]
+            omni_metrics = _query_metric_values(omni_row)
+            synaptic_metrics = _query_metric_values(synaptic_row)
+            lost_quality = False
+            for metric in METRIC_NAMES:
+                omni_value = omni_metrics[metric]
+                synaptic_value = synaptic_metrics[metric]
+                if math.isclose(
+                    omni_value, synaptic_value, rel_tol=1e-12, abs_tol=1e-12
+                ):
+                    winner = "tie"
+                elif omni_value > synaptic_value:
+                    winner = "omnifuse"
+                else:
+                    winner = "synaptic_memory"
+                    lost_quality = True
+                counts[metric][winner] += 1
+            if lost_quality:
+                quality_loss_ids.append(query_id)
+
+            omni_ms = float(omni_row["search_time_ms"])
+            synaptic_ms = float(synaptic_row["search_time_ms"])
+            if math.isclose(omni_ms, synaptic_ms, rel_tol=1e-12, abs_tol=1e-12):
+                latency_winner = "tie"
+            elif omni_ms < synaptic_ms:
+                latency_winner = "omnifuse"
+            else:
+                latency_winner = "synaptic_memory"
+                latency_loss_ids.append(query_id)
+            latency_counts[latency_winner] += 1
+
+        case_queries = len(omni)
+        total_queries += case_queries
+        total_quality_losses += len(quality_loss_ids)
+        total_latency_losses += len(latency_loss_ids)
+        cases.append(
+            {
+                "case_id": worker["case_id"],
+                "queries": case_queries,
+                "questions_with_any_omnifuse_quality_loss": len(quality_loss_ids),
+                "quality_loss_query_ids": quality_loss_ids,
+                "questions_with_omnifuse_latency_loss": len(latency_loss_ids),
+                "latency_loss_query_ids": latency_loss_ids,
+            }
+        )
+
+    return {
+        "status": "ok",
+        "queries": total_queries,
+        "quality_metrics": counts,
+        "questions_with_any_omnifuse_quality_loss": total_quality_losses,
+        "observed_search_ms": {
+            "counts": latency_counts,
+            "questions_with_omnifuse_loss": total_latency_losses,
+        },
+        "cases": cases,
     }
 
 

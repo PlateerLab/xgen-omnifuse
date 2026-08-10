@@ -93,9 +93,9 @@ def save_index(of: OmniFuse, path) -> None:
     """Persist a built in-memory index (graph + passage store) so the next process can
     ``load_index`` it instead of paying the build cost again. Stdlib pickle + gzip, zero deps.
 
-    gzip is lossless, so a loaded index scores bit-identically to the one saved; it shrinks
-    the file ~2.4-4x (measured: NFCorpus 13.5 -> 5.9 MB, KRA 28.7 -> 9.7 MB) for ~0.1 s of
-    extra load time. ``load_index`` still reads pre-gzip files.
+    gzip is lossless, so a loaded index scores bit-identically to the one saved. Compression
+    trades a smaller artifact for decompression work; ``load_index`` also reads legacy
+    pre-gzip files.
 
     The LLM and the embedder callable are *not* persisted — pass them to ``load_index``.
     Only the in-memory backends are supported (a Fuseki graph lives in its own store).

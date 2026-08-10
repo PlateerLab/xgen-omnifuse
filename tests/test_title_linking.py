@@ -8,7 +8,7 @@ import pytest
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1] / "src"))
 
 from omnifuse import Chunk, build_inmemory  # noqa: E402
-from omnifuse.linking import derive_title_links  # noqa: E402
+from omnifuse.linking import derive_title_links, title_query_match  # noqa: E402
 
 
 def _keys(chunks: list[Chunk]) -> list[tuple[str, str, str]]:
@@ -84,3 +84,40 @@ def test_mutable_corpus_rejects_stale_derived_links() -> None:
             mutable=True,
             auto_link_titles=True,
         )
+
+
+def test_query_title_match_accepts_exact_entities_and_one_typo() -> None:
+    exact = title_query_match(
+        "Compare Patrick Baudry and another astronaut", "Patrick Baudry"
+    )
+    typo = title_query_match("Why is Minister Pool important?", "Minster Pool")
+
+    assert exact is not None and exact.affinity == 1.0 and exact.offset == 1
+    assert typo is not None and typo.affinity == 0.95
+    assert title_query_match("Was Prince inducted?", "Prince (musician)") is not None
+    assert title_query_match("A prince visited the pool", "Minster Pool") is None
+
+
+def test_query_title_anchors_precede_generic_phrase_matches() -> None:
+    chunks = [
+        Chunk(
+            "generic", "The hall of fame inducted many artists.", title="Hall of Fame"
+        ),
+        Chunk(
+            "director", "Patty Jenkins is an American director.", title="Patty Jenkins"
+        ),
+        Chunk(
+            "musician", "Prince was an American musician.", title="Prince (musician)"
+        ),
+    ]
+    graph = build_inmemory([], [], chunks, auto_link_titles=True)
+
+    ranked = [
+        chunk.id
+        for chunk, _score in graph.retrieve(
+            "Were both Prince and Patty Jenkins inducted into the hall of fame?",
+            limit=3,
+        )
+    ]
+
+    assert set(ranked[:2]) == {"director", "musician"}

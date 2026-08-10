@@ -107,3 +107,55 @@ def test_head_to_head_uses_higher_quality_and_lower_cost() -> None:
         "ties": 0,
         "common_metrics": 11,
     }
+
+
+def test_per_question_head_to_head_records_quality_and_latency_losses() -> None:
+    def row(query_id: str, *, value: float, retrieval_ms: float) -> dict:
+        return {
+            "query_id": query_id,
+            "retrieval_ms": retrieval_ms,
+            "metrics": {
+                "precision": value,
+                "recall": value,
+                "f1": value,
+                "hit": bool(value),
+                "all_gold": bool(value),
+                "reciprocal_rank": value,
+                "ndcg": value,
+            },
+            "context_support": {
+                "answer_exact": bool(value),
+                "answer_token_recall": value,
+            },
+        }
+
+    trials = {
+        "omnifuse": [
+            {
+                "result": {
+                    "questions": [
+                        row("win", value=1.0, retrieval_ms=1.0),
+                        row("loss", value=0.0, retrieval_ms=3.0),
+                    ]
+                }
+            }
+        ],
+        "synaptic": [
+            {
+                "result": {
+                    "questions": [
+                        row("win", value=0.0, retrieval_ms=2.0),
+                        row("loss", value=1.0, retrieval_ms=2.0),
+                    ]
+                }
+            }
+        ],
+    }
+
+    result = e2e._per_question_head_to_head(trials)
+
+    assert result["questions"] == 2
+    assert result["quality"]["questions_with_any_omnifuse_loss"] == 1
+    assert result["quality"]["losses"][0]["query_id"] == "loss"
+    assert result["retrieval_ms"]["questions_with_omnifuse_loss"] == 1
+    assert result["retrieval_ms"]["loss_query_ids"] == ["loss"]

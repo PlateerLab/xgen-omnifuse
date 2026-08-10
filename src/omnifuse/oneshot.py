@@ -13,6 +13,7 @@ synthesis, instead of an iterative tool-calling (ReAct) loop:
 The class lives only against the GraphStore / VectorStore / LLM protocols, so the
 same algorithm runs on the in-memory default (zero infra) or on Fuseki/Qdrant.
 """
+
 from __future__ import annotations
 
 from contextlib import nullcontext
@@ -20,9 +21,14 @@ import re
 from typing import Optional
 
 from .fusion import dynamic_cut, mmr, rank_relations
+from .linking import title_query_match
 from .llm import EchoLLM
 from .models import Chunk, ChunkMutationResult, SearchResult
 from .protocols import LLM, GraphStore, VectorStore
+
+_TITLE_SEED_BASE_BOOST = 0.2
+_TITLE_SEED_POSITION_DECAY = 0.08
+_TITLE_SEED_AFFINITY_BOOST = 0.02
 
 # Language-neutral default — pass system_prompt=... for any language/domain.
 SYSTEM = (
@@ -128,10 +134,8 @@ class OmniFuse:
         shares no query vocabulary still lands in the ranking. Pure retrieval,
         no LLM. ``search()`` builds on this; call it directly for ranking/eval.
 
-        Expansion follows edges **out** of the seed (what it references), not into it.
-        The in-direction — every node that happens to cite the seed — is a crowd, not
-        evidence: on finreg it drops multi-hop to 24/120 while still costing single-hop.
-        Pass ``fusion_direction="both"`` when the graph's edges are symmetric.
+        Expansion follows outgoing edges by default. Pass ``fusion_direction="both"``
+        when the graph's edges are symmetric.
         """
         read_view = getattr(self.vector, "read_view", None)
         view = read_view() if callable(read_view) else nullcontext()
@@ -149,9 +153,40 @@ class OmniFuse:
             scores[c.id] = sc
             cmap[c.id] = c
         if self.graph_fusion and vhits:
-            for c, sc in vhits[: self.fusion_expand_top]:
-                for tgt in self.graph.neighbor_ids(c.id, limit=self.fusion_neighbor_limit,
-                                                   direction=self.fusion_direction):
+            top_score = vhits[0][1]
+            question_width = max(1, len(question.split()))
+            for node, _label_score in self.graph.search_labels(
+                question, limit=self.seed_label_limit
+            ):
+                match = title_query_match(question, node.label)
+                if match is None:
+                    continue
+                got = self.vector.fetch([node.id])
+                if not got:
+                    continue
+                cmap[node.id] = got[0]
+                mention_priority = _TITLE_SEED_BASE_BOOST - (
+                    _TITLE_SEED_POSITION_DECAY * min(1.0, match.offset / question_width)
+                )
+                scores[node.id] = max(
+                    scores.get(node.id, 0.0),
+                    top_score
+                    * (
+                        1.0
+                        + mention_priority
+                        + _TITLE_SEED_AFFINITY_BOOST * match.affinity
+                    ),
+                )
+            fusion_seeds = sorted(scores.items(), key=lambda item: -item[1])[
+                : self.fusion_expand_top
+            ]
+            for source_id, sc in fusion_seeds:
+                c = cmap[source_id]
+                for tgt in self.graph.neighbor_ids(
+                    c.id,
+                    limit=self.fusion_neighbor_limit,
+                    direction=self.fusion_direction,
+                ):
                     cand = self.fusion_alpha * sc
                     if cand <= scores.get(tgt, 0.0):
                         continue
@@ -167,7 +202,9 @@ class OmniFuse:
     def search(self, question: str) -> SearchResult:
         # 1) vector / lexical seed + 1-hop graph fusion (adaptive top-k by score)
         vhits = self.retrieve(question, limit=self.vector_k)
-        chunks = dynamic_cut(vhits, ratio=self.sem_ratio, min_k=self.sem_min, max_k=self.sem_max)
+        chunks = dynamic_cut(
+            vhits, ratio=self.sem_ratio, min_k=self.sem_min, max_k=self.sem_max
+        )
 
         triples: list[tuple[str, str, str]] = []
 
@@ -184,7 +221,11 @@ class OmniFuse:
             insts = self.graph.class_instances(cn.id)
             if len(insts) >= 2:
                 shown = " | ".join(i.label for i in insts[: self.class_list_cap])
-                more = f" (+{len(insts) - self.class_list_cap} more)" if len(insts) > self.class_list_cap else ""
+                more = (
+                    f" (+{len(insts) - self.class_list_cap} more)"
+                    if len(insts) > self.class_list_cap
+                    else ""
+                )
                 class_seed = (
                     f"[CLASS '{cn.label}' has {len(insts)} instances: {shown}{more}. "
                     f"List all only if asked to enumerate/count; otherwise pick the relevant ones.]"
@@ -192,14 +233,16 @@ class OmniFuse:
 
         # 4) HippoRAG — entities of the retrieved chunks -> 1-hop expansion
         for ch in chunks:
-            for eid in (ch.entities or []):
+            for eid in ch.entities or []:
                 triples.extend(self.graph.neighbors(eid, hops=1))
 
         rel_strings = [f"{s} → {p} → {o}" for s, p, o in triples]
         relations = rank_relations(rel_strings, question, limit=self.rel_limit)
 
         # 5) evidence = MMR diversity over chunk text (keep minority/decisive passages)
-        ev = mmr([(c.text, sc) for c, sc in vhits], lam=self.mmr_lambda, k=self.evidence_k)
+        ev = mmr(
+            [(c.text, sc) for c, sc in vhits], lam=self.mmr_lambda, k=self.evidence_k
+        )
 
         # 6) single synthesis over fused evidence
         prompt = self._prompt(question, ev, relations, class_seed)
@@ -215,7 +258,9 @@ class OmniFuse:
         )
 
     @staticmethod
-    def _prompt(question: str, evidence: list[str], relations: list[str], class_seed: str) -> str:
+    def _prompt(
+        question: str, evidence: list[str], relations: list[str], class_seed: str
+    ) -> str:
         parts = [f"Question: {question}"]
         if class_seed:
             parts.append(class_seed)
@@ -237,7 +282,9 @@ class OmniFuse:
         m = re.search(r"'([^']+)'", class_seed)  # class label
         if m:
             cand.add(m.group(1).strip())
-        mi = re.search(r"instances:\s*(.+)", class_seed)  # instance list (cut trailing prose)
+        mi = re.search(
+            r"instances:\s*(.+)", class_seed
+        )  # instance list (cut trailing prose)
         if mi:
             body = re.split(r"[.\]]|\(\+", mi.group(1))[0]
             for name in body.split("|"):

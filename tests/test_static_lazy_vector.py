@@ -8,12 +8,16 @@ from threading import Event
 import pytest
 from omnifuse import Chunk, Feedback
 from omnifuse._compact_postings import CompactPostingsSnapshot
+from omnifuse.backends import memory as memory_backend
 from omnifuse.backends.memory import InMemoryVector
+from omnifuse.lexical_rerank import is_personal_memory_query
 from omnifuse.text import BM25, BM25F, tokenize
 
 
 def _ranked(vector: InMemoryVector, query: str, limit: int = 20):
-    return [(chunk.id, score.hex()) for chunk, score in vector.search(query, limit=limit)]
+    return [
+        (chunk.id, score.hex()) for chunk, score in vector.search(query, limit=limit)
+    ]
 
 
 def test_plain_store_defers_only_materialization_and_matches_static_oracle():
@@ -55,6 +59,84 @@ def test_fielded_store_preserves_exact_title_body_scores():
     assert isinstance(vector._bm25, CompactPostingsSnapshot)
     assert vector._bm25.mode == "bm25f"
     assert vector._bm25._retains_reverse is False
+
+
+def test_natural_language_candidate_fusion_prefers_ordered_subject_phrase():
+    chunks = [
+        Chunk("noise", "I bought dinner ingredients in a meal kit yesterday."),
+        Chunk("gold", "I worked on and bought two detailed model kits last weekend."),
+        Chunk("other", "I worked on a report about retail purchases."),
+    ]
+    vector = InMemoryVector(chunks)
+
+    assert (
+        vector.search("How many model kits have I worked on or bought?", limit=3)[0][
+            0
+        ].id
+        == "gold"
+    )
+
+
+def test_korean_character_fallback_only_runs_after_an_empty_lexical_result():
+    chunks = [
+        Chunk("compound", "황갈색입니다."),
+        Chunk("longer", "세 가지 색상을 모두 제공합니다."),
+        Chunk("unrelated", "배송 예정일은 내일입니다."),
+    ]
+    vector = InMemoryVector(chunks)
+
+    assert [chunk.id for chunk, _score in vector.search("색", limit=3)] == [
+        "compound",
+        "longer",
+    ]
+    assert vector.search("unmatched ascii", limit=3) == []
+
+
+def test_surface_rank_fusion_is_scoped_to_personal_memory_queries():
+    assert is_personal_memory_query("What papers have I've had accepted?")
+    assert is_personal_memory_query("Which projects did we finish?")
+    assert not is_personal_memory_query("What is the capital of France?")
+    assert not is_personal_memory_query("은행의 유동성 조절 정책은 무엇인가요?")
+
+
+def test_configured_pool_is_the_candidate_frontier(monkeypatch):
+    observed: list[int] = []
+
+    def capture(_query, ranked, _chunk_at):
+        observed.append(len(ranked))
+        return ranked
+
+    monkeypatch.setattr(memory_backend, "rerank_lexical_candidates", capture)
+    vector = InMemoryVector(
+        [Chunk(str(index), f"alpha body {index}") for index in range(30)], pool=2
+    )
+
+    vector.search("alpha body query", limit=1)
+
+    assert observed == [2]
+
+
+def test_vector_enables_partial_outlier_recovery_within_its_candidate_pool(monkeypatch):
+    observed: list[tuple[int, bool]] = []
+    original = CompactPostingsSnapshot.search
+
+    def capture(self, query, *, limit=20, recover_partial_outlier=False):
+        observed.append((limit, recover_partial_outlier))
+        return original(
+            self,
+            query,
+            limit=limit,
+            recover_partial_outlier=recover_partial_outlier,
+        )
+
+    monkeypatch.setattr(CompactPostingsSnapshot, "search", capture)
+    vector = InMemoryVector(
+        [Chunk(str(index), f"alpha body {index}") for index in range(30)], pool=12
+    )
+
+    vector.search("alpha body query", limit=3)
+
+    assert observed == [(12, True)]
 
 
 def test_first_search_builds_once_under_contention(monkeypatch):
@@ -104,6 +186,7 @@ def test_unmaterialized_and_materialized_pickle_roundtrips_are_exact():
     assert isinstance(materialized._bm25, CompactPostingsSnapshot)
     assert _ranked(materialized, "alpha") == expected
 
+
 def test_materialized_pickle_uses_validated_forward_only_state():
     vector = InMemoryVector([Chunk("a", "alpha"), Chunk("b", "beta")])
     expected = _ranked(vector, "alpha")
@@ -143,23 +226,27 @@ def test_legacy_materialized_state_restores_without_new_fields():
     assert _ranked(legacy, "alpha") == expected
 
 
-def test_feedback_store_remains_eager_and_incremental():
+def test_feedback_store_is_lazy_owned_and_incremental():
     feedback = Feedback()
     feedback.remember("remembered", ["a"])
     vector = InMemoryVector(
         [Chunk("a", "alpha"), Chunk("b", "beta")], feedback=feedback
     )
 
+    assert vector._bm25 is None
+    assert vector.feedback is not feedback
+    feedback.remember("caller mutation", ["b"])
+    assert vector.feedback.queries("b") == []
+    assert _ranked(vector, "remembered")[0][0] == "a"
     assert isinstance(vector._bm25, BM25F)
     assert vector._lexical_source is None
-    assert _ranked(vector, "remembered")[0][0] == "a"
     vector.remember("second", ["b"])
     assert _ranked(vector, "second")[0][0] == "b"
     vector.forget("second", ["b"])
     assert _ranked(vector, "second") == []
 
 
-def test_lazy_plain_and_eager_feedback_keep_content_idf_equal():
+def test_lazy_plain_and_feedback_keep_content_idf_equal():
     chunks = [Chunk("a", "alpha shared"), Chunk("b", "beta shared")]
     feedback = Feedback()
     feedback.remember("shared memory", ["a"])
@@ -168,6 +255,7 @@ def test_lazy_plain_and_eager_feedback_keep_content_idf_equal():
 
     assert plain._bm25 is None
     _ranked(plain, "shared")
+    _ranked(warm, "shared")
     assert plain._bm25.idf["shared"] == warm._bm25.idf["shared"]
 
 
@@ -175,9 +263,7 @@ def test_dense_only_stays_unmaterialized_and_hybrid_builds_on_demand():
     def embedder(_query):
         return [1.0, 0.0]
 
-    dense = InMemoryVector(
-        [Chunk("a", "", embedding=[1.0, 0.0])], embedder=embedder
-    )
+    dense = InMemoryVector([Chunk("a", "", embedding=[1.0, 0.0])], embedder=embedder)
     hybrid = InMemoryVector(
         [Chunk("a", "alpha", embedding=[1.0, 0.0])], embedder=embedder
     )

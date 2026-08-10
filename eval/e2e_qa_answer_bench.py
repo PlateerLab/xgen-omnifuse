@@ -51,7 +51,7 @@ from provenance import (  # noqa: E402
 RETRIEVAL_RUNNER = SCRIPT_PATH.with_name("e2e_qa_retrieval_bench.py")
 
 SCHEMA = "omnifuse.e2e_qa_answer_comparison"
-SCHEMA_VERSION = 1
+SCHEMA_VERSION = 2
 CHECKPOINT_SCHEMA = "omnifuse.e2e_qa_answer_checkpoint"
 CHECKPOINT_SCHEMA_VERSION = 1
 MANIFEST_SCHEMA = "omnifuse.e2e_qa_answer_work_manifest"
@@ -215,6 +215,34 @@ def _payload(*, model: str, question: str, context: str) -> dict[str, Any]:
     }
 
 
+def _warmup_payload(model: str) -> dict[str, Any]:
+    return {
+        "model": model,
+        "messages": [{"role": "user", "content": "Reply with OK."}],
+        "stream": False,
+        "think": False,
+        "options": {"num_predict": 1},
+        "keep_alive": "10m",
+    }
+
+
+def _warm_model(*, base_url: str, model: str, timeout_seconds: float) -> dict[str, Any]:
+    response, elapsed_ms = _request_json(
+        url=f"{base_url}/api/chat",
+        timeout_seconds=max(timeout_seconds, 600.0),
+        payload=_warmup_payload(model),
+    )
+    if response.get("done") is not True:
+        raise RuntimeError("Ollama neutral warm-up did not complete")
+    return {
+        "policy": "one unrelated one-token completion before the AB/BA schedule",
+        "elapsed_ms": elapsed_ms,
+        "load_duration": response.get("load_duration"),
+        "prompt_eval_count": response.get("prompt_eval_count"),
+        "eval_count": response.get("eval_count"),
+    }
+
+
 def _sha256_text(value: str) -> str:
     return hashlib.sha256(value.encode("utf-8")).hexdigest()
 
@@ -356,7 +384,57 @@ def _aggregate(rows: Sequence[Mapping[str, Any]]) -> dict[str, Any]:
     }
 
 
-def _head_to_head(aggregates: Mapping[str, Mapping[str, Any]]) -> dict[str, Any]:
+def _per_question_head_to_head(
+    results: Mapping[str, Sequence[Mapping[str, Any]]],
+) -> dict[str, Any]:
+    question_rows = {
+        system: {row["query_id"]: row for row in rows}
+        for system, rows in results.items()
+    }
+    omni = question_rows["omnifuse"]
+    synaptic = question_rows["synaptic"]
+    if list(omni) != list(synaptic):
+        raise ValueError("E2E answer per-question system cohorts differ")
+
+    fields = {
+        "correctness": ("higher", lambda row: row["correctness"]),
+        "generation_ms": ("lower", lambda row: row["generation_ms"]),
+        "retrieval_ms": ("lower", lambda row: row["retrieval_ms"]),
+        "prompt_tokens": (
+            "lower",
+            lambda row: row["ollama"]["prompt_eval_count"] or 0,
+        ),
+        "output_tokens": ("lower", lambda row: row["ollama"]["eval_count"] or 0),
+    }
+    counts = {field: {"omnifuse": 0, "synaptic": 0, "tie": 0} for field in fields}
+    losses = {field: [] for field in fields}
+    for query_id, omni_row in omni.items():
+        synaptic_row = synaptic[query_id]
+        for field, (direction, extract) in fields.items():
+            omni_value = float(extract(omni_row))
+            synaptic_value = float(extract(synaptic_row))
+            if math.isclose(omni_value, synaptic_value, rel_tol=1e-12, abs_tol=1e-12):
+                winner = "tie"
+            elif (direction == "higher" and omni_value > synaptic_value) or (
+                direction == "lower" and omni_value < synaptic_value
+            ):
+                winner = "omnifuse"
+            else:
+                winner = "synaptic"
+                losses[field].append(query_id)
+            counts[field][winner] += 1
+    return {
+        "questions": len(omni),
+        "metrics": counts,
+        "loss_query_ids": losses,
+        "questions_with_omnifuse_correctness_loss": len(losses["correctness"]),
+    }
+
+
+def _head_to_head(
+    aggregates: Mapping[str, Mapping[str, Any]],
+    results: Mapping[str, Sequence[Mapping[str, Any]]] | None = None,
+) -> dict[str, Any]:
     directions = {
         "cohort_mean_correctness": "higher",
         "official_mean_correctness_nonzero_only": "higher",
@@ -390,7 +468,7 @@ def _head_to_head(aggregates: Mapping[str, Mapping[str, Any]]) -> dict[str, Any]
                 "winner": winner,
             }
         )
-    return {
+    result = {
         "metrics": rows,
         "verdict": {
             "omnifuse": sum(row["winner"] == "omnifuse" for row in rows),
@@ -399,6 +477,9 @@ def _head_to_head(aggregates: Mapping[str, Mapping[str, Any]]) -> dict[str, Any]
             "common_metrics": len(rows),
         },
     }
+    if results is not None:
+        result["per_question"] = _per_question_head_to_head(results)
+    return result
 
 
 def _source_state(repo: Path) -> dict[str, Any]:
@@ -465,6 +546,9 @@ def _preflight(args: argparse.Namespace) -> dict[str, Any]:
         "system_order": "alternating per-question AB/BA",
         "timeout_seconds": args.timeout_seconds,
         "timeout_caveat": "transport allowance only; prompt and model payload are unchanged",
+        "neutral_model_warmup": (
+            "one unrelated one-token completion before the measured AB/BA schedule"
+        ),
     }
     return {
         "output": output,
@@ -504,6 +588,12 @@ def _controller(args: argparse.Namespace) -> int:
     query_ids = _sample_query_ids(state["loaded_data"])
     if any(set(rows) != set(query_ids) for rows in context_rows.values()):
         raise ProvenanceError("retrieval contexts do not cover the official E2E cohort")
+
+    model_warmup = _warm_model(
+        base_url=state["base_url"],
+        model=args.model,
+        timeout_seconds=args.timeout_seconds,
+    )
 
     results: dict[str, list[dict[str, Any]]] = {system: [] for system in SYSTEMS}
     schedule: list[dict[str, Any]] = []
@@ -581,11 +671,12 @@ def _controller(args: argparse.Namespace) -> int:
             },
         },
         "schedule": schedule,
+        "model_warmup": model_warmup,
         "results": {
             system: {"questions": results[system], "aggregate": aggregates[system]}
             for system in SYSTEMS
         },
-        "head_to_head": _head_to_head(aggregates),
+        "head_to_head": _head_to_head(aggregates, results),
         "postflight": {
             "data_unchanged": True,
             "repositories_unchanged": True,

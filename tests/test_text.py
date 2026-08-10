@@ -15,6 +15,7 @@ from omnifuse.text import (  # noqa: E402
     BM25F,
     _KO_SUFFIX,
     _KO_SUFFIX_BY_LAST,
+    _coordinate_query_scores,
     _ko_stem,
     _top_k_scores,
     tokenize,
@@ -72,9 +73,7 @@ def _reference_bm25f_search(
 
 def test_ascii_tokenizer_fast_path_preserves_the_word_pattern_contract() -> None:
     separators = "".join(
-        chr(codepoint)
-        for codepoint in range(128)
-        if not chr(codepoint).isalnum()
+        chr(codepoint) for codepoint in range(128) if not chr(codepoint).isalnum()
     )
 
     assert tokenize(f"ALPHAS{separators}beta2{separators}GAMMA") == [
@@ -90,7 +89,9 @@ def test_suffix_index_partitions_the_ordered_suffix_contract() -> None:
         assert bucket == tuple(suffix for suffix in _KO_SUFFIX if suffix[-1] == last)
 
 
-def test_query_tokenizer_removes_korean_query_operators_without_losing_subject() -> None:
+def test_query_tokenizer_removes_korean_query_operators_without_losing_subject() -> (
+    None
+):
     tokens = tokenize_query("오픈뱅킹의 법제화에 대해 설명해주세요.")
 
     assert "#오픈뱅킹" in tokens
@@ -103,8 +104,18 @@ def test_query_tokenizer_normalizes_definition_copula_and_has_safe_fallback() ->
     tokens = tokenize_query("스키밍이란 무엇인가요?")
     assert "#스키밍" in tokens
     assert "#무엇" not in tokens
+    assert "#인가" not in tokens
     assert tokenize_query("무엇인가요?") == tokenize("무엇인가요?")
     assert tokenize_query("HTTP APIs") == tokenize("HTTP APIs")
+
+
+def test_query_tokenizer_removes_english_grammar_without_losing_subject() -> None:
+    assert tokenize_query("Can you tell me what the model kits are?") == [
+        "tell",
+        "model",
+        "kit",
+    ]
+    assert tokenize_query("What is it?") == tokenize("What is it?")
 
 
 def test_query_coordination_excludes_operator_score_and_operator_only_hit() -> None:
@@ -122,7 +133,9 @@ def test_query_coordination_excludes_operator_score_and_operator_only_hit() -> N
     assert ranked[0][1] > ranked[1][1]
 
 
-def test_query_coordination_drops_partial_ngram_tail_when_complete_words_match() -> None:
+def test_query_coordination_drops_partial_ngram_tail_when_complete_words_match() -> (
+    None
+):
     documents = [
         {"title": tokenize("휴대 전화"), "body": []},
         {"title": tokenize("휴대전화"), "body": []},
@@ -130,6 +143,35 @@ def test_query_coordination_drops_partial_ngram_tail_when_complete_words_match()
     index = BM25F(documents, {"title": 1.0, "body": 1.0})
 
     assert [doc_id for doc_id, _score in index.search("휴대 전화", limit=10)] == [0]
+
+
+def test_query_coordination_recovers_only_an_outlier_above_the_weakest_complete_hit() -> (
+    None
+):
+    scores = {0: 8.0, 1: 3.0, 2: 7.0, 3: 2.0}
+    primary = {0, 1}
+
+    assert _coordinate_query_scores(scores, primary, primary) == {0: 8.0, 1: 3.0}
+    assert _coordinate_query_scores(
+        scores, primary, set(), recover_partial_outlier=True
+    ) == {
+        0: 8.0,
+        1: 3.0,
+    }
+    assert _coordinate_query_scores(
+        scores, primary, primary, recover_partial_outlier=True
+    ) == {
+        0: 8.0,
+        1: 3.0,
+        2: 7.0,
+    }
+    scores[2] = 2.5
+    assert _coordinate_query_scores(
+        scores, primary, primary, recover_partial_outlier=True
+    ) == {
+        0: 8.0,
+        1: 3.0,
+    }
 
 
 def test_query_coordination_does_not_confuse_content_with_grammar() -> None:

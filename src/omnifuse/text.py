@@ -33,37 +33,12 @@ _ASCII_WORD_TRANSLATION = str.maketrans(
     }
 )
 
-# Term-specificity emphasis. A natural-language question ("장 발장은 어떤 범죄로 유죄
-# 판결을 받았나요?") carries one rare discriminative term (the entity 발장) buried
-# under several common ones (범죄/유죄/판결); plain BM25 sums term scores, so a doc
-# matching many common words outranks the one matching the rare entity. Raising IDF to
-# a power > 1 makes the rare term dominate the sum, fixing this "entity-burial". The
-# mechanism is measured, not asserted: on the queries it rescues the gold document matches
-# a rarer query term and fewer of them than the wrong top-1 (max-IDF 6.22 vs 6.08, overlap
-# 3.4 vs 5.8); on the queries it breaks that sign flips (5.37 vs 6.16). 1.0 is plain BM25.
-#
-# The default is the MIDPOINT OF THE WINNING BAND, re-derived whenever the suite grows.
-# With 13 datasets the band was p∈[1.3, 2.0] and the default 1.5. Completing coverage of
-# synaptic's shipped data (18 targets) moved the band: FiQA (57,638 docs, 2.6 rel/query)
-# binds it from ABOVE — it wins at p≤1.3 and loses from 1.4 — and Ko-StrategyQA binds it
-# from BELOW (wins from p≥1.1). Overlap [1.1, 1.3], midpoint 1.2, at which every one of
-# the 16 measured accuracy targets beats synaptic (LOSSES: none), and MIRACL-ko/finreg/
-# golden are strictly better than at 1.5. The emphasis is still a trade: heavily
-# multi-relevant corpora prefer less of it (that is exactly FiQA's constraint), so
-# ``idf_pow=1.0`` remains available via
-# ``build_inmemory(..., vector_kwargs={"idf_pow": 1.0})``. See eval/results/idf_pow_ablation.json.
+# Rare-term emphasis prevents discriminative entities from being buried by common query
+# terms. ``idf_pow=1.0`` restores plain BM25; the shared default lives in settings.py.
 _IDF_POW = DEFAULT_IDF_POW
 
-# Korean particles (조사), verb/adjective endings (어미), and derivational suffixes,
-# stripped only when trailing (so 상황/성별 — with the char leading — are untouched;
-# and the emitted stem unigram still lets compound forms match). Longest first.
-#
-# The copula's interrogative paradigm (-인가/-인가요/-입니까/-인지) is part of this closed
-# class and was missing. Without it "어디인가" stems to the *rare* token 어디인 instead of
-# the common word 어디, and `idf_pow` then amplifies that rarity: on MIRACL-ko every
-# "…어디인가?" question retrieved the article titled "내 친구의 집은 어디인가" — a 4x-weighted
-# title match on nothing but the question word. Kiwi splits the copula into morphemes, which
-# is why synaptic never saw this.
+# Korean particles, endings and derivational suffixes are stripped only at word tails.
+# Longest-first matching preserves inner characters and keeps stems at least two chars.
 _KO_SUFFIX = tuple(
     sorted(
         set(
@@ -257,6 +232,9 @@ _KO_QUERY_OPERATORS = frozenset(
     }
 )
 _KO_QUERY_PARTICLES = frozenset({"의", "은", "는", "이", "가", "을", "를"})
+_KO_QUERY_COPULAS = frozenset(
+    {"인가", "입니까", "예요", "이에", "이어", "인지", "이냐", "이라"}
+)
 _KO_QUERY_REQUEST_ROOTS = ("설명", "알려", "말해", "말씀", "답변")
 _KO_QUERY_REQUEST_TAILS = frozenset(
     {
@@ -271,6 +249,124 @@ _KO_QUERY_REQUEST_TAILS = frozenset(
         "주세",
         "줘",
         "주십시오",
+    }
+)
+
+# Query-only closed-class removal keeps the document index lossless; an operator-only
+# query falls back to its original tokens.
+_EN_QUERY_OPERATORS = frozenset(
+    {
+        "a",
+        "am",
+        "an",
+        "and",
+        "are",
+        "as",
+        "at",
+        "be",
+        "been",
+        "being",
+        "both",
+        "but",
+        "by",
+        "can",
+        "could",
+        "did",
+        "do",
+        "does",
+        "doing",
+        "for",
+        "from",
+        "had",
+        "has",
+        "have",
+        "having",
+        "he",
+        "her",
+        "here",
+        "hers",
+        "herself",
+        "him",
+        "himself",
+        "his",
+        "how",
+        "i",
+        "if",
+        "in",
+        "into",
+        "is",
+        "it",
+        "its",
+        "itself",
+        "just",
+        "may",
+        "me",
+        "might",
+        "more",
+        "most",
+        "my",
+        "myself",
+        "no",
+        "nor",
+        "not",
+        "of",
+        "off",
+        "on",
+        "once",
+        "only",
+        "or",
+        "other",
+        "our",
+        "ours",
+        "ourselves",
+        "out",
+        "over",
+        "own",
+        "same",
+        "she",
+        "should",
+        "so",
+        "some",
+        "such",
+        "than",
+        "that",
+        "the",
+        "their",
+        "theirs",
+        "them",
+        "themselves",
+        "then",
+        "there",
+        "these",
+        "they",
+        "this",
+        "those",
+        "through",
+        "to",
+        "too",
+        "under",
+        "until",
+        "up",
+        "very",
+        "was",
+        "we",
+        "were",
+        "what",
+        "when",
+        "where",
+        "which",
+        "while",
+        "who",
+        "whom",
+        "why",
+        "will",
+        "with",
+        "would",
+        "you",
+        "your",
+        "yours",
+        "yourself",
+        "yourselves",
     }
 )
 
@@ -304,6 +400,7 @@ def _ko_query_stem(word: str) -> str | None:
     if (
         stem in _KO_QUERY_OPERATORS
         or stem in _KO_QUERY_PARTICLES
+        or stem in _KO_QUERY_COPULAS
         or _is_ko_query_request(stem)
     ):
         return None
@@ -319,6 +416,9 @@ def _analyze_query(text: str) -> _QueryAnalysis:
 
     for word in _latin_words(lowered):
         term = _en_stem_s(word) if len(word) > 3 and word[-1] == "s" else word
+        if term in _EN_QUERY_OPERATORS:
+            restricted = True
+            continue
         terms.append(term)
         anchors.append(term)
     if not lowered.isascii():
@@ -362,18 +462,40 @@ def _coordinate_query_scores(
     scores: dict[int, float],
     candidates: set[int],
     complete_candidates: set[int],
+    *,
+    recover_partial_outlier: bool = False,
 ) -> dict[int, float]:
-    """Keep subject candidates, preferring complete Korean word evidence when present."""
+    """Prefer complete Korean word hits, with optional strongest-partial recovery."""
+    uncoordinated = scores
     if candidates:
         scores = {doc_id: scores[doc_id] for doc_id in candidates}
     if complete_candidates:
         complete = {
-            doc_id: scores[doc_id]
-            for doc_id in complete_candidates
-            if doc_id in scores
+            doc_id: scores[doc_id] for doc_id in complete_candidates if doc_id in scores
         }
         if complete:
-            return complete
+            scores = complete
+    if (
+        recover_partial_outlier
+        and complete_candidates
+        and scores
+        and len(scores) < len(uncoordinated)
+    ):
+        strongest_excluded = max(
+            (
+                (document_id, score)
+                for document_id, score in uncoordinated.items()
+                if document_id not in scores
+            ),
+            key=lambda item: (item[1], -item[0]),
+            default=None,
+        )
+        if strongest_excluded is not None and strongest_excluded[1] > min(
+            scores.values()
+        ):
+            document_id, score = strongest_excluded
+            scores = dict(scores)
+            scores[document_id] = score
     return scores
 
 
@@ -518,7 +640,13 @@ class BM25:
                 s += self._pw[t][k]
         return s
 
-    def search(self, query: str, *, limit: int = 20) -> list[tuple[int, float]]:
+    def search(
+        self,
+        query: str,
+        *,
+        limit: int = 20,
+        recover_partial_outlier: bool = False,
+    ) -> list[tuple[int, float]]:
         """Term-at-a-time accumulation over the inverted index — touches only the
         documents that actually contain a query term, adding a precomputed weight."""
         analysis = _analyze_query(query)
@@ -543,7 +671,12 @@ class BM25:
             else:
                 for i, w in zip(pd, pw):
                     scores[i] = scores.get(i, 0.0) + qn * w
-        scores = _coordinate_query_scores(scores, candidates, complete_candidates)
+        scores = _coordinate_query_scores(
+            scores,
+            candidates,
+            complete_candidates,
+            recover_partial_outlier=recover_partial_outlier,
+        )
         return _top_k_scores(scores, limit)
 
 
@@ -815,7 +948,13 @@ class BM25F:
         postings (each ``_pd[t]`` is ascending, so membership is a binary search)."""
         return self._score(dict.fromkeys(q_tokens), i)
 
-    def search(self, query: str, *, limit: int = 20) -> list[tuple[int, float]]:
+    def search(
+        self,
+        query: str,
+        *,
+        limit: int = 20,
+        recover_partial_outlier: bool = False,
+    ) -> list[tuple[int, float]]:
         analysis = _analyze_query(query)
         scores: dict[int, float] = {}
         candidates: set[int] = set()
@@ -830,7 +969,12 @@ class BM25F:
                 complete_candidates.update(pd)
             for i, c in zip(pd, self._pw[t]):
                 scores[i] = scores.get(i, 0.0) + c
-        scores = _coordinate_query_scores(scores, candidates, complete_candidates)
+        scores = _coordinate_query_scores(
+            scores,
+            candidates,
+            complete_candidates,
+            recover_partial_outlier=recover_partial_outlier,
+        )
         return _top_k_scores(scores, limit)
 
 
@@ -1057,7 +1201,13 @@ class _MutableBM25:
                 score += weights[position]
         return score
 
-    def search(self, query: str, *, limit: int = 20) -> list[tuple[int, float]]:
+    def search(
+        self,
+        query: str,
+        *,
+        limit: int = 20,
+        recover_partial_outlier: bool = False,
+    ) -> list[tuple[int, float]]:
         analysis = _analyze_query(query)
         qtf: dict[str, int] = {}
         for term in analysis.terms:
@@ -1077,7 +1227,12 @@ class _MutableBM25:
             else:
                 for doc_id, weight in zip(ids, weights):
                     scores[doc_id] = scores.get(doc_id, 0.0) + query_count * weight
-        scores = _coordinate_query_scores(scores, candidates, complete_candidates)
+        scores = _coordinate_query_scores(
+            scores,
+            candidates,
+            complete_candidates,
+            recover_partial_outlier=recover_partial_outlier,
+        )
         return _top_k_scores(scores, limit)
 
 
@@ -1375,7 +1530,13 @@ class _MutableBM25F:
                 score += weights[position]
         return score
 
-    def search(self, query: str, *, limit: int = 20) -> list[tuple[int, float]]:
+    def search(
+        self,
+        query: str,
+        *,
+        limit: int = 20,
+        recover_partial_outlier: bool = False,
+    ) -> list[tuple[int, float]]:
         analysis = _analyze_query(query)
         scores: dict[int, float] = {}
         candidates: set[int] = set()
@@ -1388,5 +1549,10 @@ class _MutableBM25F:
                 complete_candidates.update(ids)
             for doc_id, weight in zip(ids, weights):
                 scores[doc_id] = scores.get(doc_id, 0.0) + weight
-        scores = _coordinate_query_scores(scores, candidates, complete_candidates)
+        scores = _coordinate_query_scores(
+            scores,
+            candidates,
+            complete_candidates,
+            recover_partial_outlier=recover_partial_outlier,
+        )
         return _top_k_scores(scores, limit)

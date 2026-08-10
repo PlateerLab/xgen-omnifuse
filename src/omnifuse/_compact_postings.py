@@ -1464,6 +1464,7 @@ class CompactPostingsSnapshot:
         limit: int = 20,
         anchors: frozenset[str] = frozenset(),
         restricted: bool = False,
+        recover_partial_outlier: bool = False,
     ) -> list[tuple[int, float]]:
         scores: dict[int, float] = {}
         candidates: set[int] = set()
@@ -1493,19 +1494,31 @@ class CompactPostingsSnapshot:
                     complete_candidates.update(ids)
                 for doc_id, weight in zip(ids, weights):
                     scores[doc_id] = scores.get(doc_id, 0.0) + weight
-        scores = _coordinate_query_scores(scores, candidates, complete_candidates)
+        scores = _coordinate_query_scores(
+            scores,
+            candidates,
+            complete_candidates,
+            recover_partial_outlier=recover_partial_outlier,
+        )
         return _top_k_scores(scores, limit)
 
     def score(self, tokens: list[str], doc_id: int) -> float:
         return self.score_tokens(tokens, doc_id)
 
-    def search(self, query: str, *, limit: int = 20) -> list[tuple[int, float]]:
+    def search(
+        self,
+        query: str,
+        *,
+        limit: int = 20,
+        recover_partial_outlier: bool = False,
+    ) -> list[tuple[int, float]]:
         analysis = _analyze_query(query)
         return self.search_tokens(
             analysis.terms,
             limit=limit,
             anchors=analysis.anchors,
             restricted=analysis.restricted,
+            recover_partial_outlier=recover_partial_outlier,
         )
 
     def storage_nbytes(self) -> int:

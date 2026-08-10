@@ -327,9 +327,7 @@ class CompactMutableBM25:
             seen.add(doc_id)
             base_record = self._base_record(doc_id)
             before = (
-                self._overrides[doc_id]
-                if doc_id in self._overrides
-                else base_record
+                self._overrides[doc_id] if doc_id in self._overrides else base_record
             )
             if before is not None:
                 prepared.append((doc_id, before, base_record))
@@ -433,6 +431,7 @@ class CompactMutableBM25:
         limit: int = 20,
         anchors: frozenset[str] = frozenset(),
         restricted: bool = False,
+        recover_partial_outlier: bool = False,
     ) -> list[tuple[int, float]]:
         query_counts: dict[str, int] = {}
         for term in tokens:
@@ -452,16 +451,28 @@ class CompactMutableBM25:
             else:
                 for doc_id, weight in zip(ids, weights):
                     scores[doc_id] = scores.get(doc_id, 0.0) + query_count * weight
-        scores = _coordinate_query_scores(scores, candidates, complete_candidates)
+        scores = _coordinate_query_scores(
+            scores,
+            candidates,
+            complete_candidates,
+            recover_partial_outlier=recover_partial_outlier,
+        )
         return _top_k_scores(scores, limit)
 
-    def search(self, query: str, *, limit: int = 20) -> list[tuple[int, float]]:
+    def search(
+        self,
+        query: str,
+        *,
+        limit: int = 20,
+        recover_partial_outlier: bool = False,
+    ) -> list[tuple[int, float]]:
         analysis = _analyze_query(query)
         return self.search_tokens(
             analysis.terms,
             limit=limit,
             anchors=analysis.anchors,
             restricted=analysis.restricted,
+            recover_partial_outlier=recover_partial_outlier,
         )
 
     def _live_records(self):
@@ -528,11 +539,7 @@ class CompactMutableBM25:
             "idf_pow": self._idf_pow,
             "base_state": self._base._export_forward_state(),
             "overrides": {
-                doc_id: (
-                    None
-                    if record is None
-                    else (record[0], dict(record[1]))
-                )
+                doc_id: (None if record is None else (record[0], dict(record[1])))
                 for doc_id, record in self._overrides.items()
             },
             "max_doc_id": self._max_doc_id,
@@ -589,8 +596,7 @@ class CompactMutableBM25:
             capture_doc_ids=raw_overrides,
         )
         base_records = {
-            doc_id: (record[0][0], record[1][0])
-            for doc_id, record in captured.items()
+            doc_id: (record[0][0], record[1][0]) for doc_id, record in captured.items()
         }
         restored = {
             "state_version": _STATE_VERSION,
@@ -647,8 +653,7 @@ class CompactMutableBM25:
             capture_doc_ids=raw_overrides,
         )
         base_records = {
-            doc_id: (record[0][0], record[1][0])
-            for doc_id, record in captured.items()
+            doc_id: (record[0][0], record[1][0]) for doc_id, record in captured.items()
         }
         restored = {
             "state_version": _STATE_VERSION,

@@ -4,13 +4,22 @@ from __future__ import annotations
 
 from collections.abc import Iterable
 import re
+from typing import NamedTuple
 
 from .models import Chunk, Triple
 from .text import tokenize
 
 _QUALIFIER_BOUNDARIES = frozenset({"from", "in", "of"})
 _TERMINAL_PARENTHETICAL = re.compile(r"\s*\([^()]*\)\s*$")
+_MIN_DISAMBIGUATED_ALIAS_LENGTH = 5
+_EXACT_TITLE_AFFINITY = 1.0
+_FUZZY_TITLE_AFFINITY = 0.95
 _TARGET = "\0"
+
+
+class TitleQueryMatch(NamedTuple):
+    affinity: float
+    offset: int
 
 
 def _title_aliases(title: str) -> tuple[tuple[str, ...], ...]:
@@ -33,6 +42,73 @@ def _title_aliases(title: str) -> tuple[tuple[str, ...], ...]:
             aliases.append(tokens[:index])
             break
     return tuple(dict.fromkeys(aliases))
+
+
+def _query_title_aliases(title: str) -> tuple[tuple[str, ...], ...]:
+    aliases = list(_title_aliases(title))
+    without_disambiguator = _TERMINAL_PARENTHETICAL.sub("", title).strip()
+    tokens = tuple(tokenize(without_disambiguator))
+    if (
+        len(tokens) == 1
+        and without_disambiguator != title.strip()
+        and len(tokens[0]) >= _MIN_DISAMBIGUATED_ALIAS_LENGTH
+    ):
+        aliases.append(tokens)
+    return tuple(dict.fromkeys(aliases))
+
+
+def _within_one_edit(left: str, right: str) -> bool:
+    """Whether two non-empty tokens differ by at most one insert/delete/replace."""
+    if left == right:
+        return True
+    if abs(len(left) - len(right)) > 1:
+        return False
+    if len(left) > len(right):
+        left, right = right, left
+    i = j = edits = 0
+    while i < len(left) and j < len(right):
+        if left[i] == right[j]:
+            i += 1
+            j += 1
+            continue
+        edits += 1
+        if edits > 1:
+            return False
+        if len(left) == len(right):
+            i += 1
+        j += 1
+    return edits + (j < len(right)) <= 1
+
+
+def title_query_match(question: str, title: str) -> TitleQueryMatch | None:
+    """Find an exact or single-typo multi-token title mention."""
+    query_tokens = tuple(tokenize(question))
+    best: TitleQueryMatch | None = None
+    for alias in _query_title_aliases(title):
+        width = len(alias)
+        for start in range(len(query_tokens) - width + 1):
+            candidate = query_tokens[start : start + width]
+            if candidate == alias:
+                match = TitleQueryMatch(_EXACT_TITLE_AFFINITY, start)
+                if best is None or (-match.affinity, match.offset) < (
+                    -best.affinity,
+                    best.offset,
+                ):
+                    best = match
+                continue
+            if width < 2 or not any(a == b for a, b in zip(alias, candidate)):
+                continue
+            changed = sum(a != b for a, b in zip(alias, candidate))
+            if changed == 1 and all(
+                _within_one_edit(a, b) for a, b in zip(alias, candidate)
+            ):
+                match = TitleQueryMatch(_FUZZY_TITLE_AFFINITY, start)
+                if best is None or (-match.affinity, match.offset) < (
+                    -best.affinity,
+                    best.offset,
+                ):
+                    best = match
+    return best
 
 
 def derive_title_links(chunks: Iterable[Chunk]) -> list[Triple]:

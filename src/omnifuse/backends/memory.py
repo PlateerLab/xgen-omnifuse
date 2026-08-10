@@ -20,6 +20,10 @@ from threading import RLock
 from typing import Callable, NamedTuple, Optional
 
 from ..feedback import Feedback
+from ..lexical_rerank import (
+    rank_korean_character_fallback,
+    rerank_lexical_candidates,
+)
 from ..models import Chunk, ChunkMutationResult, Node, Triple
 from ..settings import DEFAULT_LEXICAL_B, DEFAULT_LEXICAL_K1, DEFAULT_TITLE_WEIGHT
 from .._compact_mutable import CompactMutableBM25
@@ -67,6 +71,7 @@ def _unpack_static_lexical(value: object) -> object:
         raise ValueError("static lexical snapshot restored unexpected document records")
     return restored
 
+
 _LEGACY_MUTABLE_VECTOR_KEYS = frozenset(
     {
         "embedder",
@@ -108,10 +113,13 @@ def _validate_vector_scoring_config(
     pool: object,
     idf_pow: object,
 ) -> None:
-    if any(
-        not _is_finite_builtin_number(value)
-        for value in (title_weight, lexical_weight, dense_weight, idf_pow)
-    ) or type(pool) is not int:
+    if (
+        any(
+            not _is_finite_builtin_number(value)
+            for value in (title_weight, lexical_weight, dense_weight, idf_pow)
+        )
+        or type(pool) is not int
+    ):
         raise ValueError("mutable vector scoring configuration is invalid")
 
 
@@ -289,9 +297,7 @@ class InMemoryVector:
     - **hybrid** — embeddings *and* text present: dense cosine and lexical BM25(F)
       are min-max normalized per query and combined ``dense_weight*dense +
       lexical_weight*lexical`` (dense recovers paraphrase; lexical nails exact
-      terms — each covers the other's blind spot). The default ``lexical_weight``
-      (0.8, vs dense 1.0) is a flat optimum across corpora — dense-leaning without
-      losing keyword corpora.
+      terms — each covers the other's blind spot).
     - **dense** — embeddings only: cosine.
     - **lexical** — text only (zero embeddings): field-weighted BM25 over
       title/body, else plain BM25.
@@ -310,8 +316,7 @@ class InMemoryVector:
         feedback: Optional[Feedback] = None,
     ):
         self.chunks = chunks
-        self._by_id = {c.id: c for c in chunks}
-        self._ix = {c.id: i for i, c in enumerate(chunks)}
+        self._ix: dict[str, int] | None = None
         self.embedder = embedder
         self.lexical_weight, self.dense_weight, self._pool = (
             lexical_weight,
@@ -322,7 +327,9 @@ class InMemoryVector:
             embedder is not None and bool(chunks) and all(c.embedding for c in chunks)
         )
         self._lexical = any((c.text or c.title) for c in chunks)
-        self.feedback = feedback
+        # Own the feedback snapshot just like the mutable backend. This prevents a
+        # caller-held Feedback from changing a deferred index behind the store's back.
+        self.feedback = feedback.copy() if feedback is not None else None
         self._title_weight = title_weight
         self._idf_pow = idf_pow
         self._bm25: BM25 | BM25F | CompactPostingsSnapshot | None = None
@@ -332,13 +339,8 @@ class InMemoryVector:
             else None
         )
         self._lock = RLock()
-        # Feedback has mutable public state whose construction-time snapshot is part of
-        # the existing remember/forget contract. Plain retrieval can defer equivalent
-        # lexical materialization until the first query. The scalar source snapshot keeps
-        # construction-time semantics if a caller later mutates a borrowed Chunk object.
-        if self._lexical and feedback is not None:
-            self._bm25 = self._build_lexical()
-            self._lexical_source = None
+        # All lexical modes materialize on first use. The scalar chunk source and owned
+        # feedback snapshot preserve construction-time semantics until then.
 
     def _build_lexical(self) -> BM25F | CompactPostingsSnapshot:
         # Tokenization streams into the compact immutable index rather than retaining
@@ -393,10 +395,23 @@ class InMemoryVector:
         with self._lock:
             if self._bm25 is None:
                 if not self._lexical:
-                    raise RuntimeError("lexical index requested for a non-lexical store")
+                    raise RuntimeError(
+                        "lexical index requested for a non-lexical store"
+                    )
                 self._bm25 = self._build_lexical()
                 self._lexical_source = None
             return self._bm25
+
+    def _id_index(self) -> dict[str, int]:
+        index = self._ix
+        if index is not None:
+            return index
+        with self._lock:
+            if self._ix is None:
+                self._ix = {
+                    chunk.id: position for position, chunk in enumerate(self.chunks)
+                }
+            return self._ix
 
     def _prepare_for_persistence(self) -> None:
         """Materialize deferred lexical state before writing a warm snapshot."""
@@ -417,7 +432,14 @@ class InMemoryVector:
         if self._dense and self._lexical:
             pool = max(limit, self._pool)
             dn = _minmax(self._dense_ranked(query, pool))
-            ln = _minmax(self._lexical_index().search(query, limit=pool))
+            lexical = rerank_lexical_candidates(
+                query,
+                self._lexical_index().search(
+                    query, limit=pool, recover_partial_outlier=True
+                ),
+                self.chunks.__getitem__,
+            )
+            ln = _minmax(lexical)
             fused = {
                 i: self.dense_weight * dn.get(i, 0.0)
                 + self.lexical_weight * ln.get(i, 0.0)
@@ -428,10 +450,20 @@ class InMemoryVector:
         if self._dense:
             return [(self.chunks[i], s) for i, s in self._dense_ranked(query, limit)]
         if self._lexical:
-            return [
-                (self.chunks[i], s)
-                for i, s in self._lexical_index().search(query, limit=limit)
-            ]
+            pool = max(limit, self._pool)
+            candidates = self._lexical_index().search(
+                query, limit=pool, recover_partial_outlier=True
+            )
+            if not candidates:
+                candidates = rank_korean_character_fallback(
+                    query, self.chunks, limit=pool
+                )
+            ranked = rerank_lexical_candidates(
+                query,
+                candidates,
+                self.chunks.__getitem__,
+            )
+            return [(self.chunks[i], s) for i, s in ranked[:limit]]
         return []
 
     def remember(self, query: str, doc_ids: list[str]) -> None:
@@ -447,8 +479,9 @@ class InMemoryVector:
             raise RuntimeError(
                 "this store cannot remember incrementally — build it with feedback=Feedback()"
             )
+        id_index = self._id_index()
         for did in doc_ids:
-            i = self._ix.get(did)
+            i = id_index.get(did)
             if i is None:
                 continue
             c = self.chunks[i]
@@ -467,8 +500,9 @@ class InMemoryVector:
             raise RuntimeError(
                 "this store cannot forget incrementally — build it with feedback=Feedback()"
             )
+        id_index = self._id_index()
         for did in doc_ids:
-            i = self._ix.get(did)
+            i = id_index.get(did)
             if i is None:
                 continue
             c = self.chunks[i]
@@ -480,7 +514,12 @@ class InMemoryVector:
                 index.update_evidence(i, before, after)
 
     def fetch(self, ids: list[str]) -> list[Chunk]:
-        return [self._by_id[i] for i in ids if i in self._by_id]
+        id_index = self._id_index()
+        return [
+            self.chunks[index]
+            for chunk_id in ids
+            if (index := id_index.get(chunk_id)) is not None
+        ]
 
     def attach_embedder(self, embedder: Optional[Callable[[str], list[float]]]) -> None:
         """(Re)bind the query embedder — e.g. after loading a persisted index, where the
@@ -504,6 +543,8 @@ class InMemoryVector:
 
     def __setstate__(self, state: dict) -> None:
         restored = dict(state)
+        restored.pop("_by_id", None)
+        restored.setdefault("_ix", None)
         restored["_bm25"] = _unpack_static_lexical(restored.get("_bm25"))
         restored.setdefault("_bm25", None)
         restored.setdefault("_title_weight", _TITLE_WEIGHT)
@@ -631,9 +672,7 @@ class _PackedChunk(NamedTuple):
         )
 
     @classmethod
-    def prepare_batch_ingress(
-        cls, chunk: Chunk
-    ) -> "_PackedChunk | _ValidatedChunk":
+    def prepare_batch_ingress(cls, chunk: Chunk) -> "_PackedChunk | _ValidatedChunk":
         chunk_id = chunk.id
         text = chunk.text
         entities_source = chunk.entities
@@ -970,7 +1009,9 @@ class MutableInMemoryVector(InMemoryVector):
 
     def _reject_persistence_reentry(self) -> None:
         if self._persistence_in_progress:
-            raise RuntimeError("mutable vector cannot change while it is being persisted")
+            raise RuntimeError(
+                "mutable vector cannot change while it is being persisted"
+            )
 
     def _publish_full_state(
         self,
@@ -1035,7 +1076,13 @@ class MutableInMemoryVector(InMemoryVector):
                 index = self._ensure_lexical_index()
                 pool = max(limit, self._pool)
                 dense = _minmax(self._dense_ranked(query, pool))
-                lexical = _minmax(index.search(query, limit=pool))
+                lexical = _minmax(
+                    rerank_lexical_candidates(
+                        query,
+                        index.search(query, limit=pool, recover_partial_outlier=True),
+                        lambda slot: self._chunks[slot].thaw(),
+                    )
+                )
                 fused = {
                     slot: self.dense_weight * dense.get(slot, 0.0)
                     + self.lexical_weight * lexical.get(slot, 0.0)
@@ -1048,7 +1095,19 @@ class MutableInMemoryVector(InMemoryVector):
                 ranked = self._dense_ranked(query, limit)
             elif self._lexical:
                 index = self._ensure_lexical_index()
-                ranked = index.search(query, limit=limit)
+                pool = max(limit, self._pool)
+                candidates = index.search(
+                    query, limit=pool, recover_partial_outlier=True
+                )
+                if not candidates:
+                    candidates = rank_korean_character_fallback(
+                        query, self._chunks, limit=pool
+                    )
+                ranked = rerank_lexical_candidates(
+                    query,
+                    candidates,
+                    lambda slot: self._chunks[slot].thaw(),
+                )[:limit]
             else:
                 ranked = []
             return [(self._chunks[slot].thaw(), score) for slot, score in ranked]
@@ -1343,7 +1402,9 @@ class MutableInMemoryVector(InMemoryVector):
                             "state": self._bm25._vector_packed_state(),
                         }
                     else:
-                        raise TypeError("mutable vector lexical index is not persistable")
+                        raise TypeError(
+                            "mutable vector lexical index is not persistable"
+                        )
                 payload = {
                     "payload_version": _VECTOR_PAYLOAD_VERSION,
                     "chunks": self._chunks,
@@ -1362,7 +1423,12 @@ class MutableInMemoryVector(InMemoryVector):
                     payload_pickle = pickle.dumps(
                         payload, protocol=_VECTOR_PAYLOAD_PROTOCOL
                     )
-                except (AttributeError, pickle.PickleError, RecursionError, TypeError) as exc:
+                except (
+                    AttributeError,
+                    pickle.PickleError,
+                    RecursionError,
+                    TypeError,
+                ) as exc:
                     raise TypeError("mutable vector state is not persistable") from exc
                 return {
                     "state_version": _MUTABLE_VECTOR_STATE_VERSION,
@@ -1475,8 +1541,10 @@ class MutableInMemoryVector(InMemoryVector):
             seen_ids.add(chunk.id)
             previous_slot = slot
         next_slot = state["next_slot"]
-        if type(next_slot) is not int or next_slot < 0 or (
-            raw_chunks and next_slot <= previous_slot
+        if (
+            type(next_slot) is not int
+            or next_slot < 0
+            or (raw_chunks and next_slot <= previous_slot)
         ):
             raise ValueError("mutable vector next slot is invalid")
         revision = state["revision"]
@@ -1512,10 +1580,7 @@ class MutableInMemoryVector(InMemoryVector):
         raw_lexical = state["lexical_state"]
         index = None
         if raw_lexical is not None:
-            if (
-                type(raw_lexical) is not dict
-                or set(raw_lexical) != {"kind", "state"}
-            ):
+            if type(raw_lexical) is not dict or set(raw_lexical) != {"kind", "state"}:
                 raise ValueError("mutable vector lexical state is invalid")
             kind = raw_lexical["kind"]
             if type(kind) is not str:
@@ -1535,8 +1600,7 @@ class MutableInMemoryVector(InMemoryVector):
             else:
                 raise ValueError("mutable vector lexical kind differs from its chunks")
         if index is not None and (
-            (index.k1, index.b, index._idf_pow)
-            != (_LEXICAL_K1, _LEXICAL_B, idf_pow)
+            (index.k1, index.b, index._idf_pow) != (_LEXICAL_K1, _LEXICAL_B, idf_pow)
         ):
             raise ValueError("mutable vector lexical configuration is invalid")
         if isinstance(index, CompactMutableBM25F):
@@ -1600,8 +1664,7 @@ class MutableInMemoryVector(InMemoryVector):
             or len(set(ordered_slots)) != len(ordered_slots)
             or set(ordered_slots) != set(raw_slots)
             or any(
-                right <= left
-                for left, right in zip(ordered_slots, ordered_slots[1:])
+                right <= left for left, right in zip(ordered_slots, ordered_slots[1:])
             )
         ):
             raise ValueError("mutable vector legacy order is invalid")
@@ -1691,8 +1754,7 @@ class MutableInMemoryVector(InMemoryVector):
         )
         current_max = max(chunks, default=-1)
         if (
-            (index.k1, index.b, index._idf_pow)
-            != (_LEXICAL_K1, _LEXICAL_B, idf_pow)
+            (index.k1, index.b, index._idf_pow) != (_LEXICAL_K1, _LEXICAL_B, idf_pow)
             or type(index._max_doc_id) is not int
             or index._max_doc_id < current_max
             or index._max_doc_id >= next_slot
@@ -1773,8 +1835,7 @@ class MutableInMemoryVector(InMemoryVector):
         )
         current_max = max(chunks, default=-1)
         if (
-            (index.k1, index.b, index._idf_pow)
-            != (_LEXICAL_K1, _LEXICAL_B, idf_pow)
+            (index.k1, index.b, index._idf_pow) != (_LEXICAL_K1, _LEXICAL_B, idf_pow)
             or type(index._max_doc_id) is not int
             or index._max_doc_id < current_max
             or index._max_doc_id >= next_slot
@@ -1787,8 +1848,7 @@ class MutableInMemoryVector(InMemoryVector):
             or tuple(index.w) != tuple(weights)
             or index._fw != list(weights.values())
             or index.evidence_fields != evidence_fields
-            or index._is_ev
-            != [field in evidence_fields for field in weights]
+            or index._is_ev != [field in evidence_fields for field in weights]
             or index.N != reference.N
             or index._totals != reference._totals
             or index._docs != reference._docs
@@ -1879,7 +1939,9 @@ class MutableInMemoryVector(InMemoryVector):
         fields = (
             ("title", "body", "memory")
             if feedback is not None
-            else ("title", "body") if fielded else ("body",)
+            else ("title", "body")
+            if fielded
+            else ("body",)
         )
         resolver = _VectorBaseRecordResolver(chunks, feedback, fields)
         index = state["_bm25"]
@@ -1892,11 +1954,11 @@ class MutableInMemoryVector(InMemoryVector):
                 index._validate_vector_source(resolver.plain, chunks)
             except (RuntimeError, TypeError, ValueError) as exc:
                 raise ValueError("legacy mutable BM25 state is invalid") from exc
-            if (
-                (index.k1, index.b, index._idf_pow)
-                != (_LEXICAL_K1, _LEXICAL_B, idf_pow)
-                or index._max_doc_id >= next_slot
-            ):
+            if (index.k1, index.b, index._idf_pow) != (
+                _LEXICAL_K1,
+                _LEXICAL_B,
+                idf_pow,
+            ) or index._max_doc_id >= next_slot:
                 raise ValueError("legacy mutable BM25 configuration is invalid")
             lexical_state = {
                 "kind": "bm25",
@@ -1924,8 +1986,7 @@ class MutableInMemoryVector(InMemoryVector):
                 or tuple(index.w) != tuple(weights)
                 or index._fw != list(weights.values())
                 or index.evidence_fields != evidence_fields
-                or index._is_ev
-                != [field in evidence_fields for field in weights]
+                or index._is_ev != [field in evidence_fields for field in weights]
                 or index._max_doc_id >= next_slot
             ):
                 raise ValueError("legacy mutable BM25F configuration is invalid")

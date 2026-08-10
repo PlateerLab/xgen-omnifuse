@@ -178,8 +178,7 @@ def _fixture_metrics(rows: list[dict[str, object]]) -> dict[str, float]:
             for index, document_id in enumerate(retrieved)
         )
         ideal_dcg = sum(
-            1.0 / math.log2(index + 2)
-            for index in range(min(len(relevant), direct.K))
+            1.0 / math.log2(index + 2) for index in range(min(len(relevant), direct.K))
         )
         ndcg = actual_dcg / ideal_dcg if ideal_dcg else 0.0
         return precision, recall, f1, ndcg
@@ -187,10 +186,8 @@ def _fixture_metrics(rows: list[dict[str, object]]) -> dict[str, float]:
     computed = [values(row) for row in rows]
     count = len(rows)
     return {
-        "mrr_at_20": sum(float(row["reciprocal_rank_at_20"]) for row in rows)
-        / count,
-        "mrr_at_10": sum(float(row["reciprocal_rank_at_10"]) for row in rows)
-        / count,
+        "mrr_at_20": sum(float(row["reciprocal_rank_at_20"]) for row in rows) / count,
+        "mrr_at_10": sum(float(row["reciprocal_rank_at_10"]) for row in rows) / count,
         "precision_at_10": sum(value[0] for value in computed) / count,
         "recall_at_10": sum(value[1] for value in computed) / count,
         "f1_at_10": sum(value[2] for value in computed) / count,
@@ -229,16 +226,13 @@ def _direct_result_fixture(
     ]
     systems = {
         "omnifuse": _system_result_fixture(omnifuse_rows, ingest_seconds=0.1),
-        "synaptic_memory": _system_result_fixture(
-            synaptic_rows, ingest_seconds=0.2
-        ),
+        "synaptic_memory": _system_result_fixture(synaptic_rows, ingest_seconds=0.2),
     }
     if case.hotpot_supporting:
         for system_result in systems.values():
             rows = system_result["queries"]
             hits = sum(
-                len(set(row["retrieved_top_10"]) & set(row["relevant"]))
-                for row in rows
+                len(set(row["retrieved_top_10"]) & set(row["relevant"])) for row in rows
             )
             total = sum(len(row["relevant"]) for row in rows)
             system_result["supporting_facts"] = {
@@ -295,7 +289,9 @@ def _direct_result_fixture(
         "winners": winners,
         "runtime": {
             "python_executable": str(python.resolve()),
-            "synaptic_package": str((repo / direct.UPSTREAM_PACKAGE_RELATIVE).resolve()),
+            "synaptic_package": str(
+                (repo / direct.UPSTREAM_PACKAGE_RELATIVE).resolve()
+            ),
             "synaptic_version": direct.EXPECTED_TAG.removeprefix("v"),
             "upstream_driver": str((repo / direct.UPSTREAM_DRIVER_RELATIVE).resolve()),
             "upstream_scorer": str((repo / direct.UPSTREAM_SCORER_RELATIVE).resolve()),
@@ -1098,9 +1094,7 @@ def test_schema_v4_recomputes_direct_result_and_rejects_semantic_tampering(
     reject(changed, "evaluated query count")
 
     changed = json.loads(json.dumps(payload))
-    changed["result"]["systems"]["omnifuse"][
-        "query_ids_ordered_sha256"
-    ] = "0" * 64
+    changed["result"]["systems"]["omnifuse"]["query_ids_ordered_sha256"] = "0" * 64
     reject(changed, "query order hash")
 
     changed = json.loads(json.dumps(payload))
@@ -1117,9 +1111,9 @@ def test_schema_v4_recomputes_direct_result_and_rejects_semantic_tampering(
         system_result["query_ids_ordered_sha256"] = provenance.canonical_json_sha256(
             [row["query_id"] for row in system_result["queries"]]
         )
-    changed["result"]["selection"][
-        "scored_query_ids_ordered_sha256"
-    ] = provenance.canonical_json_sha256(["q2", "q1"])
+    changed["result"]["selection"]["scored_query_ids_ordered_sha256"] = (
+        provenance.canonical_json_sha256(["q2", "q1"])
+    )
     reject(changed, "query order or relevant judgments differ from the official input")
 
     changed = json.loads(json.dumps(payload))
@@ -1157,9 +1151,9 @@ def test_schema_v4_recomputes_direct_result_and_rejects_semantic_tampering(
     reject(changed, "relevant IDs must not be empty")
 
     changed = json.loads(json.dumps(payload))
-    changed["result"]["systems"]["omnifuse"]["queries"][0][
-        "reciprocal_rank_at_10"
-    ] = 0.5
+    changed["result"]["systems"]["omnifuse"]["queries"][0]["reciprocal_rank_at_10"] = (
+        0.5
+    )
     reject(changed, "reciprocal rank at 10")
 
     changed = json.loads(json.dumps(payload))
@@ -1179,7 +1173,9 @@ def test_schema_v4_validates_hotpot_supporting_fact_aggregation(
     tmp_path: pathlib.Path,
 ) -> None:
     case = direct.CASE_BY_ID["hotpotqa_24"]
-    result = _direct_result_fixture(case, tmp_path / "repo", pathlib.Path(sys.executable))
+    result = _direct_result_fixture(
+        case, tmp_path / "repo", pathlib.Path(sys.executable)
+    )
 
     direct._validate_worker_result(
         result,
@@ -1429,7 +1425,7 @@ def test_successful_suite_publishes_all_write_once_worker_artifacts(
     )
 
     assert report["status"] == "ok"
-    assert report["schema_version"] == 4
+    assert report["schema_version"] == 5
     assert direct.WORKER_SCHEMA_VERSION == 4
     assert report["summary"]["completed_cases"] == 14
     assert report["summary"]["wins"]["mrr_at_10"]["tie"] == 14
@@ -1523,6 +1519,48 @@ def test_doctor_binding_covers_every_case_with_hash_and_bytes() -> None:
     assert {binding["target_id"] for binding in bindings} == set(direct.CASE_BY_ID)
     assert all(binding["bytes"] > 0 for binding in bindings)
     assert all(len(binding["sha256"]) == 64 for binding in bindings)
+
+
+def test_per_query_head_to_head_reports_quality_and_latency_losses() -> None:
+    def row(query_id: str, retrieved: list[str], search_time_ms: float) -> dict:
+        return {
+            "query_id": query_id,
+            "retrieved_top_10": retrieved,
+            "retrieved_top_20": retrieved,
+            "relevant": ["gold"],
+            "search_time_ms": search_time_ms,
+        }
+
+    workers = [
+        {
+            "case_id": "case-a",
+            "payload": {
+                "result": {
+                    "systems": {
+                        "omnifuse": {
+                            "queries": [
+                                row("win", ["gold", "noise"], 1.0),
+                                row("loss", ["noise", "gold"], 3.0),
+                            ]
+                        },
+                        "synaptic_memory": {
+                            "queries": [
+                                row("win", ["noise", "gold"], 2.0),
+                                row("loss", ["gold", "noise"], 2.0),
+                            ]
+                        },
+                    }
+                }
+            },
+        }
+    ]
+
+    result = direct._per_query_head_to_head(workers)
+
+    assert result["queries"] == 2
+    assert result["questions_with_any_omnifuse_quality_loss"] == 1
+    assert result["cases"][0]["quality_loss_query_ids"] == ["loss"]
+    assert result["observed_search_ms"]["questions_with_omnifuse_loss"] == 1
 
 
 def test_suite_cli_requires_doctor_runtime_and_write_once_output(

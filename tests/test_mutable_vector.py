@@ -107,6 +107,22 @@ def test_lexical_index_is_lazy_and_pre_search_work_is_coalesced(monkeypatch):
     assert tokenized == materialized_calls
 
 
+def test_korean_character_fallback_preserves_sparse_mutable_slots():
+    vector = MutableInMemoryVector(
+        [
+            Chunk("compound", "황갈색입니다."),
+            Chunk("deleted", "파란색입니다."),
+            Chunk("longer", "세 가지 색상을 모두 제공합니다."),
+        ]
+    )
+    vector.delete_chunks(["deleted"])
+
+    assert [chunk.id for chunk, _score in vector.search("색", limit=3)] == [
+        "compound",
+        "longer",
+    ]
+
+
 def test_pre_search_crud_builds_final_stable_order_once():
     vector = MutableInMemoryVector(
         [Chunk("a", "same"), Chunk("b", "same"), Chunk("c", "same")]

@@ -1,6 +1,7 @@
-# eval/ — OmniFuse retrieval benchmark
+# eval/ — complete OmniFuse benchmark archive
 
-Standalone evaluation harness (not shipped in the package). The public IR tracks compare
+This is the isolated experiment record; the main README intentionally carries only the
+current result summary. The standalone harness is not shipped in the package. The public IR tracks compare
 single-shot OmniFuse and **synaptic-memory** on identical corpus, queries, qrels, K=10, and
 the byte-identical `eval/metrics.py` scorer. synaptic runs through its own
 `eval.run_all` FTS-only driver (`embedder=None, reranker=None`). The enterprise fixture is
@@ -14,7 +15,46 @@ artifacts target upstream `main` at `7470e728a7d728dedea5363aabbb73adf6ac666f`;
 that checkout's package metadata also says `0.27.0`, but it is not the tag. The two
 provenance cohorts remain separate.
 
-## HotPotQA official E2E result (2026-08-08, v22)
+## Current canonical results (2026-08-10, retrieval tracks v34; answer track v26)
+
+Direct14 v32 uses a qrel-blind score invariant for the single partial-word recovery, adds a
+zero-hit Korean character-evidence fallback and removes Korean copula-only query tokens.
+Relative to v31 it reduces questions with any quality loss by 12 without creating a new
+below-Synaptic query. The final v34 source also removes the static store's duplicate ID map
+and lazily creates the remaining lookup only for ID-based operations. HotPotQA, LongMemEval
+and Enterprise were freshly rerun against that source; only the stochastic local-Qwen
+answer track remains on v26.
+
+| track | aggregate result | individual-question result | artifact |
+|---|---|---|---|
+| Direct14, 2,269 queries | MRR@10/20, P/R/F1/nDCG: no dataset losses; five metrics 14/0/0 and Recall 13/0/1 | 301 queries have at least one quality loss; all ids and six metric W/L/T counts are recorded | [`direct...v34.json`](results/direct_external14_synaptic_tag_v0.27.0_836d536_20260810_v34.json) |
+| HotPotQA retrieval, 24 questions | 11/0 aggregate | zero losses across nine quality metrics; retrieval latency 24/0/0 | [`e2e...v34.json`](results/e2e_qa_retrieval_synaptic_tag_v0.27.0_836d536_20260810_v34.json) |
+| LongMemEval retrieval, 48 questions | 8/0 aggregate | zero quality losses; aggregate quality, build, retrieval latency and RSS all win | [`longmemeval...v34.json`](results/longmemeval_retrieval_synaptic_tag_v0.27.0_836d536_20260810_v34.json) |
+| local-Qwen answer E2E, 24 questions | 9/1 aggregate; stochastic p95 generation loses | correctness 7/1/16 | [`answer...v26.json`](results/e2e_qa_answer_synaptic_tag_v0.27.0_836d536_qwen3.5_4b_20260809_v26.json) |
+| Enterprise full-native, five runs | OmniFuse wins MRR, nDCG, Recall, mean search and build | native-capability scenario, not equal internal state | [`enterprise...v34.json`](results/enterprise_synaptic_tag_v0.27.0_836d536_20260810_v34.json) |
+
+SHA-256 values respectively are
+`15aedd39c63c19fdd3996b50bd3b6ed2546d6450a13320cd962b94193002da4b`,
+`0098e14dbd87bf03ede78c92e80910555cb90f5032b46359aa5c3a1ec124828c`,
+`de5bbc24b8891d18ab175a2753c4f2c4395637b93358e1aae3f9fe8fb212eebf`,
+`3c4d8a45e578a10de972ac8614317e2258eef81a9b9ed20af3e96289bd35e680`
+and `b18d805c76d0bbe7a4312869679921e781dd75cb71a07da9cdee19cd368cb0ab`.
+
+The direct runner's schema v5 and both retrieval runners' schema v2 recompute and publish
+per-question head-to-head counts. The answer schema v2 does the same for correctness,
+generation/retrieval time and token counts. “All datasets win” must not be shortened to
+“every query wins”; only the HotPotQA and LongMemEval retrieval quality cohorts currently
+have zero individual losses.
+
+Nor can every Direct14 query be a strict win: Synaptic already reaches a metric's `1.0`
+ceiling on 1,510/2,269 queries, including 16 queries at the ceiling on all six metrics.
+“Individual sweep” must mean zero losses with unavoidable ceiling ties, never a value above
+the metric maximum. A global qrel-blind RRF check produced its first gains and first loss at
+the same non-zero transition, so no oracle-free zero-loss fusion is claimed.
+
+The sections below retain earlier immutable artifacts as historical evidence.
+
+## Historical HotPotQA official E2E result (2026-08-08, v22)
 
 `e2e_qa_retrieval_bench.py` reproduces the tagged
 `tests/benchmark/test_e2e_qa.py` corpus, seed-42 cohort, search limit 10, evidence-step limit
@@ -76,7 +116,7 @@ python -I eval/e2e_qa_answer_bench.py `
   --out <new-answer-result.json>
 ```
 
-## LongMemEval-S retrieval result (2026-08-03, v20)
+## Historical LongMemEval-S retrieval result (2026-08-03, v20)
 
 `longmemeval_retrieval_bench.py` reproduces the retrieval-owned portion of the tagged
 `tests/benchmark/test_longmemeval.py`: seed-42 balanced sampling, fresh memory per question,
@@ -159,7 +199,7 @@ Evidence:
 [`results/ablation_nfcorpus_synaptic_tag_v0.27.0_836d536_20260730_v19.json`](results/ablation_nfcorpus_synaptic_tag_v0.27.0_836d536_20260730_v19.json)
 (SHA-256 `e2bd7173586c397f229b924441e939d88bee460905b12e9d2eed4221ea320ac0`).
 
-## Official `v0.27.0` direct14 result (2026-07-28, v18 revalidation)
+## Historical `v0.27.0` direct14 result (2026-07-28, v18)
 
 `direct_external_bench.py` imports the official tag's dataset preparation and native
 no-embedding graph construction, preserves its 2,000-character truncation, seed-42

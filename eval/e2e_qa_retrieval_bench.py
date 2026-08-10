@@ -52,7 +52,7 @@ from provenance import (  # noqa: E402
 )
 
 SCHEMA = "omnifuse.eval.e2e_qa_retrieval"
-SCHEMA_VERSION = 1
+SCHEMA_VERSION = 2
 WORKER_SCHEMA = "omnifuse.eval.e2e_qa_retrieval_worker"
 WORKER_SCHEMA_VERSION = 1
 PROVENANCE_LEVEL = "isolated-upstream-e2e-retrieval-ab-ba-write-once-v1"
@@ -702,7 +702,85 @@ def _aggregate(trials: Sequence[Mapping[str, Any]]) -> dict[str, Any]:
     }
 
 
-def _head_to_head(aggregates: Mapping[str, Any]) -> dict[str, Any]:
+def _per_question_head_to_head(
+    trials: Mapping[str, Sequence[Mapping[str, Any]]],
+) -> dict[str, Any]:
+    question_rows = {
+        system: {
+            row["query_id"]: row for row in system_trials[0]["result"]["questions"]
+        }
+        for system, system_trials in trials.items()
+    }
+    omni = question_rows["omnifuse"]
+    synaptic = question_rows["synaptic"]
+    if list(omni) != list(synaptic):
+        raise ValueError("E2E QA per-question system cohorts differ")
+
+    metric_sources = {
+        "precision": "metrics",
+        "recall": "metrics",
+        "f1": "metrics",
+        "hit": "metrics",
+        "all_gold": "metrics",
+        "reciprocal_rank": "metrics",
+        "ndcg": "metrics",
+        "answer_exact": "context_support",
+        "answer_token_recall": "context_support",
+    }
+    quality_counts = {
+        field: {"omnifuse": 0, "synaptic": 0, "tie": 0} for field in metric_sources
+    }
+    retrieval_counts = {"omnifuse": 0, "synaptic": 0, "tie": 0}
+    quality_losses: list[dict[str, Any]] = []
+    retrieval_losses: list[str] = []
+
+    for query_id, omni_row in omni.items():
+        synaptic_row = synaptic[query_id]
+        lost_quality: list[str] = []
+        for field, source in metric_sources.items():
+            omni_value = float(omni_row[source][field])
+            synaptic_value = float(synaptic_row[source][field])
+            if math.isclose(omni_value, synaptic_value, rel_tol=1e-12, abs_tol=1e-12):
+                winner = "tie"
+            elif omni_value > synaptic_value:
+                winner = "omnifuse"
+            else:
+                winner = "synaptic"
+                lost_quality.append(field)
+            quality_counts[field][winner] += 1
+        if lost_quality:
+            quality_losses.append({"query_id": query_id, "metrics": lost_quality})
+
+        omni_ms = float(omni_row["retrieval_ms"])
+        synaptic_ms = float(synaptic_row["retrieval_ms"])
+        if math.isclose(omni_ms, synaptic_ms, rel_tol=1e-12, abs_tol=1e-12):
+            winner = "tie"
+        elif omni_ms < synaptic_ms:
+            winner = "omnifuse"
+        else:
+            winner = "synaptic"
+            retrieval_losses.append(query_id)
+        retrieval_counts[winner] += 1
+
+    return {
+        "questions": len(omni),
+        "quality": {
+            "metrics": quality_counts,
+            "questions_with_any_omnifuse_loss": len(quality_losses),
+            "losses": quality_losses,
+        },
+        "retrieval_ms": {
+            "counts": retrieval_counts,
+            "questions_with_omnifuse_loss": len(retrieval_losses),
+            "loss_query_ids": retrieval_losses,
+        },
+    }
+
+
+def _head_to_head(
+    aggregates: Mapping[str, Any],
+    trials: Mapping[str, Sequence[Mapping[str, Any]]] | None = None,
+) -> dict[str, Any]:
     quality = (
         "recall",
         "hit_rate",
@@ -737,7 +815,7 @@ def _head_to_head(aggregates: Mapping[str, Any]) -> dict[str, Any]:
                 "winner": winner,
             }
         )
-    return {
+    result = {
         "metrics": rows,
         "verdict": {
             "omnifuse": sum(row["winner"] == "omnifuse" for row in rows),
@@ -746,6 +824,9 @@ def _head_to_head(aggregates: Mapping[str, Any]) -> dict[str, Any]:
             "common_metrics": len(rows),
         },
     }
+    if trials is not None:
+        result["per_question"] = _per_question_head_to_head(trials)
+    return result
 
 
 def _source_state(repo: Path) -> dict[str, Any]:
@@ -948,7 +1029,7 @@ def _controller(args: argparse.Namespace) -> int:
             system: {"trials": rows[system], "aggregate": aggregates[system]}
             for system in SYSTEMS
         },
-        "head_to_head": _head_to_head(aggregates),
+        "head_to_head": _head_to_head(aggregates, rows),
         "postflight": {
             "data_unchanged": True,
             "repositories_unchanged": True,

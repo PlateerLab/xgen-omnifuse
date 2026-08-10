@@ -6,6 +6,7 @@ the IDF of query vocabulary corpus-wide, which looked like memory but moved even
 whose relevant documents remembered nothing. These tests pin the three properties that
 rule that out.
 """
+
 import pathlib
 import sys
 
@@ -37,9 +38,10 @@ def test_evidence_never_changes_the_idf_of_a_content_term():
     """The bug we shipped: remembered text raised df and deflated IDF corpus-wide."""
     plain = build_inmemory([], [], CHUNKS)
     fb = Feedback()
-    fb.remember("강수량 감소 추세", ["trial"])       # '감소' also occurs in trial's body
+    fb.remember("강수량 감소 추세", ["trial"])  # '감소' also occurs in trial's body
     warm = build_inmemory([], [], CHUNKS, feedback=fb)
     plain.retrieve("강수량 감소 추세", limit=len(CHUNKS))
+    warm.retrieve("강수량 감소 추세", limit=len(CHUNKS))
     for term in ("#감소", "ldl"):
         assert plain.vector._bm25.idf.get(term) == warm.vector._bm25.idf.get(term)
 
@@ -52,7 +54,7 @@ def test_a_remembered_query_lifts_the_chunk_that_answered_it():
     assert _ids(warm, "스타틴 콜레스테롤 효과")[0] == "trial"
 
     cold = build_inmemory([], [], CHUNKS)
-    assert "trial" not in _ids(cold, "스타틴")       # unreachable by content alone
+    assert "trial" not in _ids(cold, "스타틴")  # unreachable by content alone
 
 
 def test_memory_cannot_move_a_query_unrelated_to_what_was_remembered():
@@ -74,8 +76,12 @@ def test_evidence_field_is_not_length_normalized():
     for extra in ("무관한 질문 하나", "또 다른 무관한 질문", "세번째 무관한 질문"):
         many.remember(extra, ["trial"])
     q = "스타틴 효과"
-    s1 = dict((c.id, s) for c, s in build_inmemory([], [], CHUNKS, feedback=one).retrieve(q))
-    s2 = dict((c.id, s) for c, s in build_inmemory([], [], CHUNKS, feedback=many).retrieve(q))
+    s1 = dict(
+        (c.id, s) for c, s in build_inmemory([], [], CHUNKS, feedback=one).retrieve(q)
+    )
+    s2 = dict(
+        (c.id, s) for c, s in build_inmemory([], [], CHUNKS, feedback=many).retrieve(q)
+    )
     assert s1["trial"] == s2["trial"]
 
 
@@ -84,11 +90,14 @@ def test_bm25f_evidence_fields_keep_df_out():
         {"body": tokenize("alpha beta"), "memory": tokenize("gamma")},
         {"body": tokenize("alpha"), "memory": tokenize("gamma")},
     ]
-    plain = BM25F([{"body": d["body"], "memory": []} for d in docs],
-                  {"body": 1.0, "memory": 1.0}, evidence_fields={"memory"})
+    plain = BM25F(
+        [{"body": d["body"], "memory": []} for d in docs],
+        {"body": 1.0, "memory": 1.0},
+        evidence_fields={"memory"},
+    )
     withmem = BM25F(docs, {"body": 1.0, "memory": 1.0}, evidence_fields={"memory"})
-    assert plain.idf["alpha"] == withmem.idf["alpha"]    # content IDF untouched
-    assert "gamma" in withmem.idf                        # evidence-only term still usable
+    assert plain.idf["alpha"] == withmem.idf["alpha"]  # content IDF untouched
+    assert "gamma" in withmem.idf  # evidence-only term still usable
 
 
 def test_observe_ranked_only_remembers_confirmed_chunks():

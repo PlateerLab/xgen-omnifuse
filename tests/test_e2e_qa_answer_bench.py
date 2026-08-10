@@ -39,6 +39,17 @@ def test_payload_matches_official_ollama_shape() -> None:
     }
 
 
+def test_warmup_payload_is_unrelated_and_bounded_to_one_token() -> None:
+    assert e2e._warmup_payload("qwen3.5:4b") == {
+        "model": "qwen3.5:4b",
+        "messages": [{"role": "user", "content": "Reply with OK."}],
+        "stream": False,
+        "think": False,
+        "options": {"num_predict": 1},
+        "keep_alive": "10m",
+    }
+
+
 def test_require_loopback_rejects_remote_or_path_urls() -> None:
     assert e2e._require_loopback_base_url("http://127.0.0.1:11434/") == (
         "http://127.0.0.1:11434"
@@ -107,6 +118,32 @@ def test_head_to_head_uses_higher_quality_and_lower_cost() -> None:
         "ties": 0,
         "common_metrics": 10,
     }
+
+
+def test_per_question_head_to_head_reports_correctness_and_cost_losses() -> None:
+    def row(query_id: str, correctness: float, generation_ms: float) -> dict:
+        return {
+            "query_id": query_id,
+            "correctness": correctness,
+            "generation_ms": generation_ms,
+            "retrieval_ms": generation_ms,
+            "ollama": {
+                "prompt_eval_count": int(generation_ms),
+                "eval_count": int(generation_ms),
+            },
+        }
+
+    results = {
+        "omnifuse": [row("win", 1.0, 1.0), row("loss", 0.0, 3.0)],
+        "synaptic": [row("win", 0.0, 2.0), row("loss", 1.0, 2.0)],
+    }
+
+    result = e2e._per_question_head_to_head(results)
+
+    assert result["questions"] == 2
+    assert result["questions_with_omnifuse_correctness_loss"] == 1
+    assert result["loss_query_ids"]["correctness"] == ["loss"]
+    assert result["loss_query_ids"]["generation_ms"] == ["loss"]
 
 
 def test_percentile_uses_nearest_rank() -> None:
