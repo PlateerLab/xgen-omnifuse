@@ -45,6 +45,13 @@ def test_auto_link_note():
     assert v._notes[-1][2] == ["itemA"]
 
 
+def test_auto_link_order_is_deterministic():
+    v = Vault()
+    v.fuse(facts=[("zeta", "relatedTo", "alpha")])
+    v.fuse("zeta and alpha")
+    assert v._notes[-1][2] == ["alpha", "zeta"]
+
+
 def test_save_load(tmp_path):
     v = _vault()
     p = tmp_path / "vault.jsonl"

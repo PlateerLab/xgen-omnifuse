@@ -18,12 +18,23 @@ environment, and the built golden set stays local. This is the reproducer for
 """
 from __future__ import annotations
 
-import argparse, asyncio, hashlib, json, os, re, ssl, sys, time, urllib.request
+import argparse
+import asyncio
+import hashlib
+import json
+import os
+import re
+import ssl
+import sys
+import time
+import urllib.request
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from urllib.parse import quote
 
-_CTX = ssl.create_default_context(); _CTX.check_hostname = False; _CTX.verify_mode = ssl.CERT_NONE
+_CTX = ssl.create_default_context()
+_CTX.check_hostname = False
+_CTX.verify_mode = ssl.CERT_NONE
 _META = re.compile(r"<Document-Metadata>.*?</Document-Metadata>", re.S)
 
 
@@ -81,7 +92,8 @@ def _gen_q(text, key, model):
             "messages": [{"role": "system", "content": _SYS}, {"role": "user", "content": text[:3000]}]}
     r = urllib.request.Request("https://api.openai.com/v1/chat/completions",
                                data=json.dumps(body).encode(), method="POST")
-    r.add_header("Content-Type", "application/json"); r.add_header("Authorization", f"Bearer {key}")
+    r.add_header("Content-Type", "application/json")
+    r.add_header("Authorization", f"Bearer {key}")
     try:
         with urllib.request.urlopen(r, timeout=60) as resp:
             return json.loads(json.loads(resp.read().decode())["choices"][0]["message"]["content"]).get("q", "").strip()
@@ -147,8 +159,11 @@ def main():
     a = ap.parse_args()
     gp = Path(a.golden)
     if not gp.exists():
-        base = os.environ["XGEN_BASE"]; email = os.environ["XGEN_EMAIL"]; pw = os.environ["XGEN_PASSWORD"]
-        key = os.environ["OPENAI_API_KEY"]; model = os.environ.get("OPENAI_MODEL", "gpt-4o-mini")
+        base = os.environ["XGEN_BASE"]
+        email = os.environ["XGEN_EMAIL"]
+        pw = os.environ["XGEN_PASSWORD"]
+        key = os.environ["OPENAI_API_KEY"]
+        model = os.environ.get("OPENAI_MODEL", "gpt-4o-mini")
         print("downloading corpus …", flush=True)
         corpus = download_corpus(base, email, pw, a.collection_id, a.max_docs)
         print(f"  {len(corpus)} chunks; generating {a.num_queries} questions …", flush=True)

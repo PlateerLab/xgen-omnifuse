@@ -115,8 +115,6 @@ def test_copula_stripping_does_not_maul_real_words():
 
 def test_interrogative_no_longer_outranks_the_answer():
     """The exact MIRACL-ko failure: a title made of the question word must not win."""
-    from omnifuse import Chunk, build_inmemory
-
     chunks = [
         Chunk("movie", title="내 친구의 집은 어디인가", text="이란의 영화이다"),
         Chunk("gold", title="테살로니키", text="그리스의 도시이며 수도 아테네 다음으로 크다"),

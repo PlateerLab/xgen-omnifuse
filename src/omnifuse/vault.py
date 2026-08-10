@@ -42,11 +42,13 @@ class Vault:
         for t in (facts or []):
             tr = to_triple(t)
             key = (tr.s, tr.p, tr.o)
-            if key not in self._fact_set:          # fuse-on-write dedup
+            if key not in self._fact_set:
                 self._fact_set.add(key)
                 self._facts.append(key)
-                self._labels.add(tr.s); self._labels.add(tr.o)
-                self._bump(tr.s); self._bump(tr.o)
+                self._labels.add(tr.s)
+                self._labels.add(tr.o)
+                self._bump(tr.s)
+                self._bump(tr.o)
         if text is not None:
             ents = list(entities) if entities is not None else (self._auto_link(text) if self.auto_link else [])
             self._notes.append((id or f"n{len(self._notes)}", text, ents))
@@ -57,7 +59,7 @@ class Vault:
 
     def surface(self, query: str, *, limit: Optional[int] = None) -> SearchResult:
         """Fusion search over everything fused, re-ranked by salience."""
-        if self._dirty or self._of is None:        # lazy: rebuild once per fuse-batch
+        if self._dirty or self._of is None:
             self._of = from_triples(self._facts, self._notes, llm=self.llm,
                                     embedder=self.embedder, **self.search_kwargs)
             self._dirty = False
@@ -65,7 +67,7 @@ class Vault:
         r.evidence_nodes = sorted(r.evidence_nodes, key=lambda n: (-self._salience.get(n, 0.0), n))
         if limit is not None:
             r.evidence_nodes = r.evidence_nodes[:limit]
-        for n in r.evidence_nodes:                 # surface reinforces salience
+        for n in r.evidence_nodes:
             self._bump(n, self.reinforce)
         return r
 
@@ -79,9 +81,8 @@ class Vault:
         self._salience[label] = self._salience.get(label, 0.0) + amount
 
     def _auto_link(self, text: str) -> list[str]:
-        return [l for l in self._labels if len(l) >= 2 and l in text]   # incremental label set, no re-derive
+        return sorted(label for label in self._labels if len(label) >= 2 and label in text)
 
-    # ---- persistence (JSONL) ----
     def save(self, path: str) -> None:
         with open(path, "w", encoding="utf-8") as f:
             for s, p, o in self._facts:
@@ -100,7 +101,8 @@ class Vault:
                 d = json.loads(line)
                 if "f" in d:
                     key = tuple(d["f"])
-                    v._fact_set.add(key); v._facts.append(key)
+                    v._fact_set.add(key)
+                    v._facts.append(key)
                     v._labels.update([key[0], key[2]])
                 elif "n" in d:
                     v._notes.append((d["n"][0], d["n"][1], d["n"][2]))

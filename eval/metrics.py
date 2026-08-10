@@ -43,9 +43,6 @@ def dcg_at_k(retrieved: list[str], relevant: set[str], k: int) -> float:
 def ndcg_at_k(retrieved: list[str], relevant: set[str], k: int) -> float:
     """Normalized DCG @ K."""
     actual = dcg_at_k(retrieved, relevant, k)
-    # Ideal: all relevant docs at the top
-    ideal_retrieved = sorted(retrieved[:k], key=lambda d: d in relevant, reverse=True)
-    # But ideal should have min(len(relevant), k) hits at top
     n_ideal = min(len(relevant), k)
     ideal = sum(1.0 / math.log2(i + 2) for i in range(n_ideal))
     if ideal == 0.0:
