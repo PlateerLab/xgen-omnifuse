@@ -40,6 +40,7 @@ _APPLICATION_ID = 1330005587
 _INT_TYPECODE = "i"
 _FLOAT_TYPECODE = "d"
 _POSTING_BLOCK_BYTES = 64 * 1024
+_BLOB_OPEN_AVAILABLE = hasattr(sqlite3.Connection, "blobopen")
 _ISA = frozenset({"instanceOf", "type", "subClassOf", "rdf:type"})
 _SQL = """
 PRAGMA page_size = 4096;
@@ -449,6 +450,50 @@ class _SnapshotDatabase:
         return self.connection.execute(sql, parameters)
 
 
+def _read_blob_slices(
+    database: _SnapshotDatabase,
+    table: str,
+    row_id: int,
+    entries: list[tuple[str, int, int]],
+) -> dict[str, bytes]:
+    if any(offset < 0 or count < 0 for _term, offset, count in entries):
+        raise ValueError("SQLite raw posting directory is invalid")
+    connection = database.connection
+    if connection is None:
+        raise RuntimeError("SQLite snapshot is closed")
+    payloads: dict[str, bytes] = {}
+    if _BLOB_OPEN_AVAILABLE:
+        with connection.blobopen(table, "data", row_id, readonly=True) as blob:
+            for term, offset, count in entries:
+                blob.seek(offset)
+                payloads[term] = blob.read(count)
+    else:
+        for start in range(0, len(entries), 500):
+            batch = entries[start : start + 500]
+            projections = ",".join("substr(data, ?, ?)" for _entry in batch)
+            parameters: list[int] = []
+            for _term, offset, count in batch:
+                parameters.extend((offset + 1, count))
+            parameters.append(row_id)
+            row = database.execute(
+                f"SELECT {projections} FROM {table} WHERE block_id = ?",
+                parameters,
+            ).fetchone()
+            if row is None:
+                raise ValueError("SQLite raw posting payload is missing")
+            payloads.update(
+                (term, payload)
+                for (term, _offset, _count), payload in zip(batch, row, strict=True)
+            )
+    if any(
+        not isinstance(payloads.get(term), bytes)
+        or len(payloads[term]) != count
+        for term, _offset, count in entries
+    ):
+        raise ValueError("SQLite raw posting payload is truncated")
+    return payloads
+
+
 def _query_postings(
     database: _SnapshotDatabase,
     table: str,
@@ -685,20 +730,14 @@ class _RawSQLiteLexical:
                 (term, byte_offset - 1, byte_count)
             )
         for block_id, entries in by_block.items():
-            with self.database.connection.blobopen(
-                self.payload_table,
-                "data",
-                block_id,
-                readonly=True,
-            ) as blob:
-                for term, byte_offset, byte_count in entries:
-                    if byte_offset < 0 or byte_count < 0:
-                        raise ValueError("SQLite raw posting directory is invalid")
-                    blob.seek(byte_offset)
-                    payload = blob.read(byte_count)
-                    if len(payload) != byte_count:
-                        raise ValueError("SQLite raw posting payload is truncated")
-                    payloads[term] = payload
+            payloads.update(
+                _read_blob_slices(
+                    self.database,
+                    self.payload_table,
+                    block_id,
+                    entries,
+                )
+            )
         multipliers: dict[str, int]
         if self.mode == "bm25":
             multipliers = {}

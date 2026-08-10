@@ -26,13 +26,17 @@ import site
 import subprocess
 import sys
 import time
-import tomllib
 import types
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
+
+try:
+    import tomllib
+except ModuleNotFoundError:
+    import tomli as tomllib
 
 sys.dont_write_bytecode = True
 

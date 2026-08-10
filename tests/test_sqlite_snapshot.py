@@ -78,6 +78,17 @@ def test_snapshot_preserves_exact_bm25_and_bm25f_scores(tmp_path, chunks, query)
         loaded.close()
 
 
+def test_snapshot_preserves_rankings_without_blobopen(tmp_path, monkeypatch):
+    chunks = [Chunk("a", "alpha beta"), Chunk("b", "beta gamma")]
+    source = build_inmemory([], [], chunks)
+    path = tmp_path / "index.sqlite"
+    save_sqlite_index(source, path)
+    monkeypatch.setattr(sqlite_snapshot, "_BLOB_OPEN_AVAILABLE", False)
+
+    with open_sqlite_index(path) as loaded:
+        assert _ranked(loaded, "alpha beta") == _ranked(source, "alpha beta")
+
+
 def test_snapshot_fetch_preserves_entities_metadata_and_input_order(tmp_path):
     chunks = [
         Chunk("a", "alpha", entities=["n1"], meta={"page": 2}, title="A"),
