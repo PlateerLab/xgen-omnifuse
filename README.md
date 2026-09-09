@@ -329,4 +329,14 @@ pip install build && python -m build      # dist/*.tar.gz + *.whl
 
 ## License
 
-TBD.
+**Source-available, all rights reserved.** Copyright (c) 2026 Jinsoo Kim (jinsoo96).
+
+This is not an open-source license. You may read, clone for personal evaluation, and cite
+this code. You may **not** use it in any product or service, copy it, modify it, redistribute
+it, or build on it without the Owner's prior written permission. The `PlateerLab/xgen-omnifuse`
+mirror and the `xgen-omnifuse` package on PyPI are redistributions of this repository and carry
+the same terms; installing the package is not a grant of permission. Full text:
+[`LICENSE`](LICENSE). To request permission, open an issue or email wlstn010203@gmail.com.
+
+소스는 공개돼 있지만 오픈소스가 아닙니다. 열람·인용은 자유이고, 사용·복제·수정·배포·상업적
+이용·파생 작업은 저작권자(김진수)의 사전 서면 허가가 필요합니다.

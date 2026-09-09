@@ -2,6 +2,16 @@
 
 ## Unreleased
 
+- **License added: source-available, all rights reserved (Jinsoo Kim).** The repository
+  previously shipped with no license, which in most jurisdictions already reserves all
+  rights but leaves the terms unstated. `LICENSE` now states them: reading, personal
+  evaluation and citation are allowed; use in any product or service, copying,
+  modification, redistribution, derivative works and ML training on the code require the
+  Owner's prior written permission. The `PlateerLab/xgen-omnifuse` mirror and the PyPI
+  package are covered as redistributions of this origin. `pyproject.toml` now declares
+  `license = { file = "LICENSE" }` and the `License :: Other/Proprietary License`
+  classifier so the terms surface on PyPI and in the built wheel/sdist.
+
 - **v22 completes Synaptic's official HotPotQA E2E path and wins every common aggregate
   metric without query-specific logic.** Static text corpora can opt into deterministic
   title-reference graph construction with `build_inmemory(..., auto_link_titles=True)`.
