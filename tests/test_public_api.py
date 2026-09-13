@@ -153,6 +153,32 @@ def test_ppr_scores_reach_neighbour_chunks_and_blend_in_place():
     assert touched == 2 and scores["k1"] == 0.8 * 0.5 + 0.2 * 1.0 and scores["k4"] == 0.5
 
 
+def test_ppr_read_back_is_candidate_sided():
+    graph = RankGraph(NODES, TRIPLES)
+    seeds = ppr_seeds(graph, "감사규정")
+    ids = ["k1", "k2", "k3", "k4"]
+    via_store = ppr_chunk_scores(graph, seeds, ids)              # graph.entities_of_chunks
+    given = {ck: list(graph.entities_of_chunks([ck]).get(ck, [])) for ck in ids}
+    via_arg = ppr_chunk_scores(graph, seeds, ids, chunk_entities=given)
+    assert via_arg == via_store
+
+    class GraphOnlyReverse:                                       # no entities_of_chunks -> old path
+        def __init__(self, g):
+            self.g = g
+        def all_edges(self, limit=80000):
+            return self.g.all_edges(limit)
+        def chunks_of_entities(self, ids, limit=1000):
+            self.calls = getattr(self, "calls", 0) + 1
+            return self.g.chunks_of_entities(ids, limit)
+    legacy = GraphOnlyReverse(graph)
+    assert ppr_chunk_scores(legacy, seeds, ids) == via_store and legacy.calls == 1
+
+    class Counting(RankGraph):
+        def chunks_of_entities(self, ids, limit=1000):
+            raise AssertionError("must not walk the graph when the candidates' entities are known")
+    assert ppr_chunk_scores(Counting(NODES, TRIPLES), seeds, ids, chunk_entities=given) == via_store
+
+
 def test_preloaded_store_fuses_dense_and_lexical():
     store = PreloadedVectorStore(CHUNKS, DENSE)
     hits = store.search("대출 한도", limit=4)

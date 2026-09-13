@@ -82,10 +82,18 @@ def ppr_chunk_scores(
     alpha: float = 0.5,
     iters: int = 12,
     max_edges: int = 80000,
+    chunk_entities: dict[str, list[str]] | None = None,
 ) -> dict[str, float]:
     """Personalized PageRank from ``seeds`` over ``graph.all_edges`` (undirected),
-    read back on ``chunk_ids`` via ``chunks_of_entities`` and scaled to [0, 1].
-    ``alpha`` is the restart probability. Empty dict when anything is missing."""
+    read back on ``chunk_ids`` and scaled to [0, 1]. ``alpha`` is the restart
+    probability. Empty dict when anything is missing.
+
+    A chunk scores the best rank among the entities it mentions. Those entities come
+    from ``chunk_entities`` ({chunk_id: [uri, ...]}) when the caller already has
+    them, else from ``graph.entities_of_chunks(chunk_ids)`` when the store offers
+    it, else from ``graph.chunks_of_entities`` over every ranked node. The first two
+    cost O(candidates); the last is O(graph) and is subject to the store's row cap.
+    """
     if not seeds or not chunk_ids:
         return {}
     try:
@@ -126,18 +134,30 @@ def ppr_chunk_scores(
     if not rank:
         return {}
 
-    try:
-        pairs = graph.chunks_of_entities(list(rank.keys()))
-    except Exception:
-        return {}
-    want = set(chunk_ids)
     out: dict[str, float] = {}
-    for ck, uri in pairs:
-        if ck not in want:
-            continue
-        m = rank.get(uri, 0.0)
-        if m > out.get(ck, 0.0):
-            out[ck] = m
+    ents = chunk_entities
+    if ents is None and callable(getattr(graph, "entities_of_chunks", None)):
+        try:
+            ents = graph.entities_of_chunks(list(chunk_ids))
+        except Exception:
+            ents = None
+    if ents is not None:
+        for ck in chunk_ids:
+            m = max((rank.get(u, 0.0) for u in (ents.get(ck) or [])), default=0.0)
+            if m > 0.0:
+                out[ck] = m
+    else:
+        try:
+            pairs = graph.chunks_of_entities(list(rank.keys()))
+        except Exception:
+            return {}
+        want = set(chunk_ids)
+        for ck, uri in pairs:
+            if ck not in want:
+                continue
+            m = rank.get(uri, 0.0)
+            if m > out.get(ck, 0.0):
+                out[ck] = m
     if not out:
         return {}
     top = max(out.values()) or 1.0

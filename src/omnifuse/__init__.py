@@ -3,7 +3,7 @@
 from importlib import import_module
 
 
-__version__ = "0.7.0"
+__version__ = "0.7.1"
 
 _EXPORTS = {
     "OmniFuse": (".oneshot", "OmniFuse"),

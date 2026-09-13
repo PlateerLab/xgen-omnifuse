@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.7.1
+
+- **`graph_rank.ppr_chunk_scores` reads back on the candidate side.** It used to ask
+  the store for the chunks of *every* node PageRank reached (`chunks_of_entities`),
+  which is O(graph) per query and subject to the store's row cap, so on a large graph
+  it took tens of seconds and left most candidates unscored. Now a chunk scores the
+  best rank among its own entities, taken from the new `chunk_entities=` argument
+  when the caller already has them, else from `graph.entities_of_chunks`, else the
+  old walk. Same numbers where the old path was not truncated; O(candidates).
+
 ## 0.7.0
 
 - **`omnifuse.fusion.natural_cut(scored, *, min_k=0, max_k=0)`** — self-sizing top-k.
