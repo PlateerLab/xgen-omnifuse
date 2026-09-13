@@ -39,6 +39,28 @@ class GraphStore(Protocol):
 
 
 @runtime_checkable
+class GraphRankStore(Protocol):
+    """Optional graph-side ranking data (see ``omnifuse.graph_rank`` and
+    ``OmniFuse(specificity_weight=...)``). A GraphStore may implement any subset;
+    every consumer probes with ``getattr`` and degrades to a no-op."""
+
+    def node_specificity(self, node_ids: list[str]) -> dict[str, float]:
+        """1 / number of chunks a node appears in, in (0, 1]. Hubs score low."""
+
+    def entities_of_chunks(self, chunk_ids: list[str], limit: int = 400) -> dict[str, list[str]]:
+        """chunk id -> node ids it mentions (most specific first)."""
+
+    def chunks_of_entities(self, node_ids: list[str], limit: int = 1000) -> list[tuple[str, str]]:
+        """(chunk id, node id) pairs for chunks mentioning any of the nodes."""
+
+    def chunk_coverage(self, node_ids: list[str]) -> dict[str, float]:
+        """node id -> share of the collection's chunks it appears in, in [0, 1]."""
+
+    def all_edges(self, limit: int = 80000) -> list[tuple[str, str]]:
+        """(subject id, object id) pairs of the collection's edges, for PageRank."""
+
+
+@runtime_checkable
 class VectorStore(Protocol):
     """Dense/lexical passage retrieval."""
 

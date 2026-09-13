@@ -18,9 +18,9 @@ from __future__ import annotations
 
 from contextlib import nullcontext
 import re
-from typing import Optional
+from typing import Callable, Optional
 
-from .fusion import dynamic_cut, mmr, rank_relations
+from .fusion import dynamic_cut, mmr, rank_relations, specificity_rerank
 from .linking import title_query_match
 from .llm import EchoLLM
 from .models import Chunk, ChunkMutationResult, SearchResult
@@ -37,6 +37,9 @@ SYSTEM = (
     "grounds instead of dumping the whole candidate set. Give a complete list only when the "
     "question explicitly asks to enumerate or count. Do not invent facts absent from the evidence."
 )
+
+# prompt_builder(question, evidence_passages, relation_strings, class_seed) -> user prompt
+PromptBuilder = Callable[[str, list[str], list[str], str], str]
 
 
 class OmniFuse:
@@ -63,11 +66,22 @@ class OmniFuse:
         fusion_neighbor_limit: int = 20,
         fusion_direction: str = "out",
         system_prompt: str = SYSTEM,
+        prompt_builder: Optional[PromptBuilder] = None,
+        specificity_weight: float = 0.0,
     ):
+        """``prompt_builder(question, evidence, relations, class_seed) -> str`` replaces
+        the default synthesis prompt (any language/framing) without subclassing.
+
+        ``specificity_weight`` in (0, 1] re-weights each retrieved chunk by the most
+        specific entity it mentions (``graph.node_specificity``); chunks that only name
+        hub entities lose ground. Ignored when the graph store has no such method.
+        """
         self.graph = graph
         self.vector = vector
         self.llm = llm or EchoLLM()
         self.system_prompt = system_prompt
+        self.prompt_builder = prompt_builder
+        self.specificity_weight = specificity_weight
         self.vector_k = vector_k
         self.sem_ratio = sem_ratio
         self.sem_min = sem_min
@@ -140,7 +154,10 @@ class OmniFuse:
         read_view = getattr(self.vector, "read_view", None)
         view = read_view() if callable(read_view) else nullcontext()
         with view:
-            return self._retrieve_current_view(question, limit=limit)
+            hits = self._retrieve_current_view(question, limit=limit)
+        if self.specificity_weight > 0 and hits:
+            hits = specificity_rerank(hits, self.graph, weight=self.specificity_weight)
+        return hits
 
     def _retrieve_current_view(
         self, question: str, *, limit: Optional[int]
@@ -199,7 +216,13 @@ class OmniFuse:
         ranked = sorted(scores.items(), key=lambda kv: -kv[1])
         return [(cmap[i], s) for i, s in ranked[:limit]]
 
-    def search(self, question: str) -> SearchResult:
+    def search(self, question: str, *, synthesize: bool = True) -> SearchResult:
+        """Fused retrieval plus one LLM synthesis.
+
+        ``synthesize=False`` stops before the LLM: the result carries the selected
+        ``evidence``, the ``prompt`` it would have sent and the ``system`` prompt, so a
+        caller can run its own generation (streaming, another model, an agent turn).
+        """
         # 1) vector / lexical seed + 1-hop graph fusion (adaptive top-k by score)
         vhits = self.retrieve(question, limit=self.vector_k)
         chunks = dynamic_cut(
@@ -245,22 +268,27 @@ class OmniFuse:
         )
 
         # 6) single synthesis over fused evidence
-        prompt = self._prompt(question, ev, relations, class_seed)
-        answer = self.llm.generate(prompt, system=self.system_prompt)
+        build = self.prompt_builder or self.build_prompt
+        prompt = build(question, ev, relations, class_seed)
+        answer = self.llm.generate(prompt, system=self.system_prompt) if synthesize else ""
 
         return SearchResult(
             answer=answer,
             question=question,
             chunks=chunks,
             relations=relations,
-            evidence_nodes=self._cited_nodes(relations, class_seed, answer),
+            evidence_nodes=self.cited_nodes(relations, class_seed, answer),
             class_seed=class_seed,
+            evidence=ev,
+            prompt=prompt,
+            system=self.system_prompt,
         )
 
     @staticmethod
-    def _prompt(
+    def build_prompt(
         question: str, evidence: list[str], relations: list[str], class_seed: str
     ) -> str:
+        """Default synthesis prompt. Pass ``prompt_builder=`` to replace it."""
         parts = [f"Question: {question}"]
         if class_seed:
             parts.append(class_seed)
@@ -271,7 +299,7 @@ class OmniFuse:
         return "\n\n".join(parts)
 
     @staticmethod
-    def _cited_nodes(relations: list[str], class_seed: str, answer: str) -> list[str]:
+    def cited_nodes(relations: list[str], class_seed: str, answer: str) -> list[str]:
         """Nodes the answer actually mentions — honest highlight, not keyword spray."""
         cand: set[str] = set()
         for t in relations:
@@ -293,3 +321,7 @@ class OmniFuse:
                     cand.add(nm)
         ans = answer or ""
         return sorted(c for c in cand if len(c) >= 2 and c in ans)
+
+    # Pre-0.6 names, kept so existing subclasses keep working.
+    _prompt = build_prompt
+    _cited_nodes = cited_nodes

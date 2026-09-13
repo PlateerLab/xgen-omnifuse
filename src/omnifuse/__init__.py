@@ -3,10 +3,18 @@
 from importlib import import_module
 
 
-__version__ = "0.5.0"
+__version__ = "0.6.0"
 
 _EXPORTS = {
     "OmniFuse": (".oneshot", "OmniFuse"),
+    "PreloadedVectorStore": (".backends.preloaded", "PreloadedVectorStore"),
+    "GraphRankStore": (".protocols", "GraphRankStore"),
+    "graph_candidate_chunks": (".graph_rank", "graph_candidate_chunks"),
+    "ppr_seeds": (".graph_rank", "ppr_seeds"),
+    "ppr_chunk_scores": (".graph_rank", "ppr_chunk_scores"),
+    "blend_ppr": (".graph_rank", "blend_ppr"),
+    "minmax": (".fusion", "minmax"),
+    "specificity_rerank": (".fusion", "specificity_rerank"),
     "Vault": (".vault", "Vault"),
     "build_inmemory": (".facade", "build_inmemory"),
     "Feedback": (".feedback", "Feedback"),

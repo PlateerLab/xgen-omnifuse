@@ -7,6 +7,7 @@ _EXPORTS = {
     "InMemoryGraph": (".memory", "InMemoryGraph"),
     "InMemoryVector": (".memory", "InMemoryVector"),
     "MutableInMemoryVector": (".memory", "MutableInMemoryVector"),
+    "PreloadedVectorStore": (".preloaded", "PreloadedVectorStore"),
     "SQLiteSnapshotGraph": (".sqlite_snapshot", "SQLiteSnapshotGraph"),
     "SQLiteSnapshotVector": (".sqlite_snapshot", "SQLiteSnapshotVector"),
     "build_sqlite_index": (".sqlite_snapshot", "build_sqlite_index"),

@@ -77,3 +77,6 @@ class SearchResult:
     evidence_nodes: list[str] = field(default_factory=list)  # node labels the answer cites
     class_seed: str = ""
     mode: str = "omnifuse"
+    evidence: list[str] = field(default_factory=list)  # passages MMR selected, in order
+    prompt: str = ""  # synthesis user prompt (built even when synthesize=False)
+    system: str = ""  # synthesis system prompt

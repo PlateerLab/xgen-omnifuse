@@ -20,6 +20,7 @@ from threading import RLock
 from typing import Callable, NamedTuple, Optional
 
 from ..feedback import Feedback
+from ..fusion import minmax
 from ..lexical_rerank import (
     rank_korean_character_fallback,
     rerank_lexical_candidates,
@@ -280,15 +281,7 @@ def _cosine(a: list[float], b: list[float]) -> float:
     return dot / (na * nb)
 
 
-def _minmax(pairs: list[tuple[int, float]]) -> dict[int, float]:
-    """Per-query [0,1] normalization so dense cosine and lexical BM25 (different
-    scales) can be summed."""
-    if not pairs:
-        return {}
-    vals = [s for _, s in pairs]
-    lo, hi = min(vals), max(vals)
-    rng = (hi - lo) or 1.0
-    return {i: (s - lo) / rng for i, s in pairs}
+_minmax = minmax  # public home is omnifuse.fusion.minmax
 
 
 class InMemoryVector:

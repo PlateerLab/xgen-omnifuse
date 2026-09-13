@@ -13,6 +13,45 @@ def _toks(s: str) -> set[str]:
     return set(tokenize(s))
 
 
+def minmax(pairs: list[tuple]) -> dict:
+    """Per-query [0,1] normalization so scores on different scales (dense cosine,
+    lexical BM25) can be summed. ``pairs`` is [(key, score), ...]."""
+    if not pairs:
+        return {}
+    vals = [s for _, s in pairs]
+    lo, hi = min(vals), max(vals)
+    rng = (hi - lo) or 1.0
+    return {i: (s - lo) / rng for i, s in pairs}
+
+
+def specificity_rerank(hits: list[tuple], graph, *, weight: float) -> list[tuple]:
+    """Re-weight (chunk, score) pairs by the most specific entity each chunk mentions.
+
+    ``score * ((1 - weight) + weight * max_specificity)`` — a chunk whose entities are
+    all hubs (low specificity) drops, a chunk naming a rare entity keeps its score.
+    Needs ``graph.node_specificity(ids) -> {id: 0..1}``; without it the list is
+    returned unchanged. Chunks with no entities are not re-weighted.
+    """
+    spec_fn = getattr(graph, "node_specificity", None)
+    if not callable(spec_fn) or not hits:
+        return hits
+    ids = [u for c, _ in hits for u in (getattr(c, "entities", None) or [])]
+    try:
+        spec = spec_fn(ids) or {}
+    except Exception:
+        spec = {}
+    if not spec:
+        return hits
+    out = []
+    for c, sc in hits:
+        ents = getattr(c, "entities", None) or []
+        if ents:
+            sc = sc * ((1.0 - weight) + weight * max((spec.get(u, 0.0) for u in ents), default=0.0))
+        out.append((c, sc))
+    out.sort(key=lambda kv: -kv[1])
+    return out
+
+
 def jaccard(a: set[str], b: set[str]) -> float:
     if not a or not b:
         return 0.0

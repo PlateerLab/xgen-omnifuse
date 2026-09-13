@@ -1,5 +1,28 @@
 # Changelog
 
+## 0.6.0
+
+Public extension points, so an integration never has to subclass or reach into
+private names. Everything below is additive; existing calls behave as before.
+
+- **`OmniFuse(prompt_builder=...)`** — a callable `(question, evidence, relations,
+  class_seed) -> str` that replaces the default synthesis prompt (any language or
+  framing). `OmniFuse.build_prompt` is the public default; `cited_nodes` is public too
+  (`_prompt` / `_cited_nodes` remain as aliases).
+- **`search(question, synthesize=False)`** stops before the LLM. `SearchResult` gains
+  `evidence` (the MMR-selected passages, in order), `prompt` and `system`, so a caller
+  can stream its own generation or hand the evidence to an agent.
+- **`OmniFuse(specificity_weight=w)`** re-weights retrieved chunks by the most specific
+  entity they mention (`graph.node_specificity`), via `omnifuse.fusion.specificity_rerank`.
+- **`omnifuse.graph_rank`** — `graph_candidate_chunks` (label-linked seeds -> 1-hop ->
+  chunks, hub-discounted), `ppr_seeds` / `ppr_chunk_scores` / `blend_ppr` (personalized
+  PageRank re-ranking over a candidate pool). The optional graph methods they use are
+  documented as the `GraphRankStore` protocol.
+- **`PreloadedVectorStore`** (`omnifuse.backends.preloaded`) — wrap candidates an
+  external index already scored; only the lexical index is built here and fused with
+  the given dense scores.
+- **`omnifuse.fusion.minmax`** is public (`backends.memory._minmax` stays as an alias).
+
 ## Unreleased
 
 - **License added: source-available, all rights reserved (Jinsoo Kim).** The repository
