@@ -5,7 +5,7 @@ import sys
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1] / "src"))
 
 from omnifuse import Chunk, InMemoryGraph, InMemoryVector, Node, Triple, build_inmemory  # noqa: E402
-from omnifuse.fusion import dynamic_cut, jaccard, mmr, rank_relations  # noqa: E402
+from omnifuse.fusion import dynamic_cut, jaccard, mmr, natural_cut, rank_relations  # noqa: E402
 
 NODES = [
     Node("c_reg", "규정", kind="class"),
@@ -31,6 +31,31 @@ def test_dynamic_cut_drops_low_scores():
 def test_dynamic_cut_respects_min_k():
     scored = [("a", 1.0), ("b", 0.1)]
     assert dynamic_cut(scored, ratio=0.9, min_k=2, max_k=10) == ["a", "b"]
+
+
+def test_natural_cut_finds_the_break():
+    # sharp head + long tail: the break is after the head, wherever it is
+    scored = [("a", 0.90), ("b", 0.89), ("c", 0.88), ("d", 0.50), ("e", 0.49), ("f", 0.48)]
+    assert natural_cut(scored) == ["a", "b", "c"]
+    scored = [("a", 0.90), ("b", 0.50), ("c", 0.49), ("d", 0.48), ("e", 0.47)]
+    assert natural_cut(scored) == ["a"]
+
+
+def test_natural_cut_keeps_flat_scores_whole():
+    scored = [("a", 0.5), ("b", 0.5), ("c", 0.5)]
+    assert natural_cut(scored) == ["a", "b", "c"]
+    assert natural_cut([]) == []
+    assert natural_cut([("a", 1.0)]) == ["a"]
+
+
+def test_natural_cut_bounds():
+    scored = [("a", 0.90), ("b", 0.50), ("c", 0.49), ("d", 0.48), ("e", 0.47)]
+    assert natural_cut(scored, min_k=3) == ["a", "b", "c"]
+    assert natural_cut(scored, max_k=2) == ["a"]
+    assert natural_cut(scored, min_k=4, max_k=4) == ["a", "b", "c", "d"]
+    # the break is searched only inside the window: a flat window is kept whole
+    flat = [("a", 0.9), ("b", 0.5), ("c", 0.5), ("d", 0.5), ("e", 0.1)]
+    assert natural_cut(flat[1:], max_k=3) == ["b", "c", "d"]
 
 
 def test_mmr_keeps_decisive_minority():

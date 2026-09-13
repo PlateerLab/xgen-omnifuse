@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.7.0
+
+- **`omnifuse.fusion.natural_cut(scored, *, min_k=0, max_k=0)`** — self-sizing top-k.
+  Cuts a descending score list where it splits into a high and a low group (two-class
+  Jenks / Otsu, maximum between-group variance), so the number of survivors comes from
+  the score distribution itself; there is no ratio to tune. `min_k` / `max_k` only bound
+  the answer. Complements `dynamic_cut` (ratio of the top score). Additive.
+
 ## 0.6.0
 
 Public extension points, so an integration never has to subclass or reach into

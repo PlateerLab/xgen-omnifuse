@@ -75,6 +75,35 @@ def dynamic_cut(scored: list[tuple], *, ratio: float = 0.55, min_k: int = 4, max
     return keep
 
 
+def natural_cut(scored: list[tuple], *, min_k: int = 0, max_k: int = 0) -> list:
+    """Self-sizing top-k: cut where the scores split into a high and a low group.
+
+    Picks the k that maximizes the between-group variance of head ``scored[:k]`` vs tail
+    (Jenks natural breaks / Otsu with two classes), so the data decides how many items
+    survive; there is no ratio or threshold to tune. ``min_k`` / ``max_k`` only bound
+    the answer (0 = unbounded). Flat scores have no break and are kept whole.
+    ``scored`` is [(item, score), ...] sorted desc; returns the items.
+    """
+    if not scored:
+        return []
+    n = len(scored) if max_k <= 0 else min(len(scored), max_k)
+    lo = max(1, min_k)
+    if n <= lo:
+        return [it for it, _ in scored[:n]]
+    vals = [float(sc) for _, sc in scored[:n]]
+    prefix = [0.0]
+    for v in vals:
+        prefix.append(prefix[-1] + v)
+    total = prefix[-1]
+    best, best_k = 0.0, n
+    for k in range(lo, n):
+        head, tail = prefix[k] / k, (total - prefix[k]) / (n - k)
+        var = k * (n - k) * (head - tail) ** 2
+        if var > best:
+            best, best_k = var, k
+    return [it for it, _ in scored[:best_k]]
+
+
 def mmr(candidates: list[tuple], *, lam: float = 0.72, k: int = 16) -> list:
     """Maximal Marginal Relevance over (text, relevance) candidates.
 

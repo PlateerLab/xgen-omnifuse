@@ -3,7 +3,7 @@
 from importlib import import_module
 
 
-__version__ = "0.6.0"
+__version__ = "0.7.0"
 
 _EXPORTS = {
     "OmniFuse": (".oneshot", "OmniFuse"),
@@ -14,6 +14,7 @@ _EXPORTS = {
     "ppr_chunk_scores": (".graph_rank", "ppr_chunk_scores"),
     "blend_ppr": (".graph_rank", "blend_ppr"),
     "minmax": (".fusion", "minmax"),
+    "natural_cut": (".fusion", "natural_cut"),
     "specificity_rerank": (".fusion", "specificity_rerank"),
     "Vault": (".vault", "Vault"),
     "build_inmemory": (".facade", "build_inmemory"),
