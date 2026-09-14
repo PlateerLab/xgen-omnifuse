@@ -89,6 +89,20 @@ class LLM(Protocol):
 - **Bring your own LLM** — pass anything with `generate(...)`; the bundled `EchoLLM`
   returns the fused evidence so the pipeline runs end-to-end with no API key.
 
+### Extension points (no subclassing)
+
+Everything an integration needs to change is a constructor argument or a public function;
+nothing requires reaching into private names.
+
+| Hook | What it does |
+|---|---|
+| `OmniFuse(prompt_builder=fn)` | `fn(question, evidence, relations, class_seed) -> str` replaces the synthesis prompt (any language or framing). `OmniFuse.build_prompt` is the public default. |
+| `search(q, synthesize=False)` | Stop before the LLM. `SearchResult.evidence` / `.prompt` / `.system` let you stream your own generation or hand the evidence to an agent. |
+| `OmniFuse(specificity_weight=w)` | Re-weight chunks by the most specific entity they mention (`graph.node_specificity`). |
+| `omnifuse.graph_rank` | `graph_candidate_chunks` (label-linked seeds → 1-hop → chunks, hub-discounted) and `ppr_seeds` / `ppr_chunk_scores` / `blend_ppr` (personalized PageRank over a candidate pool). Optional store methods are the `GraphRankStore` protocol. |
+| `PreloadedVectorStore` | Wrap candidates an external index already scored; only the lexical side is built here and fused with the given dense scores. |
+| `omnifuse.fusion.natural_cut` | Self-sizing top-k: cuts a descending score list where it splits into a high and a low group (two-class Otsu), so the count comes from the distribution itself. `min_k` / `max_k` only bound it. Complements `dynamic_cut`. |
+
 ## The pipeline (`OmniFuse.search`)
 
 1. vector/lexical seed + **1-hop graph fusion** → adaptive top-k (score-distribution cut, not fixed k)
@@ -296,7 +310,7 @@ and [`incremental_memory.json`](eval/results/incremental_memory.json).
 - `backends/qdrant.py` vector adapter; jena-text fast path for `FusekiGraph`
 - async pipeline (parallel seeds via `asyncio.gather`)
 - cross-encoder reranker hook, query expansion
-- configurable ISA predicates and prompt templates (per domain/language)
+- configurable ISA predicates (prompt templates landed in 0.6.0 as `prompt_builder=`)
 
 ## Vault — fuse / surface (omnifuse-native memory)
 
@@ -329,14 +343,6 @@ pip install build && python -m build      # dist/*.tar.gz + *.whl
 
 ## License
 
-**Source-available, all rights reserved.** Copyright (c) 2026 Jinsoo Kim (jinsoo96).
+Source-available, all rights reserved. Copyright (c) 2026 Jinsoo Kim.
 
-This is not an open-source license. You may read, clone for personal evaluation, and cite
-this code. You may **not** use it in any product or service, copy it, modify it, redistribute
-it, or build on it without the Owner's prior written permission. The `PlateerLab/xgen-omnifuse`
-mirror and the `xgen-omnifuse` package on PyPI are redistributions of this repository and carry
-the same terms; installing the package is not a grant of permission. Full text:
-[`LICENSE`](LICENSE). To request permission, open an issue or email wlstn010203@gmail.com.
-
-소스는 공개돼 있지만 오픈소스가 아닙니다. 열람·인용은 자유이고, 사용·복제·수정·배포·상업적
-이용·파생 작업은 저작권자(김진수)의 사전 서면 허가가 필요합니다.
+Reading and citing are fine; any other use needs written permission. See [`LICENSE`](LICENSE).
