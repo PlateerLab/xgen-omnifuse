@@ -37,14 +37,15 @@ of = load_index("idx.pkl")            # ~29x faster than rebuilding; pass embedd
 
 ## Repository model
 
-[`jinsoo96/js-omnifuse`](https://github.com/jinsoo96/js-omnifuse) is the personal source of
-truth. [`PlateerLab/xgen-omnifuse`](https://github.com/PlateerLab/xgen-omnifuse) is the
-organization mirror and keeps the published Python package name `xgen-omnifuse`.
+[`PlateerLab/xgen-omnifuse`](https://github.com/PlateerLab/xgen-omnifuse) is the source of
+truth and publishes the Python package `xgen-omnifuse`. Members of the PlateerLab
+organization commit there directly and cut releases there.
 
-Changes land on `js-omnifuse:main` first. The organization repository runs
-[`sync-from-js-omnifuse.yml`](.github/workflows/sync-from-js-omnifuse.yml) every 15 minutes
-and on manual dispatch. It accepts only a fast-forward from the personal source; it never
-force-pushes or silently overwrites an independent organization commit.
+[`jinsoo96/js-omnifuse`](https://github.com/jinsoo96/js-omnifuse) is a read-only mirror. It
+runs [`sync-from-xgen-omnifuse.yml`](.github/workflows/sync-from-xgen-omnifuse.yml) every 15
+minutes and on manual dispatch, fast-forwarding from the organization repository with the
+repository's own `GITHUB_TOKEN`; no personal credential is involved, so there is nothing to
+expire.
 
 ## Why graph fusion (not just vectors)
 
@@ -331,9 +332,10 @@ v.save("vault.jsonl"); v2 = Vault.load("vault.jsonl")
 ## CI / Releasing
 
 - `ci.yml` — runs pytest (3.10–3.12) + `python -m build` + `twine check` on every push/PR.
-- `publish.yml` — on a GitHub **Release**, builds and uploads to PyPI via **Trusted Publishing**
-  (no token in the repo). One-time PyPI setup: project → *Publishing* → add pending publisher
-  `PlateerLab / xgen-omnifuse / publish.yml / pypi`. (Token mode: add `secrets.PYPI_API_TOKEN`.)
+- `publish.yml` — on a GitHub **Release** in `PlateerLab/xgen-omnifuse`, runs the tests, builds
+  and uploads to PyPI with `secrets.PYPI_API_TOKEN`. Any organization member with write access
+  can release: bump `version` in `pyproject.toml`, add a CHANGELOG entry, tag `vX.Y.Z`, publish
+  the release. The job is gated to the organization repository, so the mirror never publishes.
 
 Build locally:
 
@@ -343,6 +345,8 @@ pip install build && python -m build      # dist/*.tar.gz + *.whl
 
 ## License
 
-Source-available, all rights reserved. Copyright (c) 2026 Jinsoo Kim.
+Source-available. Copyright (c) 2026 Jinsoo Kim.
 
-Reading and citing are fine; any other use needs written permission. See [`LICENSE`](LICENSE).
+Members of the PlateerLab organization may use, modify and ship it as part of Plateer products
+(LICENSE §4). For anyone else, reading and citing are fine; any other use needs written
+permission. See [`LICENSE`](LICENSE).

@@ -25,8 +25,8 @@ qdrant = ["qdrant-client>=1.12"]
 dev = ["pytest>=8", "ruff>=0.5", "tomli>=2; python_version < '3.11'"]
 
 [project.urls]
-Homepage = "https://github.com/jinsoo96/js-omnifuse"
-Issues = "https://github.com/jinsoo96/js-omnifuse/issues"
+Homepage = "https://github.com/PlateerLab/xgen-omnifuse"
+Issues = "https://github.com/PlateerLab/xgen-omnifuse/issues"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/omnifuse"]

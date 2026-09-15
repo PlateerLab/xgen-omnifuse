@@ -1,6 +1,7 @@
 name: publish
 
-# PyPI publishing is owned by the PlateerLab organization mirror.
+# PyPI publishing runs from the origin repository, PlateerLab/xgen-omnifuse.
+# Any organization member with write access publishes by creating a GitHub Release.
 
 on:
   release:
