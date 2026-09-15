@@ -1,3 +1,13 @@
+# 0.8.0 (2026-09-15)
+
+- Add independent hierarchy, embedding and graph interfaces through `KnowledgeProvider` and `KnowledgeSearch`.
+- Add validated `knowledge/v1` exchange records, schema, digest lock, atomic JSON export/import and standalone examples.
+- Run existing OmniFuse fusion over separate graph entity and passage IDs; return typed facts and exact source revision citations.
+- Provide a scope-bound in-memory provider with coherent snapshots, CAS publication, immutable-ID checks and revocation/cancellation support.
+- Require matching query embedding profiles; expose actual modes, raw retrieval signals and component coverage.
+- Fix class enumeration totals so the first 1,000 members are not reported as the entire class.
+- Preserve existing public APIs and add isolated producer/consumer conformance tests.
+
 # Changelog
 
 ## 0.7.1

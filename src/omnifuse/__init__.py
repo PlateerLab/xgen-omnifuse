@@ -3,9 +3,19 @@
 from importlib import import_module
 
 
-__version__ = "0.7.1"
+__version__ = "0.8.0"
 
 _EXPORTS = {
+    "KnowledgeSearch": (".knowledge_search", "KnowledgeSearch"),
+    "KnowledgeSearchResult": (".knowledge_search", "KnowledgeSearchResult"),
+    "MemoryKnowledgeProvider": (".knowledge_memory", "MemoryKnowledgeProvider"),
+    "KnowledgeProvider": (".knowledge_protocols", "KnowledgeProvider"),
+    "HierarchyStore": (".knowledge_protocols", "HierarchyStore"),
+    "EmbeddingStore": (".knowledge_protocols", "EmbeddingStore"),
+    "KnowledgeGraphStore": (".knowledge_protocols", "KnowledgeGraphStore"),
+    "ReadScope": (".knowledge_protocols", "ReadScope"),
+    "OperationContext": (".knowledge_protocols", "OperationContext"),
+
     "OmniFuse": (".oneshot", "OmniFuse"),
     "PreloadedVectorStore": (".backends.preloaded", "PreloadedVectorStore"),
     "GraphRankStore": (".protocols", "GraphRankStore"),
