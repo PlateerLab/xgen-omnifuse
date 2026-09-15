@@ -43,6 +43,13 @@ private names. Everything below is additive; existing calls behave as before.
 
 ## Unreleased
 
+- **Repository model reversed.** `PlateerLab/xgen-omnifuse` is now the origin and
+  publishes the package; `jinsoo96/js-omnifuse` is a read-only mirror that fast-forwards
+  from it with its own `GITHUB_TOKEN` (no personal credential, nothing to expire).
+  LICENSE gains §4, a written grant letting PlateerLab organization members use, modify,
+  build and ship the Software as part of Plateer products. Not open source; copyright
+  unchanged.
+
 - **License added: source-available, all rights reserved (Jinsoo Kim).** The repository
   previously shipped with no license, which in most jurisdictions already reserves all
   rights but leaves the terms unstated. `LICENSE` now states them: reading, personal
