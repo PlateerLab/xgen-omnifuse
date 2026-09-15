@@ -178,28 +178,29 @@ class OmniFuse:
                 match = title_query_match(question, node.label)
                 if match is None:
                     continue
-                got = self.vector.fetch([node.id])
-                if not got:
-                    continue
-                cmap[node.id] = got[0]
-                mention_priority = _TITLE_SEED_BASE_BOOST - (
-                    _TITLE_SEED_POSITION_DECAY * min(1.0, match.offset / question_width)
-                )
-                scores[node.id] = max(
-                    scores.get(node.id, 0.0),
-                    top_score
-                    * (
-                        1.0
-                        + mention_priority
-                        + _TITLE_SEED_AFFINITY_BOOST * match.affinity
-                    ),
-                )
+                seed_chunks = getattr(self.graph, "seed_chunk_ids", None)
+                chunk_ids = (seed_chunks(node.id, limit=self.fusion_neighbor_limit)
+                             if callable(seed_chunks) else [node.id])
+                for chunk_id in chunk_ids:
+                    got = self.vector.fetch([chunk_id])
+                    if not got:
+                        continue
+                    cmap[chunk_id] = got[0]
+                    mention_priority = _TITLE_SEED_BASE_BOOST - (
+                        _TITLE_SEED_POSITION_DECAY * min(1.0, match.offset / question_width)
+                    )
+                    scores[chunk_id] = max(
+                        scores.get(chunk_id, 0.0),
+                        top_score
+                        * (1.0 + mention_priority + _TITLE_SEED_AFFINITY_BOOST * match.affinity),
+                    )
             fusion_seeds = sorted(scores.items(), key=lambda item: -item[1])[
                 : self.fusion_expand_top
             ]
             for source_id, sc in fusion_seeds:
                 c = cmap[source_id]
-                for tgt in self.graph.neighbor_ids(
+                neighbors = getattr(self.graph, "neighbor_chunk_ids", self.graph.neighbor_ids)
+                for tgt in neighbors(
                     c.id,
                     limit=self.fusion_neighbor_limit,
                     direction=self.fusion_direction,
@@ -242,15 +243,16 @@ class OmniFuse:
         if class_hits:
             cn = class_hits[0]
             insts = self.graph.class_instances(cn.id)
-            if len(insts) >= 2:
+            total = self.graph.count_class(cn.id)
+            if total >= 2:
                 shown = " | ".join(i.label for i in insts[: self.class_list_cap])
                 more = (
-                    f" (+{len(insts) - self.class_list_cap} more)"
-                    if len(insts) > self.class_list_cap
+                    f" (+{total - min(len(insts), self.class_list_cap)} more)"
+                    if total > min(len(insts), self.class_list_cap)
                     else ""
                 )
                 class_seed = (
-                    f"[CLASS '{cn.label}' has {len(insts)} instances: {shown}{more}. "
+                    f"[CLASS '{cn.label}' has {total} instances: {shown}{more}. "
                     f"List all only if asked to enumerate/count; otherwise pick the relevant ones.]"
                 )
 

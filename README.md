@@ -1,5 +1,7 @@
 # OmniFuse
 
+**Portable knowledge inputs:** [hierarchy, embeddings and graph interfaces](docs/knowledge.md).
+
 **Backend-agnostic, one-shot GraphRAG.** Fire several retrieval strategies at once —
 vector/lexical passages **+** graph label-linking **+** class enumeration **+** relation
 expansion — and *fuse* them with MMR diversity into a single LLM synthesis. No
