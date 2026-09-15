@@ -1,3 +1,9 @@
+# Unreleased
+
+- Mirror sync (`sync-from-xgen-omnifuse.yml`) pushes with the mirror's `SYNC_TOKEN` secret
+  when set: `GITHUB_TOKEN` cannot push a commit that touches `.github/workflows/`, so the
+  mirror had stalled at the first origin commit that changed CI (`20cdd92`).
+
 # 0.8.0 (2026-09-15)
 
 - Add independent hierarchy, embedding and graph interfaces through `KnowledgeProvider` and `KnowledgeSearch`.
