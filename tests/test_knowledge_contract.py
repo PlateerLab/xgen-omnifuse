@@ -7,7 +7,7 @@ import sys
 from pathlib import Path
 
 from omnifuse import KnowledgeSearch, MemoryKnowledgeProvider
-from omnifuse.knowledge import KnowledgeBundle
+from omnifuse.knowledge import KnowledgeBundle, Resource, SourceChunk, canonical_json
 
 
 def test_packaged_contract_digests():
@@ -40,3 +40,16 @@ assert result.citations[0].revision == "v1"
 assert "xgen_ontology" not in sys.modules
 '''
     subprocess.run([sys.executable, "-I", "-S", "-c", code], cwd=tmp_path, check=True)
+
+
+def test_surrogate_parser_output_is_valid_utf8_for_consumers():
+    bundle = KnowledgeBundle(
+        "corpus", "snapshot",
+        resources=(Resource("resource", "v1", "document.txt"),),
+        chunks=(SourceChunk("chunk", "resource", "v1", "parser", "title \ud83d\ude00 \ud800"),),
+    )
+
+    data = bundle.to_dict()
+
+    assert data["chunks"][0]["text"] == "title \U0001f600 \ufffd"
+    canonical_json(data).encode("utf-8")

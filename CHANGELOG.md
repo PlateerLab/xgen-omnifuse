@@ -1,3 +1,9 @@
+# 0.8.2 (2026-09-17)
+
+- Normalize UTF-16 surrogate pairs and malformed isolated surrogates while
+  loading and serializing portable knowledge snapshots, keeping retrieval input
+  valid UTF-8 even when document parsers expose raw UTF-16 code units.
+
 # 0.8.1 (2026-09-16)
 
 - `OmniFuse.search` no longer requires `GraphStore.count_class`. 0.8.0 called it
