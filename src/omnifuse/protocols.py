@@ -32,7 +32,9 @@ class GraphStore(Protocol):
         Retrieval fusion asks for ``"out"``: the passage a seed *references*."""
 
     def count_class(self, class_id: str) -> int:
-        """Number of instances of a class."""
+        """Number of instances of a class. Optional: ``OmniFuse`` falls back to
+        ``len(class_instances(class_id))`` when a store does not implement it, so
+        the reported total is then capped by the enumeration limit."""
 
     def get_node(self, node_id: str) -> Optional[Node]:
         ...

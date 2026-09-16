@@ -243,7 +243,10 @@ class OmniFuse:
         if class_hits:
             cn = class_hits[0]
             insts = self.graph.class_instances(cn.id)
-            total = self.graph.count_class(cn.id)
+            # ``count_class`` is optional: stores written against 0.7.x only enumerate, so
+            # fall back to the enumerated size instead of failing the whole search.
+            count_class = getattr(self.graph, "count_class", None)
+            total = count_class(cn.id) if callable(count_class) else len(insts)
             if total >= 2:
                 shown = " | ".join(i.label for i in insts[: self.class_list_cap])
                 more = (

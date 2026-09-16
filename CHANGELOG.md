@@ -1,3 +1,12 @@
+# 0.8.1 (2026-09-16)
+
+- `OmniFuse.search` no longer requires `GraphStore.count_class`. 0.8.0 called it
+  unconditionally in the class-enumeration step, so every store written against the
+  0.7.x protocol (e.g. the Xgen PostgreSQL adapter) raised `AttributeError` and the host
+  silently fell back to vector-only retrieval. Stores without `count_class` now get the
+  enumerated size as the total, exactly as before 0.8.0; stores that implement it keep
+  the exact count.
+
 # Unreleased
 
 - Mirror sync (`sync-from-xgen-omnifuse.yml`) pushes with the mirror's `SYNC_TOKEN` secret
