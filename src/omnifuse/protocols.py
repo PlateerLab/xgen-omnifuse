@@ -61,6 +61,10 @@ class GraphRankStore(Protocol):
     def all_edges(self, limit: int = 80000) -> list[tuple[str, str]]:
         """(subject id, object id) pairs of the collection's edges, for PageRank."""
 
+    def walk_neighbors_many(self, node_ids: list[str]) -> dict[str, list[str]]:
+        """node id -> undirected neighbours over the edges PageRank should walk
+        (``ppr_local``). Optional; without it ``ppr_local`` falls back to ``neighbor_ids``."""
+
 
 @runtime_checkable
 class VectorStore(Protocol):

@@ -1,3 +1,12 @@
+# 0.8.3 (2026-09-19)
+
+- Add `graph_rank.ppr_local` (exported): Personalized PageRank by local push
+  (Andersen-Chung-Lang). It reads only the neighbours of nodes that still carry
+  residual mass, so the work is bounded by `1 / (alpha * tol)` and does not depend on
+  the collection size; no edge cap, no edge table in memory. Uses the optional
+  `GraphRankStore.walk_neighbors_many` for one round trip per frontier and falls back
+  to `neighbor_ids`. `ppr_chunk_scores` is unchanged; existing callers are unaffected.
+
 # 0.8.2 (2026-09-17)
 
 - Normalize UTF-16 surrogate pairs and malformed isolated surrogates while

@@ -3,7 +3,7 @@
 from importlib import import_module
 
 
-__version__ = "0.8.1"
+__version__ = "0.8.3"
 
 _EXPORTS = {
     "KnowledgeSearch": (".knowledge_search", "KnowledgeSearch"),
@@ -23,6 +23,7 @@ _EXPORTS = {
     "ppr_seeds": (".graph_rank", "ppr_seeds"),
     "ppr_chunk_scores": (".graph_rank", "ppr_chunk_scores"),
     "blend_ppr": (".graph_rank", "blend_ppr"),
+    "ppr_local": (".graph_rank", "ppr_local"),
     "minmax": (".fusion", "minmax"),
     "natural_cut": (".fusion", "natural_cut"),
     "specificity_rerank": (".fusion", "specificity_rerank"),
