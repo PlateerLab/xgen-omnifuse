@@ -1,3 +1,8 @@
+# Unreleased
+
+- License changed to MIT. The source-available license no longer applies to this repository
+  or to releases from here on; releases already published keep the license they shipped with.
+
 # 0.8.3 (2026-09-19)
 
 - Add `graph_rank.ppr_local` (exported): Personalized PageRank by local push

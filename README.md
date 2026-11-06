@@ -350,8 +350,4 @@ pip install build && python -m build      # dist/*.tar.gz + *.whl
 
 ## License
 
-Source-available. Copyright (c) 2026 Jinsoo Kim.
-
-Members of the PlateerLab organization may use, modify and ship it as part of Plateer products
-(LICENSE §4). For anyone else, reading and citing are fine; any other use needs written
-permission. See [`LICENSE`](LICENSE).
+[MIT](LICENSE). Copyright (c) 2026 Jinsoo Kim.
