@@ -9,8 +9,8 @@ description = "Backend-agnostic one-shot GraphRAG: fuse vector + graph (label/cl
 readme = "README.md"
 requires-python = ">=3.10"
 authors = [{ name = "jinsoo96", email = "wlstn010203@gmail.com" }]
-license = "MIT"
-license-files = ["LICENSE"]
+license = "Apache-2.0"
+license-files = ["LICENSE.md"]
 keywords = ["graphrag", "rag", "retrieval", "knowledge-graph", "bm25", "mmr", "ontology"]
 classifiers = [
     "Programming Language :: Python :: 3",

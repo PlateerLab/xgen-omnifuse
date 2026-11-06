@@ -350,4 +350,4 @@ pip install build && python -m build      # dist/*.tar.gz + *.whl
 
 ## License
 
-[MIT](LICENSE). Copyright (c) 2026 Jinsoo Kim.
+Apache License 2.0. See [LICENSE.md](LICENSE.md) for details.
